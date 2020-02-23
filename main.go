@@ -127,7 +127,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user User
 	err = json.Unmarshal(body, &user)
-	if err != nil || user.MetaEmpty() {
+	if err != nil || user.Empty() {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
@@ -151,7 +151,7 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user User
 	err = json.Unmarshal(body, &user)
-	if err != nil || user.Empty() {
+	if err != nil || user.MetaEmpty() {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
