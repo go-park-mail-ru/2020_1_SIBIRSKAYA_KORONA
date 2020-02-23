@@ -10,6 +10,8 @@ import (
 	"sync"
 	"net/http"
 	"time"
+	"io"
+	"io/ioutil"
 )
 
 /***************** UserStore **********************/
@@ -19,7 +21,7 @@ type User struct {
 	// Id       uint   `json: "id"`
 	Name     string `json:"name"`
 	SurName  string `json:"surname"`
-	// NickName string `json:"nickname"` // ключ в мапе
+	NickName string `json:"nickname"` // ключ в мапе
 	Password string `json:"password"`
 }
 
@@ -36,20 +38,17 @@ func CreateUserStore() *UserStore {
 	}
 }
 
-func (this *UserStore) Add(nickName string, user *User) {
+func (this *UserStore) Add(user *User) {
 	this.mu.Lock()
 	defer this.mu.Unlock()
-	//size := len(this.users)
-	//user.Id = size
-	this.users[nickName] = user // TODO: обработать существующие
-	
-
+	this.users[user.NickName] = user
 }
 
-func (this *UserStore) Get(nickName string) (*User) {
+func (this *UserStore) Get(nickName string) (*User, bool) {
 	this.mu.Lock()
 	defer this.mu.Unlock()
-	return this.users[nickName] // TODO: обработать не существующие
+	user, has := this.users[nickName]
+	return user, has
 }
 
 func (this *UserStore) GetAll() (map[string]*User) {
@@ -113,14 +112,30 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, `{"join"}`, 400)
+	w.WriteHeader(http.StatusOK)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		io.WriteString(w, `{"status": 500}`)
+	}
+	defer r.Body.Close() // важный пункт!
+	log.Println(body)
+	var user User
+	json.Unmarshal(body, &user)
+	_, has := this.userStore.Get(user.NickName)
+	if has {
+		io.WriteString(w, `{"status": 409}`)
+	} else {
+		this.userStore.Add(&user)
+		io.WriteString(w, `{"status": 308}`) // TODO нужный статус
+			                //`{"status": 301, "body": {"path": "/login"}}`
+	}
 }
 
 
 // http://127.0.0.1:8080/login?nick=tim&password=keklol
 func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	nickName := r.FormValue("nick")
-	user := this.userStore.Get(nickName)
+	user, _ := this.userStore.Get(nickName)
 	if user.Password != r.FormValue("password") {
 		http.Error(w, `bad pass`, 400)
 		return
@@ -144,8 +159,9 @@ func (this *Handler) User(w http.ResponseWriter, r *http.Request) {
 		Name: "Tim",
 		SurName: "Razumov",
 		Password: "keklol",
+		NickName: "tim",
 	}
-	this.userStore.Add("tim", user)
+	this.userStore.Add(user)
 	jsonData, _ := json.Marshal(user)	
 	w.Write(jsonData)
 }
