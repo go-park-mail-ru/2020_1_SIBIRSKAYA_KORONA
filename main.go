@@ -115,32 +115,50 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":400}`)
+		return
 	}
-	defer r.Body.Close() // важный пункт!
-	log.Println(body)
+	defer r.Body.Close()
 	var user User
-	json.Unmarshal(body, &user)
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		io.WriteString(w, `{"status":400}`)
+		return
+	}
 	_, has := this.userStore.Get(user.NickName)
 	if has {
-		io.WriteString(w, `{"status": 409}`)
+		io.WriteString(w, `{"status":409}`)
 	} else {
 		this.userStore.Add(&user)
-		io.WriteString(w, `{"status": 308}`) // TODO нужный статус
-			                //`{"status": 301, "body": {"path": "/login"}}`
+		io.WriteString(w, `{"status":308}`)
+			                // TODO:`{"status": 301, "body": {"path": "/login"}}`
 	}
 }
 
-
-// http://127.0.0.1:8080/login?nick=tim&password=keklol
 func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	nickName := r.FormValue("nick")
-	user, _ := this.userStore.Get(nickName)
-	if user.Password != r.FormValue("password") {
-		http.Error(w, `bad pass`, 400)
+	w.WriteHeader(http.StatusOK)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		io.WriteString(w, `{"status":400}`)
 		return
 	}
-	SID := this.sessionStore.AddSession(nickName)
+	defer r.Body.Close()
+	var user User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		io.WriteString(w, `{"status":400}`)
+		return
+	}
+	realUser, has := this.userStore.Get(user.NickName)
+	if !has {
+		io.WriteString(w, `{"status":404}`)
+		return
+	}
+	if realUser.Password != user.Password {
+		io.WriteString(w, `{"status":412}`)
+		return
+	}
+	SID := this.sessionStore.AddSession(user.NickName)
 	cookie := &http.Cookie{
 		Name:    "session_id",
 		Value:   SID,
@@ -149,12 +167,10 @@ func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
-	w.Write([]byte(SID))
+	io.WriteString(w, `{"status":308}`)
 }
 
 func (this *Handler) User(w http.ResponseWriter, r *http.Request) {
-	//nickName := mux.Vars(r)["nickname"]
-	//user := this.store.Get(nickName);
 	user := &User{
 		Name: "Tim",
 		SurName: "Razumov",
@@ -179,8 +195,8 @@ func main() {
 	}
 
 	router.HandleFunc("/", api.Main)
-	router.HandleFunc("/join", api.Join)
-	router.HandleFunc("/login", api.Login)
+	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
+	router.HandleFunc("/login", api.Login).Methods(http.MethodPost)
 	router.HandleFunc("/profile/{nickname}", api.User)//.Methods(http.MethodsGet)
 
 	log.Println("start")
