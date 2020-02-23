@@ -1,34 +1,36 @@
 package main
 
 import (
-	"os"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"log"
-	"sync"
-	"net/http"
-	"time"
 	"io"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"sync"
+	"time"
 )
 
 /***************** UserStore **********************/
 
 // TODO avatar
 type User struct {
-	// Id       uint   `json: "id"`
 	Name     string `json:"name"`
 	SurName  string `json:"surname"`
 	NickName string `json:"nickname"` // ключ в мапе
 	Password string `json:"password"`
 }
 
+func (this *User) Empty() bool {
+	return this.Name == "" || this.SurName == "" || this.NickName == "" || this.Password == ""
+}
+
 type UserStore struct {
-	sessions map[string]string
 	users map[string]*User
-	mu    sync.Mutex    // RWMutex в лекции?
+	mu    sync.Mutex // RWMutex в лекции?
 }
 
 func CreateUserStore() *UserStore {
@@ -51,7 +53,7 @@ func (this *UserStore) Get(nickName string) (*User, bool) {
 	return user, has
 }
 
-func (this *UserStore) GetAll() (map[string]*User) {
+func (this *UserStore) GetAll() map[string]*User {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	return this.users
@@ -61,13 +63,13 @@ func (this *UserStore) GetAll() (map[string]*User) {
 
 type SessionStore struct {
 	sessions map[string]string
-	mu    sync.Mutex    // RWMutex в лекции?
+	mu       sync.Mutex // RWMutex в лекции?
 }
 
 func CreateSessionStore() *SessionStore {
 	return &SessionStore{
 		sessions: make(map[string]string),
-		mu:    sync.Mutex{},
+		mu:       sync.Mutex{},
 	}
 }
 
@@ -75,7 +77,7 @@ func (this *SessionStore) AddSession(login string) string {
 	this.mu.Lock()
 	defer this.mu.Unlock()
 	tmp := md5.Sum([]byte(login))
-	SID :=	hex.EncodeToString(tmp[:])
+	SID := hex.EncodeToString(tmp[:])
 	this.sessions[SID] = login
 	return SID
 }
@@ -93,7 +95,7 @@ func (this *SessionStore) DeleteSession() {
 /***************** Handler **********************/
 
 type Handler struct {
-	userStore *UserStore
+	userStore    *UserStore
 	sessionStore *SessionStore
 }
 
@@ -121,7 +123,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user User
 	err = json.Unmarshal(body, &user)
-	if err != nil {
+	if err != nil || user.Empty() {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
@@ -131,7 +133,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	} else {
 		this.userStore.Add(&user)
 		io.WriteString(w, `{"status":308}`)
-			                // TODO:`{"status": 301, "body": {"path": "/login"}}`
+		// TODO:`{"status": 301, "body": {"path": "/login"}}`
 	}
 }
 
@@ -145,7 +147,7 @@ func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user User
 	err = json.Unmarshal(body, &user)
-	if err != nil {
+	if err != nil || user.Empty() {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
@@ -160,10 +162,10 @@ func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	SID := this.sessionStore.AddSession(user.NickName)
 	cookie := &http.Cookie{
-		Name:    "session_id",
-		Value:   SID,
-		Path:    "/",
-		Expires: time.Now().Add(10 * time.Hour),
+		Name:     "session_id",
+		Value:    SID,
+		Path:     "/",
+		Expires:  time.Now().Add(10 * time.Hour),
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
@@ -172,13 +174,13 @@ func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) User(w http.ResponseWriter, r *http.Request) {
 	user := &User{
-		Name: "Tim",
-		SurName: "Razumov",
+		Name:     "Tim",
+		SurName:  "Razumov",
 		Password: "keklol",
 		NickName: "tim",
 	}
 	this.userStore.Add(user)
-	jsonData, _ := json.Marshal(user)	
+	jsonData, _ := json.Marshal(user)
 	w.Write(jsonData)
 }
 
@@ -190,16 +192,16 @@ func main() {
 	router := mux.NewRouter()
 
 	api := &Handler{
-		userStore: CreateUserStore(),
+		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
 	}
 
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
 	router.HandleFunc("/login", api.Login).Methods(http.MethodPost)
-	router.HandleFunc("/profile/{nickname}", api.User)//.Methods(http.MethodsGet)
+	router.HandleFunc("/profile/{nickname}", api.User) //.Methods(http.MethodsGet)
 
 	log.Println("start")
 	//wg := &WaitGroup{}
-	http.ListenAndServe(":" + port, router)
+	http.ListenAndServe(":"+port, router)
 }

@@ -12,33 +12,61 @@ import (
 	"bytes"
 )
 
-
 type TestCase struct {
-	requestBody map[string]string
-	responseBody map[string]string
-	statusCode int
+	requestBody map[string]interface{}
+	responseBody map[string]interface{}
 }
-
-
 
 func TestJoinHandler(t *testing.T) {
 	joinUrl := "http://localhost:8080/join"
 
 	cases := []TestCase{
-		TestCase{
-			requestBody: map[string]string{	"name" : "Антон",
-								"surname" : "Пися",
-								"nickname" : "АнтонLove",
-								"password" : "lovelove",
+		TestCase {
+			requestBody: map[string]interface{} {	
+				"name" : "Антон",
+				"surname" : "Гофер",
+				"nickname" : "Love",
+				"password" : "lovelove",
 			},
 
-			responseBody: map[string]string{
-				"answer" : `{"join"}`,
+			responseBody: map[string]interface{} {
+				"status" : 308,
 			},
-
-			statusCode: 300,
 		},
+
+		TestCase {
+			requestBody: map[string]interface{} {
+				"name" : "Антон",
+				"surname" : "Гофер",
+				"nickname" : "Love",
+				"password" : "lovelove",
+			},
+
+			// пользователь уже существует, соответствующий код ответа
+			responseBody: map[string]interface{}{
+				"status" : 409,
+			},
+		},
+
+		TestCase {
+			//json body не соответствует модели
+			requestBody: map[string]interface{} {
+				"field" : "Тимофей",
+				"text" : "Гофер",
+			},
+
+			responseBody: map[string]interface{}{
+				"status" : 400,
+			},
+		},
+
 	}		
+
+	// в рамках тестового сценария одного хэндлера используем постоянное хранилище
+	api := &Handler{
+		userStore:    CreateUserStore(),
+		sessionStore: CreateSessionStore(),
+	}
 
 	for num, test := range cases {
 		reqBody, err :=  json.Marshal(test.requestBody)
@@ -54,17 +82,7 @@ func TestJoinHandler(t *testing.T) {
 		request, err := http.NewRequest("POST", joinUrl, bytes.NewBuffer(reqBody))
 		w := httptest.NewRecorder()
 
-		api := &Handler{
-			userStore:    CreateUserStore(),
-			sessionStore: CreateSessionStore(),
-		}
-
 		api.Join(w, request)
-
-		if w.Code != test.statusCode {
-			t.Errorf("[%d] wrong StatusCode: got %d, expected %d",
-				num, w.Code, test.statusCode)
-		}		
 
 		resp := w.Result()
 		body, _ := ioutil.ReadAll(resp.Body)
