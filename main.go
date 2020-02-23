@@ -28,6 +28,10 @@ func (this *User) Empty() bool {
 	return this.Name == "" || this.SurName == "" || this.NickName == "" || this.Password == ""
 }
 
+func (this *User) MetaEmpty() bool {
+	return this.NickName == "" || this.Password == ""
+}
+
 type UserStore struct {
 	users map[string]*User
 	mu    sync.Mutex // RWMutex в лекции?
@@ -123,7 +127,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user User
 	err = json.Unmarshal(body, &user)
-	if err != nil || user.Empty() {
+	if err != nil || user.MetaEmpty() {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
@@ -137,7 +141,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
+func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -172,6 +176,9 @@ func (this *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"status":308}`)
 }
 
+func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
+}
+
 func (this *Handler) User(w http.ResponseWriter, r *http.Request) {
 	user := &User{
 		Name:     "Tim",
@@ -198,7 +205,7 @@ func main() {
 
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
-	router.HandleFunc("/login", api.Login).Methods(http.MethodPost)
+	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
 	router.HandleFunc("/profile/{nickname}", api.User) //.Methods(http.MethodsGet)
 
 	log.Println("start")
