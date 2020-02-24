@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"strings"
 	"time"
 )
 
@@ -111,15 +112,16 @@ func SendMessage(w http.ResponseWriter, status uint, bodyData ...Pair) {
 	msg := make(map[string]interface{})
 	msg["status"] = status
 	if len(bodyData) != 0 {
-		bodyMap := make(map[string]interface{})
+		bodyMap := make(map[string]string)
 		for _, elem := range bodyData {
-			bodyMap[elem.name] = elem.data
+			tmp, _ := json.Marshal(elem.data)
+			bodyMap[elem.name] = string(tmp)
 		}
 		jbodyData, _ := json.Marshal(bodyMap)
 	    msg["body"] = string(jbodyData)
-	    log.Println(msg)
 	}
-	res, _ := json.Marshal(msg)
+	tmp, _ := json.Marshal(msg)
+	res := strings.ReplaceAll(string(tmp), "\\", "")
 	io.WriteString(w, string(res))
 }
 
@@ -141,6 +143,14 @@ type Handler struct {
 	sessionStore *SessionStore
 }
 
+func Defer(w http.ResponseWriter, r *http.Request) {
+	if origin := r.Header.Get("Origin"); origin != "" {
+        w.Header().Set("Access-Control-Allow-Origin", origin)
+        w.Header().Set("Access-Control-Allow-Credentials", "true")
+    }
+    w.WriteHeader(http.StatusOK)
+}
+
 func (this *Handler) hasCookie(r *http.Request) bool {
 	authorized := false
 	session, err := r.Cookie("session_id")
@@ -151,7 +161,7 @@ func (this *Handler) hasCookie(r *http.Request) bool {
 }
 
 func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	defer Defer(w, r)
 	if this.hasCookie(r) {
 		w.Write([]byte("ты доска"))
 	} else {
@@ -160,7 +170,7 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	defer Defer(w, r)
 	user, err := ReadUser(r)
 	if err != nil || user.Name == "" || user.SurName == "" ||
 		user.NickName == "" || user.Password == "" {
@@ -177,7 +187,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	defer Defer(w, r)
 	if this.hasCookie(r) {
 		//this.LogOut()
 	}
@@ -211,11 +221,12 @@ func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
-	this.GetUser(w, r)
+	defer Defer(w, r)
+	//this.GetUser(w, r)
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	defer Defer(w, r)
 	if !this.hasCookie(r) {
 		SendMessage(w, http.StatusUnauthorized)
 		return
@@ -234,6 +245,8 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	jbodyData, _ := json.Marshal(Pair{"aaa", User{}})
+	log.Println(string(jbodyData))
 	port := "8080"
 	if len(os.Args) == 2 {
 		port = os.Args[1]
