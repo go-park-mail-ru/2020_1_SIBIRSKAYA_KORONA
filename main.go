@@ -211,7 +211,7 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 		Value:    SID,
 		Path:     "/",
 		Expires:  time.Now().Add(10 * time.Hour),
-		SameSite: http.SameSiteStrictMode,
+		// SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
 	SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
