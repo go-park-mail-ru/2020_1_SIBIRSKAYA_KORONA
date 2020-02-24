@@ -116,7 +116,8 @@ func SendMessage(w http.ResponseWriter, status uint, bodyData ...Pair) {
 			bodyMap[elem.name] = elem.data
 		}
 		jbodyData, _ := json.Marshal(bodyMap)
-	    msg["body"] = jbodyData
+	    msg["body"] = string(jbodyData)
+	    log.Println(msg)
 	}
 	res, _ := json.Marshal(msg)
 	io.WriteString(w, string(res))
