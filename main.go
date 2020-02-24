@@ -67,23 +67,23 @@ func (this *UserStore) GetAll() map[string]*User {
 /***************** SessionStore **********************/
 
 type SessionStore struct {
-	sessions map[string]string
+	sessions map[string]bool
 	mu       sync.Mutex // RWMutex в лекции?
 }
 
 func CreateSessionStore() *SessionStore {
 	return &SessionStore{
-		sessions: make(map[string]string),
+		sessions: make(map[string]bool),
 		mu:       sync.Mutex{},
 	}
 }
 
-func (this *SessionStore) AddSession(login string) string {
+func (this *SessionStore) AddSession(nickname string) string {
 	this.mu.Lock()
 	defer this.mu.Unlock()
-	tmp := md5.Sum([]byte(login))
+	tmp := md5.Sum([]byte(nickname))
 	SID := hex.EncodeToString(tmp[:])
-	this.sessions[SID] = login
+	this.sessions[SID] = true
 	return SID
 }
 
@@ -94,7 +94,10 @@ func (this *SessionStore) HasSession(SID string) bool {
 	return has
 }
 
-func (this *SessionStore) DeleteSession() {
+func (this *SessionStore) DeleteSession(SID string) {
+	this.mu.Lock()
+	defer this.mu.Unlock()
+	delete(this.sessions, SID)
 }
 
 /***************** Transfer **********************/
