@@ -20,16 +20,17 @@ import (
 type User struct {
 	Name     string `json:"name"`
 	SurName  string `json:"surname"`
-	NickName string `json:"nickname"` // ключ в мапе
-	Password string `json:"password"`
+	NickName string `json:"nickname"`
+	Password string `json:"password,omitempty"`
 }
 
-func (this *User) Empty() bool {
-	return this.Name == "" || this.SurName == "" || this.NickName == "" || this.Password == ""
-}
-
-func (this *User) MetaEmpty() bool {
-	return this.NickName == "" || this.Password == ""
+func (this *User) GetInfo() User {
+	return User{
+		Name:     this.Name,
+		SurName:  this.SurName,
+		NickName: this.NickName,
+		Password: "",
+	}
 }
 
 type UserStore struct {
@@ -96,6 +97,39 @@ func (this *SessionStore) HasSession(SID string) bool {
 func (this *SessionStore) DeleteSession() {
 }
 
+/***************** Transfer **********************/
+
+type Pair struct {
+	name string
+	data interface{}
+}
+
+func SendMessage(w http.ResponseWriter, status uint, bodyData ...Pair) {
+	msg := make(map[string]interface{})
+	msg["status"] = status
+	if len(bodyData) != 0 {
+		bodyMap := make(map[string]interface{})
+		for _, elem := range bodyData {
+			bodyMap[elem.name] = elem.data
+		}
+		jbodyData, _ := json.Marshal(bodyMap)
+	    msg["body"] = jbodyData
+	}
+	res, _ := json.Marshal(msg)
+	io.WriteString(w, string(res))
+}
+
+func ReadUser(r *http.Request) (*User, error) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	var user User
+	err = json.Unmarshal(body, &user)
+	return &user, err
+}
+
 /***************** Handler **********************/
 
 type Handler struct {
@@ -103,65 +137,58 @@ type Handler struct {
 	sessionStore *SessionStore
 }
 
-func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
+func (this *Handler) hasCookie(r *http.Request) bool {
 	authorized := false
 	session, err := r.Cookie("session_id")
 	if err == nil && session != nil {
 		authorized = this.sessionStore.HasSession(session.Value)
 	}
+	return authorized
+}
 
-	if authorized {
-		w.Write([]byte("autrorized"))
+func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	if this.hasCookie(r) {
+		w.Write([]byte("ты доска"))
 	} else {
-		w.Write([]byte("not autrorized"))
+		w.Write([]byte("ты не доска"))
 	}
 }
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		io.WriteString(w, `{"status":400}`)
-		return
-	}
-	defer r.Body.Close()
-	var user User
-	err = json.Unmarshal(body, &user)
-	if err != nil || user.MetaEmpty() {
-		io.WriteString(w, `{"status":400}`)
+	user, err := ReadUser(r)
+	if err != nil || user.Name == "" || user.SurName == "" ||
+		user.NickName == "" || user.Password == "" {
+		SendMessage(w, http.StatusBadRequest)
 		return
 	}
 	_, has := this.userStore.Get(user.NickName)
 	if has {
-		io.WriteString(w, `{"status":409}`)
+		SendMessage(w, http.StatusConflict)
 	} else {
-		this.userStore.Add(&user)
-		io.WriteString(w, `{"status":308}`)
-		// TODO:`{"status": 301, "body": {"path": "/login"}}`
+		this.userStore.Add(user)
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
 	}
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		io.WriteString(w, `{"status":400}`)
-		return
+	if this.hasCookie(r) {
+		//this.LogOut()
 	}
-	defer r.Body.Close()
-	var user User
-	err = json.Unmarshal(body, &user)
-	if err != nil || user.Empty() {
-		io.WriteString(w, `{"status":400}`)
+	user, err := ReadUser(r)
+	if err != nil || user.NickName == "" || user.Password == "" {
+		SendMessage(w, http.StatusBadRequest)
 		return
 	}
 	realUser, has := this.userStore.Get(user.NickName)
 	if !has {
-		io.WriteString(w, `{"status":404}`)
+		SendMessage(w, http.StatusNotFound)
 		return
 	}
 	if realUser.Password != user.Password {
-		io.WriteString(w, `{"status":412}`)
+		SendMessage(w, http.StatusPreconditionFailed)
 		return
 	}
 	SID := this.sessionStore.AddSession(user.NickName)
@@ -173,22 +200,33 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
-	io.WriteString(w, `{"status":308}`)
+	SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
 }
 
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 }
 
-func (this *Handler) User(w http.ResponseWriter, r *http.Request) {
-	user := &User{
-		Name:     "Tim",
-		SurName:  "Razumov",
-		Password: "keklol",
-		NickName: "tim",
+func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
+	this.GetUser(w, r)
+}
+
+func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	if !this.hasCookie(r) {
+		SendMessage(w, http.StatusUnauthorized)
+		return
 	}
-	this.userStore.Add(user)
-	jsonData, _ := json.Marshal(user)
-	w.Write(jsonData)
+	user, err := ReadUser(r)
+	if err != nil || user.NickName == "" {
+		SendMessage(w, http.StatusBadRequest)
+		return
+	}
+	realUser, has := this.userStore.Get(user.NickName)
+	if !has {
+		SendMessage(w, http.StatusNotFound)
+		return
+	}
+	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
 
 func main() {
@@ -206,7 +244,8 @@ func main() {
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
 	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
-	router.HandleFunc("/profile/{nickname}", api.User) //.Methods(http.MethodsGet)
+	router.HandleFunc("/profile", api.PostUser).Methods(http.MethodPost)
+	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
 
 	log.Println("start")
 	//wg := &WaitGroup{}

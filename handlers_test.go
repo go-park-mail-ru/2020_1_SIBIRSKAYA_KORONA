@@ -3,17 +3,17 @@ package main
 import (
 	//"io"
 	//"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"encoding/json"
 	//"log"
 	"bytes"
 )
 
 type TestCase struct {
-	requestBody map[string]interface{}
+	requestBody  map[string]interface{}
 	responseBody map[string]interface{}
 }
 
@@ -21,46 +21,45 @@ func TestJoinHandler(t *testing.T) {
 	joinUrl := "http://localhost:8080/join"
 
 	cases := []TestCase{
-		TestCase {
-			requestBody: map[string]interface{} {	
-				"name" : "Антон",
-				"surname" : "Гофер",
-				"nickname" : "Love",
-				"password" : "lovelove",
+		TestCase{
+			requestBody: map[string]interface{}{
+				"name":     "Антон",
+				"surname":  "Гофер",
+				"nickname": "Love",
+				"password": "lovelove",
 			},
 
-			responseBody: map[string]interface{} {
-				"status" : 308,
+			responseBody: map[string]interface{}{
+				"status": 308,
 			},
 		},
 
-		TestCase {
-			requestBody: map[string]interface{} {
-				"name" : "Антон",
-				"surname" : "Гофер",
-				"nickname" : "Love",
-				"password" : "lovelove",
+		TestCase{
+			requestBody: map[string]interface{}{
+				"name":     "Антон",
+				"surname":  "Гофер",
+				"nickname": "Love",
+				"password": "lovelove",
 			},
 
 			// пользователь уже существует, соответствующий код ответа
 			responseBody: map[string]interface{}{
-				"status" : 409,
+				"status": 409,
 			},
 		},
 
-		TestCase {
+		TestCase{
 			//json body не соответствует модели
-			requestBody: map[string]interface{} {
-				"field" : "Тимофей",
-				"text" : "Гофер",
+			requestBody: map[string]interface{}{
+				"field": "Тимофей",
+				"text":  "Гофер",
 			},
 
 			responseBody: map[string]interface{}{
-				"status" : 400,
+				"status": 400,
 			},
 		},
-
-	}		
+	}
 
 	// в рамках тестового сценария одного хэндлера используем постоянное хранилище
 	api := &Handler{
@@ -69,7 +68,7 @@ func TestJoinHandler(t *testing.T) {
 	}
 
 	for num, test := range cases {
-		reqBody, err :=  json.Marshal(test.requestBody)
+		reqBody, err := json.Marshal(test.requestBody)
 		if err != nil {
 			t.Error(err)
 		}
