@@ -129,7 +129,7 @@ func ReadUser(r *http.Request) (*User, error) {
 	return &user, err
 }
 
-/*func ReadUsers(r *http.Request) (old, new *User, err error) {
+func ReadUsers(r *http.Request) (old, new *User, err error) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, nil, err
@@ -142,13 +142,13 @@ func ReadUser(r *http.Request) (*User, error) {
 	if err != nil || !hasOld || !hasNew {
 		return nil, nil, err
 	}
-	err = json.Unmarshal(data["old_user"], old)
+	err = json.Unmarshal([]byte(data["old_user"]), old)
 	if err != nil {
 		return nil, nil, err
 	}
-	err = json.Unmarshal(data["new_user"], new)
+	err = json.Unmarshal([]byte(data["new_user"]), new)
 	return old, new, err
-}*/
+}
 
 /***************** Handler **********************/
 
@@ -164,6 +164,18 @@ func SetHeaders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (this *Handler) SetCookie(nickName string, w http.ResponseWriter) {
+	SID := this.sessionStore.AddSession(nickName)
+	cookie := &http.Cookie{
+		Name:    "session_id",
+		Value:   SID,
+		Path:    "/",
+		Expires: time.Now().Add(10 * time.Hour),
+		// SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+}
+
 func (this *Handler) GetCookie(r *http.Request) (string, bool) {
 	nick := ""
 	authorized := false
@@ -172,6 +184,16 @@ func (this *Handler) GetCookie(r *http.Request) (string, bool) {
 		nick, authorized = this.sessionStore.GetSession(session.Value)
 	}
 	return nick, authorized
+}
+
+func (this *Handler) DeleteCookie(w http.ResponseWriter, r *http.Request) error {
+	session, err := r.Cookie("session_id")
+	if err == nil && session != nil {
+		this.sessionStore.DeleteSession(session.Value)
+		session.Expires = time.Now().AddDate(0, 0, -2)
+	    http.SetCookie(w, session)
+	}
+	return err
 }
 
 func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
@@ -196,15 +218,13 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
-		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
+		this.SetCookie(user.NickName, w)
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
 	}
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	/*if this.HasCookie(r) {
-		this.LogOut()
-	}*/
 	user, err := ReadUser(r)
 	if err != nil || user.NickName == "" || user.Password == "" {
 		SendMessage(w, http.StatusBadRequest)
@@ -219,31 +239,37 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusPreconditionFailed)
 		return
 	}
-	SID := this.sessionStore.AddSession(user.NickName)
-	cookie := &http.Cookie{
-		Name:    "session_id",
-		Value:   SID,
-		Path:    "/",
-		Expires: time.Now().Add(10 * time.Hour),
-		// SameSite: http.SameSiteStrictMode,
-	}
-	http.SetCookie(w, cookie)
+	this.SetCookie(user.NickName, w)
 	SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
 }
 
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
+	/*user, err := ReadUser(r)
+	if err != nil || user.NickName == "" {
+		SendMessage(w, http.StatusBadRequest)
+		return
+	}
+	if nickSession, has := this.GetCookie(r); !has || nickSession != user.NickName {
+		SendMessage(w, http.StatusForbidden)
+		return
+	}*/
+	if err := this.DeleteCookie(w, r); err == nil {
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
+	} else {
+		SendMessage(w, http.StatusBadRequest)
+	}	
 }
 
 func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
-	/*SetHeaders(w, r)
-	if _, has := this.GetCookie(r); !has {
-		SendMessage(w, http.StatusUnauthorized)
-		return
-	}
+	SetHeaders(w, r)
 	oldUser, newUser, err := ReadUsers(r)
 	if err != nil || oldUser.NickName == "" {
 		SendMessage(w, http.StatusBadRequest)
+		return
+	}
+	if nickSession, has := this.GetCookie(r); !has || nickSession != oldUser.NickName {
+		SendMessage(w, http.StatusForbidden)
 		return
 	}
 	realUser, has := this.userStore.Get(oldUser.NickName)
@@ -251,12 +277,26 @@ func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	if oldUser.Password != "" && newUser.Password != "" && oldUser.Password == realUser.Password {
-		realUser.Password = newUser.Password
-	} else if oldUser.Password != "" {
-		SendMessage(w, http.StatusPreconditionFailed)
-		return
-	}*/
+	if newUser.Password != "" && newUser.Password != oldUser.Password {
+		if realUser.Password == oldUser.Password {
+			realUser.Password = newUser.Password
+		} else {
+			// error
+		}
+	}
+	if newUser.Name != "" && newUser.Name != oldUser.Name {
+		realUser.Name = newUser.Name
+	}
+	if newUser.SurName != "" && newUser.SurName != oldUser.SurName {
+		realUser.SurName = newUser.SurName
+	}
+	SendMessage(w, http.StatusPermanentRedirect, Pair{"user", realUser.GetInfo()})
+	/*
+	TODO: изменить логин
+	if newUser.NickName != "" && newUser.NickName != oldUser.NickName {
+		realUser.NickName = newUser.SurName
+	}
+	*/
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
