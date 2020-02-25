@@ -17,13 +17,13 @@ var apiHandler *Handler
 type TestCase struct {
 	requestBody  map[string]interface{}
 	responseBody map[string]interface{}
-	apiMethod func(http.ResponseWriter, *http.Request)
+	apiMethod    func(http.ResponseWriter, *http.Request)
 }
 
 func TestJoinHandler(t *testing.T) {
 	// в начале каждого тестового сценария принудительно сбрасываем хранилище
-	apiHandler = &Handler {
-		userStore: CreateUserStore(),
+	apiHandler = &Handler{
+		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
 	}
 
@@ -106,59 +106,58 @@ func TestJoinHandler(t *testing.T) {
 }
 
 func TestLoginHandler(t *testing.T) {
-	apiHandler = &Handler {
-		userStore: CreateUserStore(),
+	apiHandler = &Handler{
+		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
 	}
 
 	loginUrl := "http://localhost:8080/login"
 
 	cases := []TestCase{
-		TestCase {
-			requestBody: map[string]interface{} {	
-				"nickname" : "test",
-				"password" : "testtest",
+		TestCase{
+			requestBody: map[string]interface{}{
+				"nickname": "test",
+				"password": "testtest",
 			},
 
-			responseBody: map[string]interface{} {
-				"status" : 404,
+			responseBody: map[string]interface{}{
+				"status": 404,
 			},
 
-			apiMethod : apiHandler.LogIn,
+			apiMethod: apiHandler.LogIn,
 		},
 
-		TestCase {
-			requestBody: map[string]interface{} {	
-				"name" : "Антон",
-				"surname" : "Гофер",
-				"nickname" : "Love",
-				"password" : "lovelove",
+		TestCase{
+			requestBody: map[string]interface{}{
+				"name":     "Антон",
+				"surname":  "Гофер",
+				"nickname": "Love",
+				"password": "lovelove",
 			},
 
-			responseBody: map[string]interface{} {
-				"status" : 308,
+			responseBody: map[string]interface{}{
+				"status": 308,
 			},
 
 			apiMethod: apiHandler.Join,
 		},
 
-		TestCase {
-			requestBody: map[string]interface{} {	
-				"nickname" : "Love",
-				"password" : "lovelove",
+		TestCase{
+			requestBody: map[string]interface{}{
+				"nickname": "Love",
+				"password": "lovelove",
 			},
 
-			responseBody: map[string]interface{} {
-				"status" : 308,
+			responseBody: map[string]interface{}{
+				"status": 308,
 			},
 
-			apiMethod : apiHandler.LogIn,
+			apiMethod: apiHandler.LogIn,
 		},
-
 	}
 
 	for num, test := range cases {
-		reqBody, err :=  json.Marshal(test.requestBody)
+		reqBody, err := json.Marshal(test.requestBody)
 		if err != nil {
 			t.Error(err)
 		}
