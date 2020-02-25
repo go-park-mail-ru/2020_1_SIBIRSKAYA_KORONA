@@ -191,7 +191,7 @@ func (this *Handler) DeleteCookie(w http.ResponseWriter, r *http.Request) error 
 	if err == nil && session != nil {
 		this.sessionStore.DeleteSession(session.Value)
 		session.Expires = time.Now().AddDate(0, 0, -2)
-	    http.SetCookie(w, session)
+		http.SetCookie(w, session)
 	}
 	return err
 }
@@ -245,20 +245,11 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	/*user, err := ReadUser(r)
-	if err != nil || user.NickName == "" {
-		SendMessage(w, http.StatusBadRequest)
-		return
-	}
-	if nickSession, has := this.GetCookie(r); !has || nickSession != user.NickName {
-		SendMessage(w, http.StatusForbidden)
-		return
-	}*/
 	if err := this.DeleteCookie(w, r); err == nil {
 		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
 	} else {
 		SendMessage(w, http.StatusBadRequest)
-	}	
+	}
 }
 
 func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
@@ -292,17 +283,17 @@ func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
 	}
 	SendMessage(w, http.StatusPermanentRedirect, Pair{"user", realUser.GetInfo()})
 	/*
-	TODO: изменить логин
-	if newUser.NickName != "" && newUser.NickName != oldUser.NickName {
-		realUser.NickName = newUser.SurName
-	}
+		TODO: изменить логин
+		if newUser.NickName != "" && newUser.NickName != oldUser.NickName {
+			realUser.NickName = newUser.SurName
+		}
 	*/
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	nickQuery, hasNick := r.URL.Query()["nickname"]
-	if !hasNick || len(nickQuery) != 1  {
+	if !hasNick || len(nickQuery) != 1 {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
