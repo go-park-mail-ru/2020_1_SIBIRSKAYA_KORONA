@@ -10,7 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
+	//"strings"
 	"sync"
 	"time"
 )
@@ -106,16 +106,14 @@ func SendMessage(w http.ResponseWriter, status uint, bodyData ...Pair) {
 	msg := make(map[string]interface{})
 	msg["status"] = status
 	if len(bodyData) != 0 {
-		bodyMap := make(map[string]string)
+		bodyMap := make(map[string]interface{})
 		for _, elem := range bodyData {
-			tmp, _ := json.Marshal(elem.data)
-			bodyMap[elem.name] = string(tmp)
+			bodyMap[elem.name] = elem.data
 		}
-		jbodyData, _ := json.Marshal(bodyMap)
-		msg["body"] = string(jbodyData)
+		msg["body"] = bodyMap
 	}
-	tmp, _ := json.Marshal(msg)
-	res := strings.ReplaceAll(string(tmp), "\\", "")
+	res, _ := json.Marshal(msg)
+	// log.Println(string(res), err)
 	io.WriteString(w, string(res))
 }
 
@@ -159,12 +157,11 @@ type Handler struct {
 	sessionStore *SessionStore
 }
 
-func Defer(w http.ResponseWriter, r *http.Request) {
+func SetHeaders(w http.ResponseWriter, r *http.Request) {
 	if origin := r.Header.Get("Origin"); origin != "" {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func (this *Handler) GetCookie(r *http.Request) (string, bool) {
@@ -178,7 +175,7 @@ func (this *Handler) GetCookie(r *http.Request) (string, bool) {
 }
 
 func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
-	defer Defer(w, r)
+	SetHeaders(w, r)
 	if _, has := this.GetCookie(r); has {
 		w.Write([]byte("ты доска"))
 	} else {
@@ -187,7 +184,7 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
-	defer Defer(w, r)
+	SetHeaders(w, r)
 	user, err := ReadUser(r)
 	if err != nil || user.Name == "" || user.SurName == "" ||
 		user.NickName == "" || user.Password == "" {
@@ -204,7 +201,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
-	defer Defer(w, r)
+	SetHeaders(w, r)
 	/*if this.HasCookie(r) {
 		this.LogOut()
 	}*/
@@ -235,11 +232,11 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
-	defer Defer(w, r)
+	SetHeaders(w, r)
 }
 
 func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
-	/*defer Defer(w, r)
+	/*SetHeaders(w, r)
 	if _, has := this.GetCookie(r); !has {
 		SendMessage(w, http.StatusUnauthorized)
 		return
@@ -263,18 +260,19 @@ func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
-	defer Defer(w, r)
-	nickName, hasNick := r.URL.Query()["nickname"]
-	if !hasNick {
+	SetHeaders(w, r)
+	nickQuery, hasNick := r.URL.Query()["nickname"]
+	if !hasNick || len(nickQuery) != 1  {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
+	nickName := string(nickQuery[0])
 	authNickName, hasCookie := this.GetCookie(r)
 	isU := true
-	if !hasCookie || nickName[0] != authNickName {
+	if !hasCookie || nickName != authNickName {
 		isU = false
 	}
-	realUser, has := this.userStore.Get(nickName[0])
+	realUser, has := this.userStore.Get(nickName)
 	if !has {
 		SendMessage(w, http.StatusNotFound)
 		return
