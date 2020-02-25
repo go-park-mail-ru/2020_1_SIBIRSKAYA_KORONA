@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	//"strings"
+	"errors"
 	"sync"
 	"time"
 )
@@ -32,6 +33,11 @@ func (this *User) GetInfo() User {
 		NickName: this.NickName,
 		Password: "",
 	}
+}
+
+func (this *User) Empty() bool {
+	return this.Name == "" || this.SurName == "" ||
+		this.NickName == "" || this.Password == ""
 }
 
 type UserStore struct {
@@ -89,10 +95,15 @@ func (this *SessionStore) GetSession(SID string) (string, bool) {
 	return val, has
 }
 
-func (this *SessionStore) DeleteSession(SID string) {
+func (this *SessionStore) DeleteSession(SID string) (err error) {
 	this.mu.Lock()
 	defer this.mu.Unlock()
-	delete(this.sessions, SID)
+	if _, has := this.sessions[SID]; has {
+		delete(this.sessions, SID)
+    } else {
+    	err = errors.New("no key")
+    }
+    return err
 }
 
 /***************** Transfer **********************/
@@ -129,25 +140,18 @@ func ReadUser(r *http.Request) (*User, error) {
 	return &user, err
 }
 
-func ReadUsers(r *http.Request) (old, new *User, err error) {
+func ReadChangeUser(r *http.Request) (*User, string, error) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 	defer r.Body.Close()
-	var data map[string]string
-	err = json.Unmarshal(body, &data)
-	_, hasOld := data["old_user"]
-	_, hasNew := data["new_user"]
-	if err != nil || !hasOld || !hasNew {
-		return nil, nil, err
-	}
-	err = json.Unmarshal([]byte(data["old_user"]), old)
-	if err != nil {
-		return nil, nil, err
-	}
-	err = json.Unmarshal([]byte(data["new_user"]), new)
-	return old, new, err
+	var user User
+	err = json.Unmarshal(body, &user)
+	// TODO
+	var tmp map[string]interface{}
+	err = json.Unmarshal(body, &tmp)
+	return &user, tmp["old_password"].(string), err
 }
 
 /***************** Handler **********************/
@@ -189,7 +193,7 @@ func (this *Handler) GetCookie(r *http.Request) (string, bool) {
 func (this *Handler) DeleteCookie(w http.ResponseWriter, r *http.Request) error {
 	session, err := r.Cookie("session_id")
 	if err == nil && session != nil {
-		this.sessionStore.DeleteSession(session.Value)
+		err = this.sessionStore.DeleteSession(session.Value)
 		session.Expires = time.Now().AddDate(0, 0, -2)
 		http.SetCookie(w, session)
 	}
@@ -208,8 +212,7 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	user, err := ReadUser(r)
-	if err != nil || user.Name == "" || user.SurName == "" ||
-		user.NickName == "" || user.Password == "" {
+	if err != nil || user.Empty() {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
@@ -254,40 +257,27 @@ func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	oldUser, newUser, err := ReadUsers(r)
-	if err != nil || oldUser.NickName == "" {
+	newUser, oldPassword, err := ReadChangeUser(r)
+	if err != nil || newUser.Empty() {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
-	if nickSession, has := this.GetCookie(r); !has || nickSession != oldUser.NickName {
+	// TODO: через uid
+	if nickSession, has := this.GetCookie(r); !has || nickSession != newUser.NickName {
 		SendMessage(w, http.StatusForbidden)
 		return
 	}
-	realUser, has := this.userStore.Get(oldUser.NickName)
+	realUser, has := this.userStore.Get(newUser.NickName)
 	if !has {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	if newUser.Password != "" && newUser.Password != oldUser.Password {
-		if realUser.Password == oldUser.Password {
-			realUser.Password = newUser.Password
-		} else {
-			// error
-		}
+	if realUser.Password == oldPassword {
+		realUser = newUser
+	} else {
+		SendMessage(w, http.StatusForbidden)
 	}
-	if newUser.Name != "" && newUser.Name != oldUser.Name {
-		realUser.Name = newUser.Name
-	}
-	if newUser.SurName != "" && newUser.SurName != oldUser.SurName {
-		realUser.SurName = newUser.SurName
-	}
-	SendMessage(w, http.StatusPermanentRedirect, Pair{"user", realUser.GetInfo()})
-	/*
-		TODO: изменить логин
-		if newUser.NickName != "" && newUser.NickName != oldUser.NickName {
-			realUser.NickName = newUser.SurName
-		}
-	*/
+	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
