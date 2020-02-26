@@ -164,10 +164,8 @@ type Handler struct {
 }
 
 func SetHeaders(w http.ResponseWriter, r *http.Request) {
-	if origin := r.Header.Get("Origin"); origin != "" {
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-	}
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
 func (this *Handler) SetCookie(w http.ResponseWriter, nickName string) {
@@ -264,7 +262,7 @@ func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	newUser, oldPassword, err := ReadChangeUser(r)
-	if err != nil || newUser.Empty() {
+	if err != nil {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
@@ -278,8 +276,24 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	if realUser.Password == oldPassword {
-		realUser = newUser
+	if (newUser.Password != "" && realUser.Password == oldPassword) || newUser.Password == "" {
+		if newUser.Name != "" {
+			realUser.Name = newUser.Name
+		}
+		if newUser.SurName != "" {
+			realUser.SurName = newUser.SurName
+		}
+		if newUser.Email != "" {
+			realUser.Email = newUser.Email
+		}
+		if newUser.Password != "" {
+			realUser.Password = newUser.Password
+		}
+		/*
+			if newUser.NickName != "" {
+				realUser.NickName = newUser.NickName
+			}
+		*/
 	} else {
 		SendMessage(w, http.StatusForbidden)
 	}
@@ -326,16 +340,14 @@ func main() {
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
 	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
-	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete/*, http.MethodOptions*/)
+	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete)
 	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length,"+
-			" Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers,"+
-			" Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		return
 	})
 
