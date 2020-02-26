@@ -1,14 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"bytes"
 )
 
 type TestCase struct {
@@ -34,6 +33,7 @@ func TestJoinHandler(t *testing.T) {
 				"name":     "Антон",
 				"surname":  "Гофер",
 				"nickname": "Love",
+				"email":    "aaa@mail.ru",
 				"password": "lovelove",
 			},
 
@@ -41,7 +41,7 @@ func TestJoinHandler(t *testing.T) {
 				"body": map[string]interface{}{
 					"path": "/",
 				},
-				"status": 308,
+				"status": 200,
 			},
 
 			httpMethod: "POST",
@@ -53,6 +53,7 @@ func TestJoinHandler(t *testing.T) {
 				"name":     "Антон",
 				"surname":  "Гофер",
 				"nickname": "Love",
+				"email":    "aaa@mail.ru",
 				"password": "lovelove",
 			},
 
@@ -111,6 +112,7 @@ func TestJoinHandler(t *testing.T) {
 }
 
 func TestLoginHandler(t *testing.T) {
+	t.Parallel()
 	apiHandler := Handler{
 		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
@@ -138,6 +140,7 @@ func TestLoginHandler(t *testing.T) {
 				"name":     "Антон",
 				"surname":  "Гофер",
 				"nickname": "Love",
+				"email":    "aaa@mail.ru",
 				"password": "lovelove",
 			},
 
@@ -145,7 +148,7 @@ func TestLoginHandler(t *testing.T) {
 				"body": map[string]interface{}{
 					"path": "/",
 				},
-				"status": 308,
+				"status": 200,
 			},
 
 			httpMethod: "POST",
@@ -164,7 +167,7 @@ func TestLoginHandler(t *testing.T) {
 				"body": map[string]interface{}{
 					"path": "/",
 				},
-				"status": 308,
+				"status": 200,
 			},
 
 			httpMethod: "POST",
@@ -203,6 +206,7 @@ func TestLoginHandler(t *testing.T) {
 // * регистрируем пользователя (получив куку и сохранив её у себя)
 // * пытаемся получить информацию о пользователе с помощью выданной нам куки
 func TestGetUserHandler(t *testing.T) {
+	t.Parallel()
 	apiHandler := Handler{
 		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
@@ -212,6 +216,7 @@ func TestGetUserHandler(t *testing.T) {
 		Name:     "Антон",
 		SurName:  "Гофер",
 		NickName: "Love",
+		Email:    "aaa@mail.ru",
 		Password: "lovelove",
 	}
 
@@ -223,7 +228,7 @@ func TestGetUserHandler(t *testing.T) {
 		"body": map[string]interface{}{
 			"path": "/",
 		},
-		"status": 308,
+		"status": 200,
 	}
 
 	joinReqBody, err := json.Marshal(user)

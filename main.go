@@ -23,6 +23,7 @@ type User struct {
 	Name     string `json:"name"`
 	SurName  string `json:"surname"`
 	NickName string `json:"nickname"`
+	Email    string `json:"email"`
 	Password string `json:"password,omitempty"`
 }
 
@@ -31,13 +32,14 @@ func (this *User) GetInfo() User {
 		Name:     this.Name,
 		SurName:  this.SurName,
 		NickName: this.NickName,
+		Email:    this.Email,
 		Password: "",
 	}
 }
 
 func (this *User) Empty() bool {
 	return this.Name == "" || this.SurName == "" ||
-		this.NickName == "" || this.Password == ""
+		this.NickName == "" || this.Email == "" || this.Password == ""
 }
 
 type UserStore struct {
@@ -69,7 +71,7 @@ func (this *UserStore) Get(nickName string) (*User, bool) {
 
 type SessionStore struct {
 	sessions map[string]string
-	mu       sync.Mutex // RWMutex в лекции?
+	mu       sync.Mutex
 }
 
 func CreateSessionStore() *SessionStore {
@@ -222,7 +224,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	} else {
 		this.userStore.Add(user)
 		this.SetCookie(w, user.NickName)
-		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+		SendMessage(w, http.StatusOK, Pair{"path", "/"})
 	}
 }
 
@@ -247,15 +249,15 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	this.SetCookie(w, user.NickName)
-	SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+	SendMessage(w, http.StatusOK, Pair{"path", "/"})
 }
 
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	if err := this.DeleteCookie(w, r); err == nil {
-		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
+		SendMessage(w, http.StatusOK, Pair{"path", "/login"})
 	} else {
-		SendMessage(w, http.StatusBadRequest)
+		SendMessage(w, http.StatusSeeOther)
 	}
 }
 
