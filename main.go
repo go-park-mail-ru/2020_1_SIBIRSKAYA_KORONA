@@ -39,7 +39,7 @@ func (this *User) GetInfo() User {
 
 func (this *User) Empty() bool {
 	return this.Name == "" || this.SurName == "" ||
-		this.NickName == "" || this.Email == "" || this.Password == ""
+		this.NickName == "" || /*this.Email == "" ||*/ this.Password == ""
 }
 
 type UserStore struct {
@@ -292,16 +292,16 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	if nickQuery, hasNick := r.URL.Query()["nickname"]; hasNick {
 		if len(nickQuery) != 1 {
 			SendMessage(w, http.StatusBadRequest)
-		    return	
+			return
 		}
 		nickName = string(nickQuery[0])
 	} else {
 		tmp, hasCookie := this.GetCookie(r)
 		if !hasCookie {
-		    SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
-		    return
-	    }
-	    nickName = tmp
+			SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
+			return
+		}
+		nickName = tmp
 	}
 	realUser, has := this.userStore.Get(nickName)
 	if !has {
@@ -326,9 +326,18 @@ func main() {
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
 	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
-	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete)
-	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
+	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete/*, http.MethodOptions*/)
 	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
+	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
+
+	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length,"+
+			" Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers,"+
+			" Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
+		return
+	})
 
 	log.Println("start")
 	//wg := &WaitGroup{}
