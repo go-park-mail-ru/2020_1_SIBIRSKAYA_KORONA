@@ -199,6 +199,10 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
+	if _, hasCookie := this.GetCookie(r); hasCookie {
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+		return
+	}
 	user, err := ReadUser(r)
 	if err != nil || user.Empty() {
 		SendMessage(w, http.StatusBadRequest)
