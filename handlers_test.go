@@ -19,6 +19,7 @@ type TestCase struct {
 }
 
 func TestJoinHandler(t *testing.T) {
+	t.Parallel()
 	// в начале каждого тестового сценария принудительно сбрасываем хранилище
 	apiHandler := Handler{
 		userStore:    CreateUserStore(),
@@ -38,7 +39,7 @@ func TestJoinHandler(t *testing.T) {
 
 			responseBody: map[string]interface{}{
 				"body": map[string]interface{}{
-					"path": "/login",
+					"path": "/",
 				},
 				"status": 308,
 			},
@@ -57,9 +58,6 @@ func TestJoinHandler(t *testing.T) {
 
 			// пользователь уже существует, соответствующий код ответа
 			responseBody: map[string]interface{}{
-				"body": map[string]interface{}{
-					"path": "/login",
-				},
 				"status": 409,
 			},
 
@@ -75,9 +73,6 @@ func TestJoinHandler(t *testing.T) {
 			},
 
 			responseBody: map[string]interface{}{
-				"body": map[string]interface{}{
-					"path": "/login",
-				},
 				"status": 400,
 			},
 
@@ -131,9 +126,6 @@ func TestLoginHandler(t *testing.T) {
 			},
 
 			responseBody: map[string]interface{}{
-				"body": map[string]interface{}{
-					"path": "/login",
-				},
 				"status": 404,
 			},
 
@@ -150,12 +142,17 @@ func TestLoginHandler(t *testing.T) {
 			},
 
 			responseBody: map[string]interface{}{
+				"body": map[string]interface{}{
+					"path": "/",
+				},
 				"status": 308,
 			},
 
 			httpMethod: "POST",
 			apiMethod:  apiHandler.Join,
 		},
+
+		// logout
 
 		TestCase{
 			requestBody: map[string]interface{}{
@@ -165,7 +162,7 @@ func TestLoginHandler(t *testing.T) {
 
 			responseBody: map[string]interface{}{
 				"body": map[string]interface{}{
-					"path": "/login",
+					"path": "/",
 				},
 				"status": 308,
 			},
@@ -203,9 +200,7 @@ func TestLoginHandler(t *testing.T) {
 	}
 }
 
-// реализуем сложный сценарий, в котором мы
-// * регистрируем пользователя
-// * пытаемся авторизоваться (получив куку и сохранив её у себя)
+// * регистрируем пользователя (получив куку и сохранив её у себя)
 // * пытаемся получить информацию о пользователе с помощью выданной нам куки
 func TestGetUserHandler(t *testing.T) {
 	apiHandler := Handler{
@@ -213,25 +208,25 @@ func TestGetUserHandler(t *testing.T) {
 		sessionStore: CreateSessionStore(),
 	}
 
-	//getUserUrl := "http://localhost:8080/login" // ??
+	user := User{
+		Name:     "Антон",
+		SurName:  "Гофер",
+		NickName: "Love",
+		Password: "lovelove",
+	}
 
 	/***************** Регистрация **********************/
 
-	joinReqBodyMap := map[string]interface{}{
-		"name":     "Антон",
-		"surname":  "Гофер",
-		"nickname": "Love",
-		"password": "lovelove",
-	}
+	joinUrl := "http://localhost:8080/join"
 
 	joinRespBodyMap := map[string]interface{}{
 		"body": map[string]interface{}{
-			"path": "/login",
+			"path": "/",
 		},
 		"status": 308,
 	}
 
-	joinReqBody, err := json.Marshal(joinReqBodyMap)
+	joinReqBody, err := json.Marshal(user)
 	if err != nil {
 		t.Error(err)
 	}
@@ -241,12 +236,24 @@ func TestGetUserHandler(t *testing.T) {
 		t.Error(err)
 	}
 
-	joinRequest, err := http.NewRequest("POST", "fakeurl", bytes.NewBuffer(joinReqBody))
+	joinRequest, err := http.NewRequest("POST", joinUrl, bytes.NewBuffer(joinReqBody))
 	w := httptest.NewRecorder()
-
 	apiHandler.Join(w, joinRequest)
-
 	joinResponse := w.Result()
+
+	// check cookie
+	ourCookies := joinResponse.Cookies()
+	var ourCookie *http.Cookie = nil
+	for idCookie, _ := range ourCookies {
+		if ourCookies[idCookie].Name == "session_id" {
+			ourCookie = ourCookies[idCookie]
+			break
+		}
+	}
+	if ourCookie == nil {
+		log.Fatal("Cant find session_id cookie")
+	}
+
 	joinResponseBody, _ := ioutil.ReadAll(joinResponse.Body)
 	defer joinResponse.Body.Close()
 
@@ -257,82 +264,16 @@ func TestGetUserHandler(t *testing.T) {
 
 	/***************** Регистрация **********************/
 
-	/***************** Авторизация **********************/
-
-	loginReqBodyMap := map[string]interface{}{
-		"nickname": "Love",
-		"password": "lovelove",
-	}
-
-	loginRespBodyMap := map[string]interface{}{
-		"body": map[string]interface{}{
-			"path": "/login",
-		},
-		"status": 308,
-	}
-
-	loginReqBody, err := json.Marshal(loginReqBodyMap)
-	if err != nil {
-		t.Error(err)
-	}
-
-	loginRespBodyExpected, err := json.Marshal(loginRespBodyMap)
-	if err != nil {
-		t.Error(err)
-	}
-
-	loginRequest, err := http.NewRequest("POST", "fakeurl", bytes.NewBuffer(loginReqBody))
-	wLogin := httptest.NewRecorder()
-
-	apiHandler.LogIn(wLogin, loginRequest)
-
-	loginResponse := wLogin.Result()
-
-	ourCookies := loginResponse.Cookies()
-
-	var ourCookie *http.Cookie = nil
-
-	for idCookie, _ := range ourCookies {
-		if ourCookies[idCookie].Name == "session_id" {
-			ourCookie = ourCookies[idCookie]
-			break
-		}
-	}
-
-	if ourCookie == nil {
-		log.Fatal("Cant find session_id cookie")
-	}
-
-	loginResponseBody, _ := ioutil.ReadAll(loginResponse.Body)
-	defer loginResponse.Body.Close()
-
-	if string(loginResponseBody) != string(loginRespBodyExpected) {
-		t.Errorf("GetUser scenario wrong response from loginHandler: got %+v, expected %+v",
-			string(loginResponseBody), string(loginRespBodyExpected))
-	}
-
-	/***************** Авторизация **********************/
-
 	/***************** Получаем данные через куку **********************/
 
-	getReqBodyMap := map[string]interface{}{
-		"nickname": "Love",
-	}
+	getUserUrl := "http://localhost:8080/profile?nickname=Love"
 
 	getRespBodyMap := map[string]interface{}{
 		"body": map[string]interface{}{
-			"user": map[string]interface{}{
-				"name":     "Антон",
-				"surname":  "Гофер",
-				"nickname": "Love",
-			},
+			"user": user.GetInfo(),
+			"is_u": true,
 		},
 		"status": 200,
-	}
-
-	getReqBody, err := json.Marshal(getReqBodyMap)
-	if err != nil {
-		t.Error(err)
 	}
 
 	getRespBodyExpected, err := json.Marshal(getRespBodyMap)
@@ -340,7 +281,8 @@ func TestGetUserHandler(t *testing.T) {
 		t.Error(err)
 	}
 
-	getUserRequest, err := http.NewRequest("GET", "fakeurl", bytes.NewBuffer(getReqBody))
+	var tmp []byte
+	getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
 	wGet := httptest.NewRecorder()
 
 	getUserRequest.AddCookie(ourCookie)

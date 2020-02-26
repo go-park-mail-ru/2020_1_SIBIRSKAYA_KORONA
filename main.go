@@ -100,10 +100,10 @@ func (this *SessionStore) DeleteSession(SID string) (err error) {
 	defer this.mu.Unlock()
 	if _, has := this.sessions[SID]; has {
 		delete(this.sessions, SID)
-    } else {
-    	err = errors.New("no key")
-    }
-    return err
+	} else {
+		err = errors.New("no key")
+	}
+	return err
 }
 
 /***************** Transfer **********************/
@@ -168,7 +168,7 @@ func SetHeaders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *Handler) SetCookie(nickName string, w http.ResponseWriter) {
+func (this *Handler) SetCookie(w http.ResponseWriter, nickName string) {
 	SID := this.sessionStore.AddSession(nickName)
 	cookie := &http.Cookie{
 		Name:    "session_id",
@@ -221,13 +221,17 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
-		this.SetCookie(user.NickName, w)
+		this.SetCookie(w, user.NickName)
 		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
 	}
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
+	if _, hasCookie := this.GetCookie(r); hasCookie {
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+		return
+	}
 	user, err := ReadUser(r)
 	if err != nil || user.NickName == "" || user.Password == "" {
 		SendMessage(w, http.StatusBadRequest)
@@ -242,7 +246,7 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusPreconditionFailed)
 		return
 	}
-	this.SetCookie(user.NickName, w)
+	this.SetCookie(w, user.NickName)
 	SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
 }
 
