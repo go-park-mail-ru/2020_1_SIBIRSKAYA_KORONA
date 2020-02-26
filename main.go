@@ -381,7 +381,7 @@ func main() {
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
+		w.Header().Set("Access-Control-Allow-Origin", "http://89.208.197.150:5757")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	})
