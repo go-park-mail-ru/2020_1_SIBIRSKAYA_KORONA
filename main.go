@@ -152,7 +152,7 @@ type Handler struct {
 }
 
 func SetHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
+	w.Header().Set("Access-Control-Allow-Origin", "http://89.208.197.150:5757")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
