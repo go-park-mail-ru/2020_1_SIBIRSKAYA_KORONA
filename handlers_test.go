@@ -218,6 +218,7 @@ func TestGetUserHandler(t *testing.T) {
 		NickName: "Love",
 		Email:    "aaa@mail.ru",
 		Password: "lovelove",
+		PathToAvatar: "defoultIMG",
 	}
 
 	/***************** Регистрация **********************/

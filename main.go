@@ -24,6 +24,7 @@ type User struct {
 	SurName  string `json:"surname"`
 	NickName string `json:"nickname"`
 	Email    string `json:"email"`
+	PathToAvatar string `json:"avatar"`
 	Password string `json:"password,omitempty"`
 }
 
@@ -33,6 +34,7 @@ func (this *User) GetInfo() User {
 		SurName:  this.SurName,
 		NickName: this.NickName,
 		Email:    this.Email,
+		PathToAvatar: this.PathToAvatar,
 		Password: "",
 	}
 }
@@ -142,20 +144,6 @@ func ReadUser(r *http.Request) (*User, error) {
 	return &user, err
 }
 
-func ReadChangeUser(r *http.Request) (*User, string, error) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, "", err
-	}
-	defer r.Body.Close()
-	var user User
-	err = json.Unmarshal(body, &user)
-	// TODO
-	var tmp map[string]interface{}
-	err = json.Unmarshal(body, &tmp)
-	return &user, tmp["old_password"].(string), err
-}
-
 /***************** Handler **********************/
 
 type Handler struct {
@@ -221,6 +209,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
+		user.PathToAvatar = "defoultIMG" // TODO: САША (путь)
 		this.SetCookie(w, user.NickName)
 		SendMessage(w, http.StatusOK, Pair{"path", "/"})
 	}
@@ -255,20 +244,17 @@ func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	if err := this.DeleteCookie(w, r); err == nil {
 		SendMessage(w, http.StatusOK, Pair{"path", "/login"})
 	} else {
-		SendMessage(w, http.StatusSeeOther)
+		SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
 	}
 }
 
 func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	newUser, oldPassword, err := ReadChangeUser(r)
-	if err != nil {
-		SendMessage(w, http.StatusBadRequest)
-		return
-	}
+	newUser, oldPassword := ReadUserForUpdate(r)
+
 	// TODO: через uid
 	if nickSession, has := this.GetCookie(r); !has || nickSession != newUser.NickName {
-		SendMessage(w, http.StatusForbidden)
+		SendMessage(w, http.StatusUnauthorized)
 		return
 	}
 	realUser, has := this.userStore.Get(newUser.NickName)
@@ -296,6 +282,10 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 		*/
 	} else {
 		SendMessage(w, http.StatusForbidden)
+	}
+	pathImg, err := UploadAvatarToLocalStorage(r, newUser.NickName)
+	if err == nil {
+		newUser.PathToAvatar = pathImg
 	}
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
@@ -325,7 +315,53 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
 
+/******************** ФОТО ***************/
+var (
+	localStorage = "avatars" // TODO: САША (путь)
+)
+
+func LocalStorageInit() error { // TODO: САША (путь)
+	os.RemoveAll(localStorage)
+	return os.Mkdir(localStorage, os.ModePerm)
+}
+
+// Читаем мультипарт-дата форму (согласно нашей схеме)
+func ReadUserForUpdate(r *http.Request) (*User, string) {
+	var user User
+	user.Name = r.FormValue("newName") // TODO: САША, АНТОН (чтение согласно форме)
+	user.SurName = r.FormValue("newSurname")
+	user.NickName = r.FormValue("newNickname")
+	user.Email = r.FormValue("newEmail")
+	oldPassword := r.FormValue("oldPassword")
+	user.Password = r.FormValue("newPassword")
+	return &user, oldPassword
+}
+
+func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error) {
+	avatarSrc, _, err := r.FormFile("avatar")
+	if err != nil {
+		return "", err
+	}
+	defer avatarSrc.Close()
+	avatarPath := localStorage + "/" + nickName // TODO: САША (путь)
+	avatarDst, err := os.Create(avatarPath)
+	if err != nil {
+		return "", err
+	}
+	defer avatarDst.Close()
+	_, err = io.Copy(avatarDst, avatarSrc)
+	return avatarPath, err
+}
+
+/*********************** ФОТО ********************/
+
+
 func main() {
+	err := LocalStorageInit()
+	if err != nil {
+		log.Fatal("Local storage init failed: ", err)
+	}
+
 	port := "8080"
 	if len(os.Args) == 2 {
 		port = os.Args[1]
@@ -348,7 +384,6 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		return
 	})
 
 	log.Println("start")
