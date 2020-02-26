@@ -276,7 +276,6 @@ func TestGetUserHandler(t *testing.T) {
 	getRespBodyMap := map[string]interface{}{
 		"body": map[string]interface{}{
 			"user": user.GetInfo(),
-			"is_u": true,
 		},
 		"status": 200,
 	}

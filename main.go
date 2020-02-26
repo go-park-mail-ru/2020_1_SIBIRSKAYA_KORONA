@@ -288,23 +288,27 @@ func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	nickQuery, hasNick := r.URL.Query()["nickname"]
-	if !hasNick || len(nickQuery) != 1 {
-		SendMessage(w, http.StatusBadRequest)
-		return
-	}
-	nickName := string(nickQuery[0])
-	authNickName, hasCookie := this.GetCookie(r)
-	isU := true
-	if !hasCookie || nickName != authNickName {
-		isU = false
+	nickName := ""
+	if nickQuery, hasNick := r.URL.Query()["nickname"]; hasNick {
+		if len(nickQuery) != 1 {
+			SendMessage(w, http.StatusBadRequest)
+		    return	
+		}
+		nickName = string(nickQuery[0])
+	} else {
+		tmp, hasCookie := this.GetCookie(r)
+		if !hasCookie {
+		    SendMessage(w, http.StatusUnauthorized, Pair{"path", "/login"})
+		    return
+	    }
+	    nickName = tmp
 	}
 	realUser, has := this.userStore.Get(nickName)
 	if !has {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()}, Pair{"is_u", isU})
+	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
 
 func main() {
