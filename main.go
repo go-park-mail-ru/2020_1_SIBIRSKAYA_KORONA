@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -15,6 +16,10 @@ import (
 	"sync"
 	"time"
 )
+
+const DefaultUserImgPath = "avatars/kek.jpg"
+const localStorage = "avatars"
+const AllowOriginUrl = "http://localhost:5757"
 
 /***************** UserStore **********************/
 
@@ -152,7 +157,7 @@ type Handler struct {
 }
 
 func SetHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
+	w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
@@ -213,7 +218,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
-		user.PathToAvatar = "defoultIMG" // TODO: САША (путь)
+		user.PathToAvatar = DefaultUserImgPath
 		this.SetCookie(w, user.NickName)
 		SendMessage(w, http.StatusOK, Pair{"path", "/"})
 	}
@@ -320,11 +325,8 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 /******************** ФОТО ***************/
-var (
-	localStorage = "avatars" // TODO: САША (путь)
-)
 
-func LocalStorageInit() error { // TODO: САША (путь)
+func LocalStorageInit() error {
 	os.RemoveAll(localStorage)
 	return os.Mkdir(localStorage, os.ModePerm)
 }
@@ -343,11 +345,12 @@ func ReadUserForUpdate(r *http.Request) (*User, string) {
 
 func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error) {
 	avatarSrc, _, err := r.FormFile("avatar")
+	avatarName := r.FormValue("avatarName")
 	if err != nil {
 		return "", err
 	}
 	defer avatarSrc.Close()
-	avatarPath := localStorage + "/" + nickName // TODO: САША (путь)
+	avatarPath := fmt.Sprintf("%s/%s_%s", localStorage, nickName, avatarName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		return "", err
@@ -384,7 +387,7 @@ func main() {
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
+		w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	})
