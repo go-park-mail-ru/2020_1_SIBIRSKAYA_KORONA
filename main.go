@@ -20,22 +20,22 @@ import (
 
 // TODO avatar
 type User struct {
-	Name     string `json:"name"`
-	SurName  string `json:"surname"`
-	NickName string `json:"nickname"`
-	Email    string `json:"email"`
+	Name         string `json:"name"`
+	SurName      string `json:"surname"`
+	NickName     string `json:"nickname"`
+	Email        string `json:"email"`
 	PathToAvatar string `json:"avatar"`
-	Password string `json:"password,omitempty"`
+	Password     string `json:"password,omitempty"`
 }
 
 func (this *User) GetInfo() User {
 	return User{
-		Name:     this.Name,
-		SurName:  this.SurName,
-		NickName: this.NickName,
-		Email:    this.Email,
+		Name:         this.Name,
+		SurName:      this.SurName,
+		NickName:     this.NickName,
+		Email:        this.Email,
 		PathToAvatar: this.PathToAvatar,
-		Password: "",
+		Password:     "",
 	}
 }
 
@@ -354,7 +354,6 @@ func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error
 }
 
 /*********************** ФОТО ********************/
-
 
 func main() {
 	err := LocalStorageInit()
