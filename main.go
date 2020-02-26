@@ -261,7 +261,7 @@ func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *Handler) PostUser(w http.ResponseWriter, r *http.Request) {
+func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	newUser, oldPassword, err := ReadChangeUser(r)
 	if err != nil || newUser.Empty() {
@@ -298,7 +298,7 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		tmp, hasCookie := this.GetCookie(r)
 		if !hasCookie {
-		    SendMessage(w, http.StatusUnauthorized, Pair{"path", "/login"})
+		    SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
 		    return
 	    }
 	    nickName = tmp
@@ -326,8 +326,8 @@ func main() {
 	router.HandleFunc("/", api.Main)
 	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
 	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
-	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodPost)
-	router.HandleFunc("/profile", api.PostUser).Methods(http.MethodPost)
+	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete)
+	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
 
 	log.Println("start")

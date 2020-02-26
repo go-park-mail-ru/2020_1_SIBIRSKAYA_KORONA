@@ -26,7 +26,7 @@
   * 404 - NotFound (нет пользвателя с указанным ником)
   * 412 - PreconditionFailed (неверный пароль)
   
-# url: /logout (POST) // TODO : DELETE
+# url: /logout (DELETE)
  
   * 200 - OK (успешный запрос)
   * 303 - SeeOther (смотреть другое, редирект на логин)
@@ -36,8 +36,8 @@
   nickname в query string - просмотр страницы без возможности изменения
 
   * 200 - OK (успешный запрос)
+  * 303 - SeeOther (не авторизован, случай без query string)
   * 400 - BadRequest (неверный запрос)
-  * 401 - Unauthorized (не авторизован, случай без query string)
   * 404 - NotFound (нет пользвателя с указанным ником)
   
-# url: /profile (GET) // TODO: (PUT)
+# url: /profile (PUT) 
