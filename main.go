@@ -17,9 +17,12 @@ import (
 	"time"
 )
 
-const DefaultUserImgPath = "avatars/kek.jpg"
-const localStorage = "avatars"
-const AllowOriginUrl = "http://localhost:5757"
+const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend) NO SLASH AT THE END!!!
+const frontendUrl = "http://89.208.197.150:5757" // (or http://localhost:5757)
+const frontendAvatarStorage = frontendUrl + "/img/avatar"
+const DefaultUserImgPath = frontendUrl + "/img/default_avatar.png"
+const localStorage = frontendAbsolutePublicDir + "/img/avatar" // NO SLASH AT THE END!!!
+const AllowOriginUrl = frontendUrl
 
 /***************** UserStore **********************/
 
@@ -294,7 +297,7 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	}
 	pathImg, err := UploadAvatarToLocalStorage(r, newUser.NickName)
 	if err == nil {
-		newUser.PathToAvatar = pathImg
+		realUser.PathToAvatar = pathImg
 	}
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
@@ -345,19 +348,30 @@ func ReadUserForUpdate(r *http.Request) (*User, string) {
 
 func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error) {
 	avatarSrc, _, err := r.FormFile("avatar")
+<<<<<<< HEAD
 	avatarName := r.FormValue("avatarName")
+=======
+	avatarExtension := r.FormValue("avatarExtension")
+>>>>>>> origin/deploy-test
 	if err != nil {
 		return "", err
 	}
 	defer avatarSrc.Close()
+<<<<<<< HEAD
 	avatarPath := fmt.Sprintf("%s/%s_%s", localStorage, nickName, avatarName)
+=======
+	avatarFileName := fmt.Sprintf("%s.%s", nickName, avatarExtension)
+	avatarPath := fmt.Sprintf("%s/%s", localStorage, avatarFileName)
+>>>>>>> origin/deploy-test
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		return "", err
 	}
 	defer avatarDst.Close()
 	_, err = io.Copy(avatarDst, avatarSrc)
-	return avatarPath, err
+
+	frontEndAvatarUrl := fmt.Sprintf("%s/%s", frontendAvatarStorage, avatarFileName)
+	return frontEndAvatarUrl, err
 }
 
 /*********************** ФОТО ********************/
