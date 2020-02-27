@@ -346,12 +346,12 @@ func ReadUserForUpdate(r *http.Request) (*User, string) {
 
 func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error) {
 	avatarSrc, _, err := r.FormFile("avatar")
-	avatarName := r.FormValue("avatarName")
+	avatarExtension := r.FormValue("avatarExtension")
 	if err != nil {
 		return "", err
 	}
 	defer avatarSrc.Close()
-	avatarPath := fmt.Sprintf("%s/%s_%s", localStorage, nickName, avatarName)
+	avatarPath := fmt.Sprintf("%s/%s.%s", localStorage, nickName, avatarExtension)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		return "", err
