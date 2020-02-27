@@ -213,11 +213,11 @@ func TestGetUserHandler(t *testing.T) {
 	}
 
 	user := User{
-		Name:     "Антон",
-		SurName:  "Гофер",
-		NickName: "Love",
-		Email:    "aaa@mail.ru",
-		Password: "lovelove",
+		Name:         "Антон",
+		SurName:      "Гофер",
+		NickName:     "Love",
+		Email:        "aaa@mail.ru",
+		Password:     "lovelove",
 		PathToAvatar: "defoultIMG",
 	}
 

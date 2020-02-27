@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -16,26 +17,31 @@ import (
 	"time"
 )
 
+const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // NO SLASH AT THE END!!!
+const DefaultUserImgPath = frontendAbsolutePublicDir + "/img/default_avatar.png"
+const localStorage = frontendAbsolutePublicDir + "/img/avatar" // NO SLASH AT THE END!!!
+const AllowOriginUrl = "http://89.208.197.150:5757"
+
 /***************** UserStore **********************/
 
 // TODO avatar
 type User struct {
-	Name     string `json:"name"`
-	SurName  string `json:"surname"`
-	NickName string `json:"nickname"`
-	Email    string `json:"email"`
+	Name         string `json:"name"`
+	SurName      string `json:"surname"`
+	NickName     string `json:"nickname"`
+	Email        string `json:"email"`
 	PathToAvatar string `json:"avatar"`
-	Password string `json:"password,omitempty"`
+	Password     string `json:"password,omitempty"`
 }
 
 func (this *User) GetInfo() User {
 	return User{
-		Name:     this.Name,
-		SurName:  this.SurName,
-		NickName: this.NickName,
-		Email:    this.Email,
+		Name:         this.Name,
+		SurName:      this.SurName,
+		NickName:     this.NickName,
+		Email:        this.Email,
 		PathToAvatar: this.PathToAvatar,
-		Password: "",
+		Password:     "",
 	}
 }
 
@@ -152,7 +158,7 @@ type Handler struct {
 }
 
 func SetHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://89.208.197.150:5757")
+	w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
@@ -199,6 +205,10 @@ func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
 
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
+	if _, hasCookie := this.GetCookie(r); hasCookie {
+		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+		return
+	}
 	user, err := ReadUser(r)
 	if err != nil || user.Empty() {
 		SendMessage(w, http.StatusBadRequest)
@@ -209,7 +219,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
-		user.PathToAvatar = "defoultIMG" // TODO: САША (путь)
+		user.PathToAvatar = DefaultUserImgPath
 		this.SetCookie(w, user.NickName)
 		SendMessage(w, http.StatusOK, Pair{"path", "/"})
 	}
@@ -285,7 +295,7 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	}
 	pathImg, err := UploadAvatarToLocalStorage(r, newUser.NickName)
 	if err == nil {
-		newUser.PathToAvatar = pathImg
+		realUser.PathToAvatar = pathImg
 	}
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
@@ -316,11 +326,8 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 /******************** ФОТО ***************/
-var (
-	localStorage = "avatars" // TODO: САША (путь)
-)
 
-func LocalStorageInit() error { // TODO: САША (путь)
+func LocalStorageInit() error {
 	os.RemoveAll(localStorage)
 	return os.Mkdir(localStorage, os.ModePerm)
 }
@@ -339,11 +346,12 @@ func ReadUserForUpdate(r *http.Request) (*User, string) {
 
 func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error) {
 	avatarSrc, _, err := r.FormFile("avatar")
+	avatarName := r.FormValue("avatarName")
 	if err != nil {
 		return "", err
 	}
 	defer avatarSrc.Close()
-	avatarPath := localStorage + "/" + nickName // TODO: САША (путь)
+	avatarPath := fmt.Sprintf("%s/%s_%s", localStorage, nickName, avatarName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		return "", err
@@ -354,7 +362,6 @@ func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error
 }
 
 /*********************** ФОТО ********************/
-
 
 func main() {
 	err := LocalStorageInit()
@@ -381,7 +388,7 @@ func main() {
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://89.208.197.150:5757")
+		w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	})
