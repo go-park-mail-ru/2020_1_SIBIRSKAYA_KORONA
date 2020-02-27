@@ -17,8 +17,15 @@ import (
 	"time"
 )
 
-const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend) NO SLASH AT THE END!!!
-const frontendUrl = "http://89.208.197.150:5757" // (or http://localhost:5757)
+/*** Gavroman ***/
+const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
+const frontendUrl = "http://localhost:5757"
+/*** Gavroman ***/
+
+
+
+// const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend) NO SLASH AT THE END!!!
+// const frontendUrl = "http://89.208.197.150:5757" // (or http://localhost:5757)
 const frontendAvatarStorage = frontendUrl + "/img/avatar"
 const DefaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar" // NO SLASH AT THE END!!!
