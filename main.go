@@ -18,11 +18,11 @@ import (
 )
 
 const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend) NO SLASH AT THE END!!!
-const frontendUrl = "http://89.208.197.150:5757" // (or http://localhost:5757)
+const frontendUrl = "http://89.208.197.150:5757"                 // (or http://localhost:5757)
 const frontendAvatarStorage = frontendUrl + "/img/avatar"
-const DefaultUserImgPath = frontendUrl + "/img/default_avatar.png"
+const defaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar" // NO SLASH AT THE END!!!
-const AllowOriginUrl = frontendUrl
+const allowOriginUrl = frontendUrl
 
 /***************** UserStore **********************/
 
@@ -160,7 +160,7 @@ type Handler struct {
 }
 
 func SetHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
+	w.Header().Set("Access-Control-Allow-Origin", allowOriginUrl)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
@@ -221,7 +221,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusConflict)
 	} else {
 		this.userStore.Add(user)
-		user.PathToAvatar = DefaultUserImgPath
+		user.PathToAvatar = defaultUserImgPath
 		this.SetCookie(w, user.NickName)
 		SendMessage(w, http.StatusOK, Pair{"path", "/"})
 	}
@@ -393,7 +393,7 @@ func main() {
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", AllowOriginUrl)
+		w.Header().Set("Access-Control-Allow-Origin", allowOriginUrl)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	})

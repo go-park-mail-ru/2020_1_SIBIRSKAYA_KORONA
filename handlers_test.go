@@ -19,7 +19,6 @@ type TestCase struct {
 
 func TestJoinHandler(t *testing.T) {
 	t.Parallel()
-	// в начале каждого тестового сценария принудительно сбрасываем хранилище
 	apiHandler := Handler{
 		userStore:    CreateUserStore(),
 		sessionStore: CreateSessionStore(),
@@ -154,9 +153,6 @@ func TestLoginHandler(t *testing.T) {
 			httpMethod: "POST",
 			apiMethod:  apiHandler.Join,
 		},
-
-		// logout
-
 		TestCase{
 			requestBody: map[string]interface{}{
 				"nickname": "Love",
@@ -218,7 +214,205 @@ func TestGetUserHandler(t *testing.T) {
 		NickName:     "Love",
 		Email:        "aaa@mail.ru",
 		Password:     "lovelove",
-		PathToAvatar: "defoultIMG",
+		PathToAvatar: defaultUserImgPath,
+	}
+
+	/***************** Регистрация **********************/
+
+	joinUrl := "http://localhost:8080/join"
+
+	joinRespBodyMap := map[string]interface{}{
+		"body": map[string]interface{}{
+			"path": "/",
+		},
+		"status": 200,
+	}
+
+	joinReqBody, err := json.Marshal(user)
+	if err != nil {
+		t.Error(err)
+	}
+
+	joinRespBodyExpected, err := json.Marshal(joinRespBodyMap)
+	if err != nil {
+		t.Error(err)
+	}
+
+	joinRequest, err := http.NewRequest("POST", joinUrl, bytes.NewBuffer(joinReqBody))
+	w := httptest.NewRecorder()
+	apiHandler.Join(w, joinRequest)
+	joinResponse := w.Result()
+
+	// check cookie
+	ourCookies := joinResponse.Cookies()
+	var ourCookie *http.Cookie = nil
+	for idCookie, _ := range ourCookies {
+		if ourCookies[idCookie].Name == "session_id" {
+			ourCookie = ourCookies[idCookie]
+			break
+		}
+	}
+	if ourCookie == nil {
+		log.Fatal("Cant find session_id cookie")
+	}
+	joinResponseBody, _ := ioutil.ReadAll(joinResponse.Body)
+	defer joinResponse.Body.Close()
+	if string(joinResponseBody) != string(joinRespBodyExpected) {
+		t.Errorf("GetUser scenario wrong response from joinHandler: got %+v, expected %+v",
+			string(joinResponseBody), string(joinRespBodyExpected))
+	}
+
+	/***************** Регистрация **********************/
+
+	/***************** Получаем данные через куку *******/
+	{
+		getUserUrl := "http://localhost:8080/profile"
+		getRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"user": user.GetInfo(),
+			},
+			"status": 200,
+		}
+		getRespBodyExpected, err := json.Marshal(getRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
+		wGet := httptest.NewRecorder()
+		getUserRequest.AddCookie(ourCookie)
+		apiHandler.GetUser(wGet, getUserRequest)
+		getResponse := wGet.Result()
+		getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
+		defer getResponse.Body.Close()
+
+		if string(getResponseBody) != string(getRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(getResponseBody), string(getRespBodyExpected))
+		}
+	}
+
+	/***************** Получаем данные через квери стринг **********************/
+	{
+		getUserUrl := "http://localhost:8080/profile?nickname=Love"
+
+		getRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"user": user.GetInfo(),
+			},
+			"status": 200,
+		}
+		getRespBodyExpected, err := json.Marshal(getRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
+		wGet := httptest.NewRecorder()
+		apiHandler.GetUser(wGet, getUserRequest)
+		getResponse := wGet.Result()
+		getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
+		defer getResponse.Body.Close()
+
+		if string(getResponseBody) != string(getRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(getResponseBody), string(getRespBodyExpected))
+		}
+	}
+
+	/***************** неверный квери стринг **********************/
+	{
+		getUserUrl := "http://localhost:8080/profile?nickname=sss&nickname=aaa"
+
+		getRespBodyMap := map[string]interface{}{
+			"status": http.StatusBadRequest,
+		}
+		getRespBodyExpected, err := json.Marshal(getRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
+		wGet := httptest.NewRecorder()
+		apiHandler.GetUser(wGet, getUserRequest)
+		getResponse := wGet.Result()
+		getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
+		defer getResponse.Body.Close()
+
+		if string(getResponseBody) != string(getRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(getResponseBody), string(getRespBodyExpected))
+		}
+	}
+
+	/***************** нет юзера **********************/
+	{
+		getUserUrl := "http://localhost:8080/profile?nickname=sss"
+
+		getRespBodyMap := map[string]interface{}{
+			"status": 404,
+		}
+		getRespBodyExpected, err := json.Marshal(getRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
+		wGet := httptest.NewRecorder()
+		apiHandler.GetUser(wGet, getUserRequest)
+		getResponse := wGet.Result()
+		getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
+		defer getResponse.Body.Close()
+
+		if string(getResponseBody) != string(getRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(getResponseBody), string(getRespBodyExpected))
+		}
+	}
+
+	/***************** нет куки **********************/
+	{
+		getUserUrl := "http://localhost:8080/profile"
+		getRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"path": "/login",
+			},
+			"status": http.StatusSeeOther,
+		}
+		getRespBodyExpected, err := json.Marshal(getRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
+		wGet := httptest.NewRecorder()
+		apiHandler.GetUser(wGet, getUserRequest)
+		getResponse := wGet.Result()
+		getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
+		defer getResponse.Body.Close()
+
+		if string(getResponseBody) != string(getRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(getResponseBody), string(getRespBodyExpected))
+		}
+	}
+}
+
+func TestLogOut(t *testing.T) {
+
+	t.Parallel()
+	apiHandler := Handler{
+		userStore:    CreateUserStore(),
+		sessionStore: CreateSessionStore(),
+	}
+
+	user := User{
+		Name:         "Антон",
+		SurName:      "Гофер",
+		NickName:     "Love",
+		Email:        "aaa@mail.ru",
+		Password:     "lovelove",
+		PathToAvatar: defaultUserImgPath,
 	}
 
 	/***************** Регистрация **********************/
@@ -270,40 +464,91 @@ func TestGetUserHandler(t *testing.T) {
 
 	/***************** Регистрация **********************/
 
-	/***************** Получаем данные через куку *******/
+	/***************** LOGOUT **********************/
 
-	getUserUrl := "http://localhost:8080/profile?nickname=Love"
+	logoutUrl := "http://localhost:8080/logout"
 
-	getRespBodyMap := map[string]interface{}{
-		"body": map[string]interface{}{
-			"user": user.GetInfo(),
-		},
-		"status": 200,
+	// без куки
+	{
+
+		logoutRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"path": "/login",
+			},
+			"status": http.StatusSeeOther,
+		}
+		logoutRespBodyExpected, err := json.Marshal(logoutRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		logoutRequest, err := http.NewRequest("DELETE", logoutUrl, bytes.NewBuffer(tmp))
+		wDelete := httptest.NewRecorder()
+		apiHandler.LogOut(wDelete, logoutRequest)
+		logoutResponse := wDelete.Result()
+		logoutResponseBody, _ := ioutil.ReadAll(logoutResponse.Body)
+		defer logoutResponse.Body.Close()
+		if string(logoutResponseBody) != string(logoutRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(logoutResponseBody), string(logoutRespBodyExpected))
+		}
+
 	}
 
-	getRespBodyExpected, err := json.Marshal(getRespBodyMap)
-	if err != nil {
-		t.Error(err)
+	// с кукой
+	{
+
+		logoutRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"path": "/login",
+			},
+			"status": 200,
+		}
+		logoutRespBodyExpected, err := json.Marshal(logoutRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		logoutRequest, err := http.NewRequest("DELETE", logoutUrl, bytes.NewBuffer(tmp))
+		wDelete := httptest.NewRecorder()
+		logoutRequest.AddCookie(ourCookie)
+		apiHandler.LogOut(wDelete, logoutRequest)
+		logoutResponse := wDelete.Result()
+		logoutResponseBody, _ := ioutil.ReadAll(logoutResponse.Body)
+		defer logoutResponse.Body.Close()
+		if string(logoutResponseBody) != string(logoutRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(logoutResponseBody), string(logoutRespBodyExpected))
+		}
+
 	}
 
-	var tmp []byte
-	getUserRequest, err := http.NewRequest("GET", getUserUrl, bytes.NewBuffer(tmp))
-	wGet := httptest.NewRecorder()
+	// с удаленной кукой
+	{
 
-	getUserRequest.AddCookie(ourCookie)
+		logoutRespBodyMap := map[string]interface{}{
+			"body": map[string]interface{}{
+				"path": "/login",
+			},
+			"status": http.StatusSeeOther,
+		}
+		logoutRespBodyExpected, err := json.Marshal(logoutRespBodyMap)
+		if err != nil {
+			t.Error(err)
+		}
+		var tmp []byte
+		logoutRequest, err := http.NewRequest("DELETE", logoutUrl, bytes.NewBuffer(tmp))
+		wDelete := httptest.NewRecorder()
+		logoutRequest.AddCookie(ourCookie)
+		apiHandler.LogOut(wDelete, logoutRequest)
+		logoutResponse := wDelete.Result()
+		logoutResponseBody, _ := ioutil.ReadAll(logoutResponse.Body)
+		defer logoutResponse.Body.Close()
+		if string(logoutResponseBody) != string(logoutRespBodyExpected) {
+			t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
+				string(logoutResponseBody), string(logoutRespBodyExpected))
+		}
 
-	apiHandler.GetUser(wGet, getUserRequest)
-
-	getResponse := wGet.Result()
-
-	getResponseBody, _ := ioutil.ReadAll(getResponse.Body)
-	defer getResponse.Body.Close()
-
-	if string(getResponseBody) != string(getRespBodyExpected) {
-		t.Errorf("GetUser scenario wrong response from getHandler: got %+v, expected %+v",
-			string(getResponseBody), string(getRespBodyExpected))
 	}
-
-	/***************** Получаем данные через куку **********************/
 
 }
