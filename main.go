@@ -17,10 +17,12 @@ import (
 	"time"
 )
 
-const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // NO SLASH AT THE END!!!
-const DefaultUserImgPath = frontendAbsolutePublicDir + "/img/default_avatar.png"
+const frontendAbsolutePublicDir = "/home/alexandr/programs/TechPark/main_program/semestr_2/frontend/2020_1_SIBIRSKAYA_KORONA/public" // NO SLASH AT THE END!!!
+const frontendUrl = "http://localhost:5757"
+const frontendAvatarStorage = frontendUrl + "/img/avatar"
+const DefaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar" // NO SLASH AT THE END!!!
-const AllowOriginUrl = "http://89.208.197.150:5757"
+const AllowOriginUrl = frontendUrl
 
 /***************** UserStore **********************/
 
@@ -351,14 +353,17 @@ func UploadAvatarToLocalStorage(r *http.Request, nickName string) (string, error
 		return "", err
 	}
 	defer avatarSrc.Close()
-	avatarPath := fmt.Sprintf("%s/%s.%s", localStorage, nickName, avatarExtension)
+	avatarFileName := fmt.Sprintf("%s.%s", nickName, avatarExtension)
+	avatarPath := fmt.Sprintf("%s/%s", localStorage, avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		return "", err
 	}
 	defer avatarDst.Close()
 	_, err = io.Copy(avatarDst, avatarSrc)
-	return avatarPath, err
+
+	frontEndAvatarUrl := fmt.Sprintf("%s/%s", frontendAvatarStorage, avatarFileName)
+	return frontEndAvatarUrl, err
 }
 
 /*********************** ФОТО ********************/
