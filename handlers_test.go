@@ -320,7 +320,7 @@ func TestGetUserHandler(t *testing.T) {
 		}
 	}
 
-	/***************** неверный квери стринг **********************/
+	/***************** неверный nickname **********************/
 	{
 		getUserUrl := "http://localhost:8080/profile?nickname=sss&nickname=aaa"
 
@@ -396,6 +396,24 @@ func TestGetUserHandler(t *testing.T) {
 				string(getResponseBody), string(getRespBodyExpected))
 		}
 	}
+}
+
+func TestPutUserHandler(t *testing.T) {
+	t.Parallel()
+
+	/*apiHandler := Handler{
+		userStore:    CreateUserStore(),
+		sessionStore: CreateSessionStore(),
+	}
+
+	user := User{
+		Name:         "Антон",
+		SurName:      "Гофер",
+		NickName:     "Love",
+		Email:        "aaa@mail.ru",
+		Password:     "lovelove",
+		PathToAvatar: defaultUserImgPath,
+	}*/
 }
 
 func TestLogOut(t *testing.T) {

@@ -17,14 +17,13 @@ import (
 	"time"
 )
 
+const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
 
+//const frontendAbsolutePublicDir = "/home/timofey/2020_1_SIBIRSKAYA_KORONA/public"
+const frontendUrl = "http://localhost:5757"
 
-// const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
-// const frontendUrl = "http://localhost:5757"
-
-const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend)
-const frontendUrl = "http://89.208.197.150:5757" // (or http://localhost:5757)
-
+//const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend)
+//const frontendUrl = "http://89.208.197.150:5757"
 const frontendAvatarStorage = frontendUrl + "/img/avatar"
 const defaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar"
@@ -280,7 +279,11 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	if (newUser.Password != "" && realUser.Password == oldPassword) || newUser.Password == "" {
+	log.Println("old", oldPassword)
+	log.Println("real", realUser.Password)
+	log.Println("new", newUser.Password)
+	if realUser.Password == oldPassword || (oldPassword == "" && newUser.Password == "") {
+		log.Println("ща чет поменяю, но это не точно")
 		if newUser.Name != "" {
 			realUser.Name = newUser.Name
 		}
@@ -300,10 +303,14 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 		*/
 	} else {
 		SendMessage(w, http.StatusForbidden)
+		return
 	}
 	pathImg, err := UploadAvatarToLocalStorage(r, newUser.NickName)
 	if err == nil {
+		log.Println("change photo")
 		realUser.PathToAvatar = pathImg
+	} else {
+		log.Println("change error", err)
 	}
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
@@ -340,10 +347,9 @@ func LocalStorageInit() error {
 	return os.Mkdir(localStorage, os.ModePerm)
 }
 
-// Читаем мультипарт-дата форму (согласно нашей схеме)
 func ReadUserForUpdate(r *http.Request) (*User, string) {
 	var user User
-	user.Name = r.FormValue("newName") // TODO: САША, АНТОН (чтение согласно форме)
+	user.Name = r.FormValue("newName")
 	user.SurName = r.FormValue("newSurname")
 	user.NickName = r.FormValue("newNickname")
 	user.Email = r.FormValue("newEmail")
@@ -398,7 +404,7 @@ func main() {
 	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
 	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
 
-	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", allowOriginUrl)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
