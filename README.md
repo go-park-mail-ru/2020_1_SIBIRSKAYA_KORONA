@@ -47,3 +47,90 @@
   * 401 - Unauthorized (не авторизован)
   * 403 - Forbidden (нет прав)
   * 404 - NotFound (нет пользвателя с указанным ником)
+  
+  
+## API
+
+### PROFILE
+
+##### POST
+
+###### request (json)
+
+* nickname
+* password
+* name?
+* surname?
+* email?
+
+###### response (json)
+
+* 200 - OK (успешный запрос)
+* 308 - PermanentRedirect (уже залогинен, редирект на главную)
+* 400 - BadRequest (неверный запрос)
+* 409 - Conflict (пользователь с таким ником уже существует)
+
+##### GET
+
+###### request (url)
+
+ * url: /profile - смотрим по куке
+ * url: /profile/{nickname} - никнейму
+ 
+###### response (json)
+
+ * nickname
+ * name
+ * surname
+ * email
+
+##### PUT
+
+###### request (multipart form data)
+
+ * nickname?
+ * name?
+ * surname?
+ * avatar?
+ * (password,oldpassword)?
+ * email?
+
+###### response (json)
+
+ * nickname
+ * name
+ * surname
+ * email
+ * avatar
+ 
+ ### SESSION
+
+##### POST
+
+###### request (json)
+
+ * nickname
+ * password
+
+###### response (json)
+
+  * 200 - OK (успешный запрос)
+  * 308 - PermanentRedirect (уже залогинен, редирект на главную)
+  * 400 - BadRequest (неверный запрос)
+  * 404 - NotFound (нет пользвателя с указанным ником)
+  * 412 - PreconditionFailed (неверный пароль)
+  
+##### GET
+
+###### request (ниче)
+
+
+###### response (json)
+
+  * 200 - OK (успешный запрос)
+  * 401 - Unauthorized (не авторизован)
+ 
+##### DELETE (ниче)
+
+  * 200 - OK (успешный запрос)
+  * 303 - SeeOther (смотреть другое, редирект на логин)
