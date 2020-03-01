@@ -17,13 +17,14 @@ import (
 	"time"
 )
 
-const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
+//const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
+const frontendAbsolutePublicDir = "/home/timofey/2020_1_SIBIRSKAYA_KORONA/public"
 
-//const frontendAbsolutePublicDir = "/home/timofey/2020_1_SIBIRSKAYA_KORONA/public"
 const frontendUrl = "http://localhost:5757"
 
 //const frontendAbsolutePublicDir = "/home/ubuntu/frontend/public" // (or absolute path to public folder in frontend)
 //const frontendUrl = "http://89.208.197.150:5757"
+
 const frontendAvatarStorage = frontendUrl + "/img/avatar"
 const defaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar"
@@ -50,11 +51,6 @@ func (this *User) GetInfo() User {
 		PathToAvatar: this.PathToAvatar,
 		Password:     "",
 	}
-}
-
-func (this *User) Empty() bool {
-	return this.Name == "" || this.SurName == "" ||
-		this.NickName == "" || /*this.Email == "" ||*/ this.Password == ""
 }
 
 type UserStore struct {
@@ -201,15 +197,6 @@ func (this *Handler) DeleteCookie(w http.ResponseWriter, r *http.Request) error 
 	return err
 }
 
-func (this *Handler) Main(w http.ResponseWriter, r *http.Request) {
-	SetHeaders(w, r)
-	if _, has := this.GetCookie(r); has {
-		w.Write([]byte("ты доска"))
-	} else {
-		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/login"})
-	}
-}
-
 func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	if _, hasCookie := this.GetCookie(r); hasCookie {
@@ -217,7 +204,7 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user, err := ReadUser(r)
-	if err != nil || user.Empty() {
+	if err != nil || user.NickName == "" || user.Password == "" {
 		SendMessage(w, http.StatusBadRequest)
 		return
 	}
@@ -228,14 +215,14 @@ func (this *Handler) Join(w http.ResponseWriter, r *http.Request) {
 		this.userStore.Add(user)
 		user.PathToAvatar = defaultUserImgPath
 		this.SetCookie(w, user.NickName)
-		SendMessage(w, http.StatusOK, Pair{"path", "/"})
+		SendMessage(w, http.StatusOK)
 	}
 }
 
 func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	if _, hasCookie := this.GetCookie(r); hasCookie {
-		SendMessage(w, http.StatusPermanentRedirect, Pair{"path", "/"})
+		SendMessage(w, http.StatusPermanentRedirect)
 		return
 	}
 	user, err := ReadUser(r)
@@ -259,78 +246,86 @@ func (this *Handler) LogIn(w http.ResponseWriter, r *http.Request) {
 func (this *Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
 	if err := this.DeleteCookie(w, r); err == nil {
-		SendMessage(w, http.StatusOK, Pair{"path", "/login"})
+		SendMessage(w, http.StatusOK)
 	} else {
-		SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
+		SendMessage(w, http.StatusSeeOther)
 	}
+}
+
+func (this *Handler) CheckLogIn(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w, r)
+	if _, hasCookie := this.GetCookie(r); hasCookie {
+		SendMessage(w, http.StatusOK)
+	} else {
+		SendMessage(w, http.StatusUnauthorized)
+	} 
 }
 
 func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	newUser, oldPassword := ReadUserForUpdate(r)
-
-	// TODO: через uid
-	if nickSession, has := this.GetCookie(r); !has || nickSession != newUser.NickName {
+	nickName, has := this.GetCookie(r);
+	if !has {
 		SendMessage(w, http.StatusUnauthorized)
 		return
 	}
-	realUser, has := this.userStore.Get(newUser.NickName)
+	realUser, has := this.userStore.Get(nickName)
 	if !has {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
+	newUser, oldPassword := ReadUserForUpdate(r)
 	log.Println("old", oldPassword)
 	log.Println("real", realUser.Password)
 	log.Println("new", newUser.Password)
-	if realUser.Password == oldPassword || (oldPassword == "" && newUser.Password == "") {
-		log.Println("ща чет поменяю, но это не точно")
-		if newUser.Name != "" {
-			realUser.Name = newUser.Name
-		}
-		if newUser.SurName != "" {
-			realUser.SurName = newUser.SurName
-		}
-		if newUser.Email != "" {
-			realUser.Email = newUser.Email
-		}
-		if newUser.Password != "" {
+	if oldPassword != "" && newUser.Password != "" {
+		if realUser.Password == oldPassword {
 			realUser.Password = newUser.Password
+			SendMessage(w, http.StatusOK)
+		} else {
+			SendMessage(w, http.StatusPreconditionFailed)
 		}
-		/*
-			if newUser.NickName != "" {
-				realUser.NickName = newUser.NickName
-			}
-		*/
-	} else {
-		SendMessage(w, http.StatusForbidden)
 		return
+	}
+	if newUser.Name != "" {
+		realUser.Name = newUser.Name
+	}
+	if newUser.SurName != "" {
+		realUser.SurName = newUser.SurName
+	}
+	if newUser.Email != "" {
+		realUser.Email = newUser.Email
 	}
 	pathImg, err := UploadAvatarToLocalStorage(r, newUser.NickName)
 	if err == nil {
 		log.Println("change photo")
 		realUser.PathToAvatar = pathImg
 	} else {
-		log.Println("change error", err)
+		log.Println("change photo error", err)
+	}
+	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
+}
+
+func (this *Handler) GetSettingsUser(w http.ResponseWriter, r *http.Request) {
+	SetHeaders(w, r)
+	nickName, hasCookie := this.GetCookie(r)
+	if !hasCookie {
+		SendMessage(w, http.StatusSeeOther)
+		return
+	}
+	realUser, has := this.userStore.Get(nickName)
+	if !has {
+		SendMessage(w, http.StatusNotFound)
+		return
 	}
 	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w, r)
-	nickName := ""
-	if nickQuery, hasNick := r.URL.Query()["nickname"]; hasNick {
-		if len(nickQuery) != 1 {
-			SendMessage(w, http.StatusBadRequest)
-			return
-		}
-		nickName = string(nickQuery[0])
-	} else {
-		tmp, hasCookie := this.GetCookie(r)
-		if !hasCookie {
-			SendMessage(w, http.StatusSeeOther, Pair{"path", "/login"})
-			return
-		}
-		nickName = tmp
+	nickName, has := mux.Vars(r)["nickname"]
+	if !has {
+		SendMessage(w, http.StatusBadRequest)
+		return
 	}
 	realUser, has := this.userStore.Get(nickName)
 	if !has {
@@ -397,12 +392,15 @@ func main() {
 		sessionStore: CreateSessionStore(),
 	}
 
-	router.HandleFunc("/", api.Main)
-	router.HandleFunc("/join", api.Join).Methods(http.MethodPost)
-	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
-	router.HandleFunc("/logout", api.LogOut).Methods(http.MethodDelete)
-	router.HandleFunc("/profile", api.GetUser).Methods(http.MethodGet)
-	router.HandleFunc("/profile", api.PutUser).Methods(http.MethodPut)
+	router.HandleFunc("/settings", api.Join).Methods(http.MethodPost) // создать аккаунт
+	router.HandleFunc("/settings", api.GetSettingsUser).Methods(http.MethodGet) // получ все настройки
+	router.HandleFunc("/settings", api.PutUser).Methods(http.MethodPut) // изменить настройки юзера
+
+	router.HandleFunc("/profile/{nickname}", api.GetUser).Methods(http.MethodGet) // получ не приватные настройки
+
+    router.HandleFunc("/session", api.LogIn).Methods(http.MethodPost) // login
+    router.HandleFunc("/session", api.CheckLogIn).Methods(http.MethodGet) // залогинен или нет
+    router.HandleFunc("/session", api.LogOut).Methods(http.MethodDelete) // logout
 
 	router.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", allowOriginUrl)
