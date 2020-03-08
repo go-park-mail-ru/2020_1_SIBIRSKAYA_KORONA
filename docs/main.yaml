@@ -1,0 +1,30 @@
+openapi: "3.0.0"
+
+info:
+  description: "Документация к нашему REST чудовищу"
+  version: "1.0.0"
+  title: "Drello backend API"
+externalDocs:
+  description: Репозиторий бэкенда на github
+  url: "https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api"
+
+tags:
+- name: "settings"
+  description: "Everything about your Pets"
+  externalDocs:
+    description: "Find out more"
+    url: "http://swagger.io"
+
+
+paths:
+  /settings:
+    $ref: "endpoints/settings.yaml#/paths/~1settings"
+
+components:
+  schemas:
+
+    User:
+      $ref: "models/user.yaml#/components/schemas/User"
+
+    ApiResponse:
+      $ref: "models/user.yaml#/components/schemas/ApiResponse"

@@ -1,0 +1,29 @@
+components:
+  schemas:
+    User:
+      type: "object"
+      required:
+        - "name"
+        - "nickname"
+        - "password"
+        - "email"
+      properties:
+        name:
+          type: "string"
+        surname:
+          type: "string"
+        nickname:
+          type: "string"
+        email:
+          type: "string"
+        path-to-avatar:
+          type: "string"
+        password:
+          type: "string"
+
+    ApiResponse:
+      type: "object"
+      properties:
+        status:
+          type: "integer"
+          format: "int32"
