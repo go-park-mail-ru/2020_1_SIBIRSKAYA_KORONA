@@ -8,17 +8,33 @@ externalDocs:
   description: Репозиторий бэкенда на github
   url: "https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api"
 
+servers:
+  - url: http://localhost:8080  
+
+security:
+- app_id: []
+
 tags:
 - name: "settings"
-  description: "Everything about your Pets"
+  description: "Рутина для настройки профиля (в том числе регистрация)"
   externalDocs:
-    description: "Find out more"
+    description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
-
+- name: "session"    
+  description: "Основная работа с сессиями пользователя"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
 
 paths:
   /settings:
     $ref: "endpoints/settings.yaml#/paths/~1settings"
+  /session:
+    $ref: "endpoints/session.yaml#/paths/~1session"
+  /profile:
+    $ref: "endpoints/profile.yaml#/paths/~1profile"
+  /board:
+    $ref: "endpoints/board.yaml#/paths/~1board"  
 
 components:
   schemas:
@@ -28,3 +44,8 @@ components:
 
     ApiResponse:
       $ref: "models/user.yaml#/components/schemas/ApiResponse"
+
+  securitySchemes:
+    app_id:
+      $ref: "models/user.yaml#/components/securitySchemes/app_id" 
+

@@ -1,0 +1,36 @@
+paths:
+  /profile:
+    get:
+      tags:
+      - "profile"
+      summary: "Публичный запрос к данным пользователя"
+      description: "ФИВА"
+
+      parameters:
+        - in: path
+          name: nickname
+          required: true
+          schema:
+            type: string
+          description: Ник пользователя, публичные данные которого хотим просмотреть
+          
+      responses:
+        200:
+          description: "Корректный запрос, существующий пользователь, данные в теле ответа"
+
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: "../models/user.yaml#/components/schemas/User"
+                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                  "status": 200,
+                  "user": {
+                    "name": "Vasya",
+                    "surname": "Pupkin",
+                    "nickname": "Legolas1",
+                    "email": "VasyaPupkin@gmail.com",
+                    "avatar": "Обсуждаем",
+                  }
+              }
