@@ -1,5 +1,6 @@
 package models
 
 type Session struct {
-	Cookie string
+	Value string
+	Data string // дата протухания куки. был какой-то тип хз потом  гляну
 }

@@ -1,7 +1,7 @@
 package session
 
 type Repository interface {
-	AddSession(nickname string) string
-	GetSession(SID string) (string, bool)
-	DeleteSession(SID string) error
+	Create(id uint) (string, error)
+	Has(sid string) bool
+	Delete(sid string) error
 }

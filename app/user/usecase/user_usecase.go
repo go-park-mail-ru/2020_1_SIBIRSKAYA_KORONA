@@ -5,18 +5,22 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 )
 
-type userUsecase struct {
-	userRepo_ user.Repository 
+type UserUseCase struct {
+	userRepo user.Repository
 }
 
-func NewUserUsecase(userRepo user.Repository) user.Usecase {
-	return &userUsecase{userRepo_: userRepo}
+func CreateUserUseCase(userRepo_ user.Repository) user.UseCase {
+	return &UserUseCase{userRepo: userRepo_}
 }
 
-func (this *userUsecase) AddUser(user *models.User) {
-	this.userRepo_.AddUser(user)
+func (userUseCase *UserUseCase) Get(id uint) *models.User {
+	return userUseCase.userRepo.Get(id)
 }
 
-func (this *userUsecase) GetUser(nickname string) (*models.User, bool) {
-	return this.userRepo_.GetUser(nickname)
+func (userUseCase *UserUseCase) GetAll(id uint) *models.User {
+	return userUseCase.userRepo.GetAll(id)
+}
+
+func (userUseCase *UserUseCase) Update(newUser *models.User) error {
+	return userUseCase.userRepo.Update(newUser)
 }
