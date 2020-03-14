@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/server"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
 )
 
 //const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
