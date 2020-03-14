@@ -1,0 +1,167 @@
+paths:
+  /settings:
+    post:
+      tags:
+      - "settings"
+      summary: "Регистрируем пользователя в нашем сервисе"
+      description: "ФИВА"
+          
+      requestBody:
+        description: Данные, необходимые для регистрации
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/user.yaml#/components/schemas/User"
+            example: {
+              "name": "Vasya",
+              "surname": "Pupkin",
+              "nickname": "Legolas1",
+              "email": "VasyaPupkin@gmail.com",
+              "password": "qwerty1234",
+            } 
+
+      responses:
+        200:
+          description: "Успешная регистрация"  
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 200
+              }
+
+        308:
+          description: "В запросе присутствует валидная кука, редирект на главную страницу"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 308
+              }
+
+        400:
+          description: "Тело запроса не соответствует модели пользователя"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 400
+              }
+        
+
+        409:
+          description: "Пользователь с такими регистрационными данными уже существует"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 409
+              }
+
+    get:
+      tags:
+      - "settings"
+      summary: "Получаем все данные о пользователе (у нас сейчас приходят одни и те же данные, что из /profile/{..}"
+      description: "ФИВА"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      responses:
+        200:
+          description: "Валидный запрос данных пользователя"
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: "../models/user.yaml#/components/schemas/User"
+                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                  "status": 200,
+                  "user": {
+                    "name": "Vasya",
+                    "surname": "Pupkin",
+                    "nickname": "Legolas1",
+                    "email": "VasyaPupkin@gmail.com",
+                    "avatar": "Обсуждаем",
+                  }
+              }
+
+        303:
+          description: "В запросе на данные отсутствует кука"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 303
+              }
+
+    put:
+      tags:
+        - "settings"
+      summary: "Обновляем данные пользователя"
+      description: "ФИВА"
+            
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      requestBody:
+        description: Данные, необходимые для регистрации (все завернуто в мультипарт-форму)
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                newName:
+                  type: string
+                newSurname:
+                  type: string
+                newNickname:
+                  type: string
+                newEmail:
+                  type: string
+                oldPassword:
+                  type: password
+                newPassword:
+                  type: password  
+                avatar:
+                  type: string
+                  format: binary
+
+
+          # application/json:
+          #   schema:
+          #     $ref: "../models/user.yaml#/components/schemas/User"
+          #   example: {
+          #     "name": "Vasya",
+          #     "surname": "Pupkin",
+          #     "nickname": "Legolas1",
+          #     "email": "VasyaPupkin@gmail.com",
+          #     "password": "qwerty1234",
+          #   } 
+
+      responses:
+        200:
+          description: "Успешная регистрация"  
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 200
+              }

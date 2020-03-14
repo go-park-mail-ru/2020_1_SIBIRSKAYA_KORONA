@@ -1,0 +1,51 @@
+openapi: "3.0.0"
+
+info:
+  description: "Документация к нашему REST чудовищу"
+  version: "1.0.0"
+  title: "Drello backend API"
+externalDocs:
+  description: Репозиторий бэкенда на github
+  url: "https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api"
+
+servers:
+  - url: http://localhost:8080  
+
+security:
+- app_id: []
+
+tags:
+- name: "settings"
+  description: "Рутина для настройки профиля (в том числе регистрация)"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "session"    
+  description: "Основная работа с сессиями пользователя"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+
+paths:
+  /settings:
+    $ref: "endpoints/settings.yaml#/paths/~1settings"
+  /session:
+    $ref: "endpoints/session.yaml#/paths/~1session"
+  /profile:
+    $ref: "endpoints/profile.yaml#/paths/~1profile"
+  /board:
+    $ref: "endpoints/board.yaml#/paths/~1board"  
+
+components:
+  schemas:
+
+    User:
+      $ref: "models/user.yaml#/components/schemas/User"
+
+    ApiResponse:
+      $ref: "models/user.yaml#/components/schemas/ApiResponse"
+
+  securitySchemes:
+    app_id:
+      $ref: "models/user.yaml#/components/securitySchemes/app_id" 
+

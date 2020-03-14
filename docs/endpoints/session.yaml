@@ -1,0 +1,39 @@
+paths:
+  /session:
+    post:
+      tags:
+      - "session"
+      summary: "Операция авторизации в нашем сервисе"
+      description: "ФИВА"
+          
+      requestBody:
+        description: Данные, необходимые для авторизации
+        required: true
+        content:
+          application/json:
+            schema:
+              # составить модели для логина
+              $ref: "../models/user.yaml#/components/schemas/User"
+            example: {
+              "nickname": "Legolas1",
+              "password": "qwerty1234",
+            } 
+
+      # вставить хедера для ответа
+      responses:
+        200:
+          description: "Успешно авторизовались, в ответе вшита кука"
+
+          headers:
+            session_id:
+              schema:
+                type: string
+              description: Наша авторизационная кука.
+
+          content:
+            application/json:
+              schema:
+                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+              example: {
+                "status": 200
+              }

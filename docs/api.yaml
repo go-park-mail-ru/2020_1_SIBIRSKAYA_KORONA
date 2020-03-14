@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  description: Документация к нашему REST чудовищу
+  version: 1.0.0
+  title: Drello backend API
+externalDocs:
+  description: Репозиторий бэкенда на github
+  url: https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api
+tags:
+  - name: settings
+    description: Everything about your Pets
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /settings:
+    post:
+      tags:
+        - settings
+      summary: Регистрируем пользователя в нашем сервисе
+      description: ФИВА
+      requestBody:
+        description: Данные, необходимые для регистрации
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - nickname
+                - password
+                - email
+              properties:
+                name:
+                  type: string
+                surname:
+                  type: string
+                nickname:
+                  type: string
+                email:
+                  type: string
+                path-to-avatar:
+                  type: string
+                password:
+                  type: string
+            example:
+              name: Vasya
+              surname: Pupkin
+              nickname: Legolas1
+              email: VasyaPupkin@gmail.com
+              password: qwerty1234
+      responses:
+        "200":
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    format: int32
+              example:
+                status: 200
+        "308":
+          description: В запросе присутствует валидная кука, редирект на главную страницу
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 308
+        "400":
+          description: Тело запроса не соответствует модели пользователя
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 400
+        "409":
+          description: Пользователь с такими регистрационными данными уже существует
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 409
+    get:
+      tags:
+        - settings
+      summary: Получаем все данные о пользователе (у нас сейчас приходят одни и те же
+        данные, что из /profile/{..}
+      description: ФИВА
+      responses:
+        "200":
+          description: Валидный запрос данных пользователя
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+                  - $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+                user:
+                  name: Vasya
+                  surname: Pupkin
+                  nickname: Legolas1
+                  email: VasyaPupkin@gmail.com
+                  avatar: Обсуждаем
+        "303":
+          description: В запросе на данные отсутствует кука
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 303
+    put:
+      tags:
+        - settings
+      summary: Обновляем данные пользователя
+      description: ФИВА
+      requestBody:
+        description: Данные, необходимые для регистрации
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+            example:
+              name: Vasya
+              surname: Pupkin
+              nickname: Legolas1
+              email: VasyaPupkin@gmail.com
+              password: qwerty1234
+      responses:
+        "200":
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - name
+        - nickname
+        - password
+        - email
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        nickname:
+          type: string
+        email:
+          type: string
+        path-to-avatar:
+          type: string
+        password:
+          type: string
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
