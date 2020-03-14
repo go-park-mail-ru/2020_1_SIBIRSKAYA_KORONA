@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	sessionRepository "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
-	userRepository "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
+	userRepository "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 
 	"github.com/gorilla/mux"
 )
@@ -29,18 +29,6 @@ const frontendAvatarStorage = frontendUrl + "/img/avatar"
 const defaultUserImgPath = frontendUrl + "/img/default_avatar.png"
 const localStorage = frontendAbsolutePublicDir + "/img/avatar"
 const allowOriginUrl = frontendUrl
-
-// переделать
-// func (this *User) GetInfo() User {
-// 	return User{
-// 		Name:         this.Name,
-// 		Surname:      this.Surname,
-// 		Nickname:     this.Nickname,
-// 		Email:        this.Email,
-// 		PathToAvatar: this.PathToAvatar,
-// 		Password:     "",
-// 	}
-// }
 
 /***************** Transfer **********************/
 
@@ -60,7 +48,6 @@ func SendMessage(w http.ResponseWriter, status uint, bodyData ...Pair) {
 		msg["body"] = bodyMap
 	}
 	res, _ := json.Marshal(msg)
-	// log.Println(string(res), err)
 	io.WriteString(w, string(res))
 }
 
@@ -79,7 +66,7 @@ func ReadUser(r *http.Request) (*models.User, error) {
 /***************** Handler **********************/
 
 type Handler struct {
-	userStore    *userRepository.UserStore
+	userStore    *userRepository.UseCase
 	sessionStore *sessionRepository.SessionStore
 }
 
@@ -191,7 +178,7 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusUnauthorized)
 		return
 	}
-	realUser, has := this.userStore.GetUser(nickname)
+	realUser, has := this.userStore.GetUserAll(nickname)
 	if !has {
 		SendMessage(w, http.StatusNotFound)
 		return
@@ -225,7 +212,7 @@ func (this *Handler) PutUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("change photo error", err)
 	}
-	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
+	SendMessage(w, http.StatusOK, Pair{"user", realUser})
 }
 
 func (this *Handler) GetSettingsUser(w http.ResponseWriter, r *http.Request) {
@@ -240,7 +227,7 @@ func (this *Handler) GetSettingsUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
+	SendMessage(w, http.StatusOK, Pair{"user", realUser})
 }
 
 func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -255,7 +242,7 @@ func (this *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		SendMessage(w, http.StatusNotFound)
 		return
 	}
-	SendMessage(w, http.StatusOK, Pair{"user", realUser.GetInfo()})
+	SendMessage(w, http.StatusOK, Pair{"user", realUser})
 }
 
 /******************** ФОТО ***************/
@@ -265,8 +252,8 @@ func LocalStorageInit() error {
 	return os.Mkdir(localStorage, os.ModePerm)
 }
 
-func ReadUserForUpdate(r *http.Request) (*User, string) {
-	var user User
+func ReadUserForUpdate(r *http.Request) (*models.User, string) {
+	var user models.User
 	user.Name = r.FormValue("newName")
 	user.Surname = r.FormValue("newSurname")
 	user.Nickname = r.FormValue("newNickname")
