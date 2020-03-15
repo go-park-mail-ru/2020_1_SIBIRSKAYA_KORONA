@@ -10,13 +10,13 @@ import (
 
 type SessionStore struct {
 	sessions map[string]uint
-	mu       sync.Mutex
+	mu       *sync.Mutex
 }
 
-func CreateSessionStore() session.Repository {
+func CreateRepository() session.Repository {
 	return &SessionStore{
 		sessions: make(map[string]uint),
-		mu:       sync.Mutex{},
+		mu:       &sync.Mutex{},
 	}
 }
 
@@ -25,7 +25,7 @@ func (sessionStore *SessionStore) Create(id uint) (string, error) {
 	defer sessionStore.mu.Unlock()
 	// TODO: норм хэширование
 	sid := string(id)
-	sessionStore.sessions[sid] = id
+	(sessionStore.sessions)[sid] = id
 	return sid, nil
 }
 

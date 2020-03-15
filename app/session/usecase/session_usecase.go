@@ -11,7 +11,7 @@ type SessionUseCase struct {
 	userRepo user.Repository
 }
 
-func CreateSessionUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) session.UseCase {
+func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) session.UseCase {
 	return &SessionUseCase{
 		sessionRepo: sessionRepo_,
 		userRepo: userRepo_,

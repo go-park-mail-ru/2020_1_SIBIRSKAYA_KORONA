@@ -18,5 +18,9 @@ const localStorage = frontendAbsolutePublicDir + "/img/avatar"
 const allowOriginUrl = frontendUrl
 
 func main() {
-	server.Run()
+	srv := &server.Server{
+		IP: "127.0.0.1",
+		Port: 8080,
+	}
+	srv.Run()
 }

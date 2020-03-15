@@ -9,7 +9,7 @@ type UserUseCase struct {
 	userRepo user.Repository
 }
 
-func CreateUserUseCase(userRepo_ user.Repository) user.UseCase {
+func CreateUseCase(userRepo_ user.Repository) user.UseCase {
 	return &UserUseCase{userRepo: userRepo_}
 }
 
