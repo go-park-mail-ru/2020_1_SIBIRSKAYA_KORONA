@@ -1,12 +1,12 @@
 package http
 
 import (
-	message "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg"
-	"net/http"
-	"strconv"
-
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	message "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"time"
 )
 
 type UserHandler struct {
@@ -17,18 +17,43 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase) {
 	handler := &UserHandler{
 		useCase: useCase,
 	}
-	router.GET("/profile/:id", handler.Get)
+	router.POST("/settings", handler.Create)
+	router.GET("/profile/:user", handler.Get) // по id или nicName
 	router.GET("/settings", handler.GetAll) // получ все настройки
 	router.POST("/settings", handler.Update)
+	router.POST("/settings", handler.Delete)
 }
 
-// TODO: мидлвары на валидацию, запрос куки, панику, ошибку
-func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (userHandler *UserHandler) Create(ctx echo.Context) error {
+	usr := new(models.User)
+	if err := ctx.Bind(usr); err != nil {
+		return err
+	}
+	sid, err := userHandler.useCase.Create(usr)
+	if err != nil {
+		body, err := message.GetBody(http.StatusConflict)
+		if err != nil {
+			return err
+		}
+		return ctx.String(http.StatusOK, body)
+	}
+	cookie := &http.Cookie{
+		Name:    "session_id",
+		Value:   sid,
+		Path:    "/",
+		Expires: time.Now().Add(24 * time.Hour),
+		// SameSite: http.SameSiteStrictMode,
+	}
+	ctx.SetCookie(cookie)
+	body, err := message.GetBody(http.StatusOK)
 	if err != nil {
 		return err
 	}
-	userData := userHandler.useCase.Get(uint(id))
+	return ctx.String(http.StatusOK, body)
+}
+
+func (userHandler *UserHandler) Get(ctx echo.Context) error {
+	userData := userHandler.useCase.Get(ctx.Param("user"))
 	if userData == nil {
 		body, err := message.GetBody(http.StatusNotFound)
 		if err != nil {
@@ -44,9 +69,29 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "доделай меня :(")
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		return err
+	}
+	userData := userHandler.useCase.GetAll(cookie.Value)
+	if userData == nil {
+		body, err := message.GetBody(http.StatusNotFound)
+		if err != nil {
+			return err
+		}
+		return ctx.String(http.StatusOK, body)
+	}
+	body, err := message.GetBody(http.StatusOK, message.Pair{Name: "user", Data: *userData})
+	if err != nil {
+		return err
+	}
+	return ctx.String(http.StatusOK, body)
 }
 
 func (userHandler *UserHandler) Update(ctx echo.Context) error {
+	return ctx.String(http.StatusOK, "доделай меня :(")
+}
+
+func (userHandler *UserHandler) Delete(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, "доделай меня :(")
 }

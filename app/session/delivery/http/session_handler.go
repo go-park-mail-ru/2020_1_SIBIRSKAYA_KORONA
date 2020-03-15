@@ -19,16 +19,18 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase) {
 	handler := &SessionHandler{
 		useCase: useCase,
 	}
-	router.POST("/settings", handler.Join)
+	router.POST("/session", handler.LogIn)
+	router.GET("/session", handler.IsAuth)
+	router.DELETE("/session", handler.LogOut)
 }
 
 // TODO: мидлвары на валидацию, запрос куки, панику, ошибку
-func (sessionHandler *SessionHandler) Join(ctx echo.Context) error {
-	u := new(models.User)
-	if err := ctx.Bind(u); err != nil {
+func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
+	usr := new(models.User)
+	if err := ctx.Bind(usr); err != nil {
 		return err
 	}
-	sid, err := sessionHandler.useCase.Create(u)
+	sid, err := sessionHandler.useCase.Create(usr)
 	if err != nil {
 		body, err := message.GetBody(http.StatusConflict)
 		if err != nil {
@@ -45,20 +47,23 @@ func (sessionHandler *SessionHandler) Join(ctx echo.Context) error {
 	}
 	ctx.SetCookie(cookie)
 	body, err := message.GetBody(http.StatusOK)
-
 	if err != nil {
 		return err
 	}
 	return ctx.String(http.StatusOK, body)
 }
-func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
+
+func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, "доделай меня :(")
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "доделай меня :(")
-}
-
-func (sessionHandler *SessionHandler) Delete(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "доделай меня :(")
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		return err
+	}
+	if sessionHandler.useCase.Delete(cookie.Value) != nil {
+		return ctx.String(http.StatusOK, "не ок")
+	}
+	return ctx.String(http.StatusOK, "ок")
 }

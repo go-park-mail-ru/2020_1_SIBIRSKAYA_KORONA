@@ -24,16 +24,16 @@ func (sessionStore *SessionStore) Create(id uint) (string, error) {
 	sessionStore.mu.Lock()
 	defer sessionStore.mu.Unlock()
 	// TODO: норм хэширование
-	sid := string(id)
+	sid := "cупер безопазный ключ"
 	(sessionStore.sessions)[sid] = id
 	return sid, nil
 }
 
-func (sessionStore *SessionStore) Has(sid string) bool {
+func (sessionStore *SessionStore) Get(sid string) (uint, bool) {
 	sessionStore.mu.Lock()
 	defer sessionStore.mu.Unlock()
-	_, has := sessionStore.sessions[sid]
-	return has
+	id, has := sessionStore.sessions[sid]
+	return id, has
 }
 
 func (sessionStore *SessionStore) Delete(sid string) (err error) {

@@ -20,50 +20,22 @@ func CreateRepository() user.Repository {
 }
 
 func (userStore *UserStore) Create(user *models.User) error {
-	userStore.mu.Lock()
-	defer userStore.mu.Unlock()
-	user.ID = uint(len(userStore.users))
-	userStore.users[user.ID] = user
-	return nil
 }
 
 func (userStore *UserStore) GetByID(id uint) *models.User {
-	tmp := userStore.GetAll(id)
-	if tmp == nil {
-		return tmp
-	}
-	pubUser := *tmp
-	pubUser.Password = ""
-	return &pubUser
 }
 
 func (userStore *UserStore) GetByNickName(nickName string) *models.User {
-	u := new(models.User)
-	u.Nickname = nickName
-	return u
 }
 
 func (userStore *UserStore)  HasNickName(nickName string) bool {
-	return nickName != ""
 }
 
 func (userStore *UserStore) GetAll(id uint) *models.User{
-	userStore.mu.Lock()
-	defer userStore.mu.Unlock()
-	u, _ := userStore.users[id]
-	return u
 }
 
 func (userStore *UserStore) Update(newUser *models.User) error {
-	userStore.mu.Lock()
-	defer userStore.mu.Unlock()
-	userStore.users[newUser.ID] = newUser
-	return nil
 }
 
 func (userStore *UserStore) Delete(id uint) error {
-	userStore.mu.Lock()
-	defer userStore.mu.Unlock()
-	delete(userStore.users, id)
-	return nil
 }

@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  description: Документация к нашему REST чудовищу
+  version: 1.0.0
+  title: Drello backend API
+externalDocs:
+  description: Репозиторий бэкенда на github
+  url: https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api
+servers:
+  - url: http://localhost:8080
+security:
+  - app_id: []
+tags:
+  - name: settings
+    description: Рутина для настройки профиля (в том числе регистрация)
+    externalDocs:
+      description: Какой бы сюда вставить URL??
+      url: http://swagger.io
+  - name: session
+    description: Основная работа с сессиями пользователя
+    externalDocs:
+      description: Какой бы сюда вставить URL??
+      url: http://swagger.io
+paths:
+  /settings:
+    post:
+      tags:
+        - settings
+      summary: Регистрируем пользователя в нашем сервисе
+      description: ФИВА
+      requestBody:
+        description: Данные, необходимые для регистрации
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - nickname
+                - password
+                - email
+              properties:
+                name:
+                  type: string
+                surname:
+                  type: string
+                nickname:
+                  type: string
+                email:
+                  type: string
+                path-to-avatar:
+                  type: string
+                password:
+                  type: string
+            example:
+              name: Vasya
+              surname: Pupkin
+              nickname: Legolas1
+              email: VasyaPupkin@gmail.com
+              password: qwerty1234
+      responses:
+        "200":
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    format: int32
+              example:
+                status: 200
+        "308":
+          description: В запросе присутствует валидная кука, редирект на главную страницу
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 308
+        "400":
+          description: Тело запроса не соответствует модели пользователя
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 400
+        "409":
+          description: Пользователь с такими регистрационными данными уже существует
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 409
+    get:
+      tags:
+        - settings
+      summary: Получаем все данные о пользователе (у нас сейчас приходят одни и те же
+        данные, что из /profile/{..}
+      description: ФИВА
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Валидный запрос данных пользователя
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+                  - $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+                user:
+                  name: Vasya
+                  surname: Pupkin
+                  nickname: Legolas1
+                  email: VasyaPupkin@gmail.com
+                  avatar: Обсуждаем
+        "303":
+          description: В запросе на данные отсутствует кука
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 303
+    put:
+      tags:
+        - settings
+      summary: Обновляем данные пользователя
+      description: ФИВА
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Данные, необходимые для регистрации (все завернуто в мультипарт-форму)
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                newName:
+                  type: string
+                newSurname:
+                  type: string
+                newNickname:
+                  type: string
+                newEmail:
+                  type: string
+                oldPassword:
+                  type: password
+                newPassword:
+                  type: password
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+  /session:
+    post:
+      tags:
+        - session
+      summary: Операция авторизации в нашем сервисе
+      description: ФИВА
+      requestBody:
+        description: Данные, необходимые для авторизации
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+            example:
+              nickname: Legolas1
+              password: qwerty1234
+      responses:
+        "200":
+          description: Успешно авторизовались, в ответе вшита кука
+          headers:
+            session_id:
+              schema:
+                type: string
+              description: Наша авторизационная кука.
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+  /profile:
+    get:
+      tags:
+        - profile
+      summary: Публичный запрос к данным пользователя
+      description: ФИВА
+      parameters:
+        - in: path
+          name: nickname
+          required: true
+          schema:
+            type: string
+          description: Ник пользователя, публичные данные которого хотим просмотреть
+      responses:
+        "200":
+          description: Корректный запрос, существующий пользователь, данные в теле ответа
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+                  - $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+                user:
+                  name: Vasya
+                  surname: Pupkin
+                  nickname: Legolas1
+                  email: VasyaPupkin@gmail.com
+                  avatar: Обсуждаем
+  /board:
+    post:
+      tags:
+        - board
+      summary: Операция авторизации в нашем сервисе
+      description: ФИВА
+      requestBody:
+        description: Данные, необходимые для авторизации
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/paths/~1settings/post/requestBody/content/application~1json/schema"
+            example:
+              nickname: Legolas1
+              password: qwerty1234
+      responses:
+        "200":
+          description: Успешно авторизовались, в ответе вшита кука
+          headers:
+            session_id:
+              schema:
+                type: string
+              description: Наша авторизационная кука.
+          content:
+            application/json:
+              schema:
+                $ref: "#/paths/~1settings/post/responses/200/content/application~1json/schema"
+              example:
+                status: 200
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - name
+        - nickname
+        - password
+        - email
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        nickname:
+          type: string
+        email:
+          type: string
+        path-to-avatar:
+          type: string
+        password:
+          type: string
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+  securitySchemes:
+    app_id:
+      type: apiKey
+      description: API key to authorize requests. If you don't have an OpenWeatherMap
+        API key, use `fd4698c940c6d1da602a70ac34f0b147`.
+      name: appid
+      in: query
