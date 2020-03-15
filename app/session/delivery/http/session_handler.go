@@ -19,7 +19,7 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase) {
 	handler := &SessionHandler{
 		useCase: useCase,
 	}
-	router.GET("/settings", handler.Join)
+	router.POST("/settings", handler.Join)
 }
 
 // TODO: мидлвары на валидацию, запрос куки, панику, ошибку
