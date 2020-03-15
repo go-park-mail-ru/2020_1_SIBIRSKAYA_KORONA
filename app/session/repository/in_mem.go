@@ -24,7 +24,7 @@ func (sessionStore *SessionStore) Create(id uint) (string, error) {
 	sessionStore.mu.Lock()
 	defer sessionStore.mu.Unlock()
 	// TODO: норм хэширование
-	sid := "cупер безопазный ключ"
+	sid := "session_id"
 	(sessionStore.sessions)[sid] = id
 	return sid, nil
 }

@@ -12,11 +12,15 @@ import (
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
 	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/usecase"
 
+	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
+	// Нереализованные пока нами вещи заменим на стандартные из echo
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
+
 	"github.com/labstack/echo/v4"
 )
 
 type Server struct {
-	IP string
+	IP   string
 	Port uint
 }
 
@@ -27,6 +31,11 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	log.Println("init")
 	router := echo.New()
+
+	router.Use(echoMiddleware.Logger())
+	mw := drelloMiddleware.InitMiddleware()
+
+	router.Use(mw.CORS)
 	// repo
 	usrRepo := userRepo.CreateRepository()
 	sesRepo := sessionRepo.CreateRepository()

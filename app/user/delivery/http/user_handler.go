@@ -1,12 +1,15 @@
 package http
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 	message "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"time"
 )
 
 type UserHandler struct {
@@ -19,16 +22,28 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase) {
 	}
 	router.POST("/settings", handler.Create)
 	router.GET("/profile/:user", handler.Get) // по id или nicName
-	router.GET("/settings", handler.GetAll) // получ все настройки
-	router.POST("/settings", handler.Update)
-	router.POST("/settings", handler.Delete)
+	router.GET("/settings", handler.GetAll)   // получ все настройки
+	router.PUT("/settings", handler.Update)
+	router.DELETE("/settings", handler.Delete)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	usr := new(models.User)
-	if err := ctx.Bind(usr); err != nil {
+
+	// if err := ctx.Bind(usr); err != nil {
+	// 	log.Println("111111111111111111")
+	// 	return err
+	// }
+
+	// ------- костыль от ctx.Bind
+	reqBody, err := ioutil.ReadAll(ctx.Request().Body)
+	if err != nil {
 		return err
 	}
+	defer ctx.Request().Body.Close()
+	err = json.Unmarshal(reqBody, &usr)
+	// -------
+
 	sid, err := userHandler.useCase.Create(usr)
 	if err != nil {
 		body, err := message.GetBody(http.StatusConflict)
