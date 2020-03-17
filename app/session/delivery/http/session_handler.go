@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
-	message "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 )

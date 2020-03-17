@@ -16,6 +16,8 @@ import (
 	// Нереализованные пока нами вещи заменим на стандартные из echo
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,7 +31,6 @@ func (server *Server) GetAddr() string {
 }
 
 func (server *Server) Run() {
-	log.Println("init")
 	router := echo.New()
 
 	router.Use(echoMiddleware.Logger())
@@ -37,7 +38,13 @@ func (server *Server) Run() {
 
 	router.Use(mw.CORS)
 	// repo
-	usrRepo := userRepo.CreateRepository()
+	dsn := `host=localhost port=9090 user=TimRazumov password=LoveGO dbname=Drello sslmode=disable`
+	db, err := gorm.Open("postgres", dsn)
+    if err != nil {
+		log.Println("aaa")
+    	log.Fatal(err)
+    }
+	usrRepo := userRepo.CreateRepository(db)
 	sesRepo := sessionRepo.CreateRepository()
 	// use case
 	sesUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
