@@ -38,12 +38,13 @@ func (server *Server) Run() {
 
 	router.Use(mw.CORS)
 	// repo
-	dsn := `host=localhost port=9090 user=TimRazumov password=LoveGO dbname=Drello sslmode=disable`
+	dsn := `host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable`
 	db, err := gorm.Open("postgres", dsn)
     if err != nil {
 		log.Println("aaa")
     	log.Fatal(err)
     }
+	defer db.Close()
 	usrRepo := userRepo.CreateRepository(db)
 	sesRepo := sessionRepo.CreateRepository()
 	// use case
