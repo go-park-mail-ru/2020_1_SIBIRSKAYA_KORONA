@@ -20,8 +20,8 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase) {
 	router.POST("/settings", handler.Create)
 	router.GET("/profile/:user", handler.Get) // по id или nicName
 	router.GET("/settings", handler.GetAll) // получ все настройки
-	router.POST("/settings", handler.Update)
-	router.POST("/settings", handler.Delete)
+	router.PUT("/settings", handler.Update)
+	router.DELETE("/settings", handler.Delete)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
