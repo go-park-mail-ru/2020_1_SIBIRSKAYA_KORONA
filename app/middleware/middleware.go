@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+
 	"github.com/labstack/echo/v4"
 	// подумать насчёт конфига из вайпера, чтобы оттуда тягать адрес фронта
 )
@@ -24,8 +26,15 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// в echo есть встроенная, но для тренировки пока свои будем писать
-// func CORSmiddleware = middleware.CORSWithConfig(middleware.CORSConfig{
-// 	AllowOrigins: []string{"http://localhost:5757"},
-// 	AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-// })))
+// TODO: пришить логгер
+func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		fmt.Println("panicMiddleware", c.Request().URL.Path)
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println("Panic is catched: ", err)
+			}
+		}()
+		return next(c)
+	}
+}

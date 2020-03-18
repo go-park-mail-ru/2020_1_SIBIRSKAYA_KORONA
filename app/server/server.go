@@ -37,6 +37,7 @@ func (server *Server) Run() {
 	mw := drelloMiddleware.InitMiddleware()
 
 	router.Use(mw.CORS)
+	router.Use(mw.ProcessPanic)
 	// repo
 	dsn := `host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable`
 	db, err := gorm.Open("postgres", dsn)

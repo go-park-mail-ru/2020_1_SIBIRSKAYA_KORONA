@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
-)
+import "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
 
 //const frontendAbsolutePublicDir = "/home/gavroman/tp/2sem/tp_front/2020_1_SIBIRSKAYA_KORONA/public"
 const frontendAbsolutePublicDir = "/home/timofey/2020_1_SIBIRSKAYA_KORONA/public"
@@ -19,7 +17,7 @@ const allowOriginUrl = frontendUrl
 
 func main() {
 	srv := &server.Server{
-		IP: "127.0.0.1",
+		IP:   "127.0.0.1",
 		Port: 8080,
 	}
 	srv.Run()
