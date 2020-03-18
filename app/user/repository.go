@@ -7,6 +7,6 @@ type Repository interface {
 	GetByID(id uint) *models.User
 	GetByNickName(nickName string) *models.User
 	GetAll(id uint) *models.User
-	Update(newUser *models.User) error
+	Update(oldPass string, newUser *models.User) error
 	Delete(id uint) error
 }

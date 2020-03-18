@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -46,8 +46,33 @@ func (userStore *UserStore) GetAll(id uint) *models.User {
 	return userData
 }
 
-func (userStore *UserStore) Update(newUser *models.User) error {
-	return userStore.DB.Save(newUser).Error
+func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
+	oldUser := new(models.User)
+	if userStore.DB.First(&oldUser, newUser.ID).Error != nil {
+		return nil
+	}
+	if oldPass != "" && newUser.Password != "" {
+		if oldUser.Password != oldPass {
+			return errors.New("wrong password")
+		}
+		oldUser.Password = newUser.Password
+	}
+	if newUser.Name != "" {
+		oldUser.Name = newUser.Name
+	}
+	if newUser.Surname != "" {
+		oldUser.Surname = newUser.Surname
+	}
+	if newUser.Nickname != "" {
+		oldUser.Nickname = newUser.Nickname
+	}
+	if newUser.Email != "" {
+		oldUser.Email = newUser.Email
+	}
+	if newUser.Img != "" {
+		oldUser.Img = newUser.Img
+	}
+	return userStore.DB.Save(oldUser).Error
 }
 
 func (userStore *UserStore) Delete(id uint) error {

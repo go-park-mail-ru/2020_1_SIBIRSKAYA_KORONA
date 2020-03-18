@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -43,11 +44,20 @@ func (userUseCase *UserUseCase) GetAll(sid string) *models.User {
 	return nil
 }
 
-func (userUseCase *UserUseCase) Update(newUser *models.User) error {
-	return userUseCase.userRepo.Update(newUser)
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {
+	id, has := userUseCase.sessionRepo.Get(sid)
+	if !has {
+		return errors.New("no user")
+	}
+	newUser.ID = id
+	return userUseCase.userRepo.Update(oldPass, newUser)
 }
 
-func (userUseCase *UserUseCase) Delete(id uint, sid string) error {
+func (userUseCase *UserUseCase) Delete(sid string) error {
+	id, has := userUseCase.sessionRepo.Get(sid)
+	if !has {
+		return errors.New("no user")
+	}
 	err := userUseCase.sessionRepo.Delete(sid)
 	if err != nil {
 		return err

@@ -1,13 +1,12 @@
 package http
 
 import (
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,19 +23,22 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase) {
 	router.DELETE("/session", handler.LogOut)
 }
 
-// TODO: мидлвары на валидацию, запрос куки, панику, ошибку
 func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
-	usr := new(models.User)
-	if err := ctx.Bind(usr); err != nil {
-		return err
+	// в миддлвар
+	if _, err := ctx.Cookie("session_id"); err == nil {
+		return ctx.NoContent(http.StatusSeeOther)
 	}
+	//
+
+	reqBody, err := ioutil.ReadAll(ctx.Request().Body)
+	usr := models.Create(reqBody)
+	if err != nil ||  usr == nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	defer ctx.Request().Body.Close()
 	sid, err := sessionHandler.useCase.Create(usr)
 	if err != nil {
-		body, err := message.GetBody(http.StatusConflict)
-		if err != nil {
-			return err
-		}
-		return ctx.String(http.StatusOK, body)
+		return ctx.NoContent(http.StatusConflict)
 	}
 	cookie := &http.Cookie{
 		Name:    "session_id",
@@ -46,24 +48,37 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 		// SameSite: http.SameSiteStrictMode,
 	}
 	ctx.SetCookie(cookie)
-	body, err := message.GetBody(http.StatusOK)
-	if err != nil {
-		return err
-	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "доделай меня :(")
+	// в миддлвар
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		return ctx.NoContent(http.StatusForbidden)
+	}
+	//
+
+	if !sessionHandler.useCase.Has(cookie.Value) {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {
+	// в миддлвар
 	cookie, err := ctx.Cookie("session_id")
 	if err != nil {
-		return err
+		return ctx.NoContent(http.StatusForbidden)
 	}
+	//
+
 	if sessionHandler.useCase.Delete(cookie.Value) != nil {
-		return ctx.String(http.StatusOK, "не ок")
+		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, "ок")
+
+	cookie.Expires = time.Now().AddDate(0, 0, -2)
+	ctx.SetCookie(cookie)
+
+	return ctx.NoContent(http.StatusOK)
 }
