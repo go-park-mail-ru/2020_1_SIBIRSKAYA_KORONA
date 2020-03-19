@@ -16,6 +16,8 @@ import (
 	// Нереализованные пока нами вещи заменим на стандартные из echo
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
+	"github.com/spf13/viper"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
@@ -23,7 +25,7 @@ import (
 
 type Server struct {
 	IP   string
-	Port uint
+	Port int
 }
 
 func (server *Server) GetAddr() string {
@@ -37,13 +39,21 @@ func (server *Server) Run() {
 	mw := drelloMiddleware.InitMiddleware()
 
 	router.Use(mw.CORS)
+	router.Use(mw.ProcessPanic)
 	// repo
-	dsn := `host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable`
-	db, err := gorm.Open("postgres", dsn)
-    if err != nil {
+	dbms := viper.GetString("database.dbms")
+	dbHost := viper.GetString("database.host")
+	dbUser := viper.GetString("database.user")
+	dbPass := viper.GetString("database.password")
+	dbName := viper.GetString("database.name")
+	dbMode := viper.GetString("database.sslmode")
+	dbConnection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode)
+
+	db, err := gorm.Open(dbms, dbConnection)
+	if err != nil {
 		log.Println("aaa")
-    	log.Fatal(err)
-    }
+		log.Fatal(err)
+	}
 	defer db.Close()
 	usrRepo := userRepo.CreateRepository(db)
 	sesRepo := sessionRepo.CreateRepository()
