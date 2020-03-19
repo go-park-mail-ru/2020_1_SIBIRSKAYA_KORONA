@@ -11,3 +11,9 @@ database: {
   name: drello_db,
   sslmode: disable
 }
+
+frontend: {
+  protocol: http,
+  ip: localhost,
+  port: 5757.
+}
