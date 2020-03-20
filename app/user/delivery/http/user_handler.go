@@ -127,7 +127,7 @@ func (userHandler *UserHandler) Delete(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	cookie.Expires = time.Now().AddDate(0, 0, -2)
+	cookie.Expires = time.Now().AddDate(0, 0, -1)
 	ctx.SetCookie(cookie)
 
 	return ctx.NoContent(http.StatusOK)

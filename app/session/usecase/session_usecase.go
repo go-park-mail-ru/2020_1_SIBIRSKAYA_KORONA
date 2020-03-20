@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
@@ -23,7 +24,12 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 func (sessionUseCase *SessionUseCase) Create(user *models.User) (string, error) {
 	realUser := sessionUseCase.userRepo.GetByNickName(user.Nickname)
 	if realUser.Password == user.Password {
-		return sessionUseCase.sessionRepo.Create(realUser.ID)
+		session := &models.Session{
+			SID:     "",
+			ID:      user.ID,
+			Expires: time.Now().AddDate(1,0,0),
+		}
+		return sessionUseCase.sessionRepo.Create(session)
 	}
 	return "", errors.New("bad password")
 }

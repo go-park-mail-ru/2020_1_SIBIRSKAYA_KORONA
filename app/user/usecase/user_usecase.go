@@ -2,7 +2,8 @@ package usecase
 
 import (
 	"errors"
-	"strconv"
+	"fmt"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
@@ -26,13 +27,19 @@ func (userUseCase *UserUseCase) Create(user *models.User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return userUseCase.sessionRepo.Create(user.ID)
+	session := &models.Session{
+		SID:     "",
+		ID:      user.ID,
+		Expires: time.Now().AddDate(1,0,0),
+	}
+	return userUseCase.sessionRepo.Create(session)
 }
 
 func (userUseCase *UserUseCase) Get(userKey string) *models.User {
-	id, err := strconv.Atoi(userKey)
+	var id uint
+	_, err := fmt.Sscan(userKey, &id)
 	if err == nil {
-		return userUseCase.userRepo.GetByID(uint(id))
+		return userUseCase.userRepo.GetByID(id)
 	}
 	return userUseCase.userRepo.GetByNickName(userKey)
 }

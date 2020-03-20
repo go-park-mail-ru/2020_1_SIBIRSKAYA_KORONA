@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/bradfitz/gomemcache/memcache"
 	"log"
 
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
@@ -38,15 +39,17 @@ func (server *Server) Run() {
 
 	router.Use(mw.CORS)
 	// repo
+	// postgres
 	dsn := `host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable`
-	db, err := gorm.Open("postgres", dsn)
+	postgresClient, err := gorm.Open("postgres", dsn)
     if err != nil {
-		log.Println("aaa")
     	log.Fatal(err)
     }
-	defer db.Close()
-	usrRepo := userRepo.CreateRepository(db)
-	sesRepo := sessionRepo.CreateRepository()
+	defer postgresClient.Close()
+	usrRepo := userRepo.CreateRepository(postgresClient)
+	// memCache
+	memCacheClient := memcache.New("127.0.0.1:11211")
+	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 	// use case
 	sesUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	usrUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
