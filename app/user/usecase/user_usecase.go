@@ -22,7 +22,7 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) u
 	}
 }
 
-func (userUseCase *UserUseCase) Create(user *models.User) (string, error) {
+func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func (userUseCase *UserUseCase) Create(user *models.User) (string, error) {
 	session := &models.Session{
 		SID:     "",
 		ID:      user.ID,
-		Expires: time.Now().AddDate(1,0,0),
+		Expires: sessionExpires,
 	}
 	return userUseCase.sessionRepo.Create(session)
 }

@@ -21,13 +21,13 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 	}
 }
 
-func (sessionUseCase *SessionUseCase) Create(user *models.User) (string, error) {
+func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	realUser := sessionUseCase.userRepo.GetByNickName(user.Nickname)
 	if realUser.Password == user.Password {
 		session := &models.Session{
 			SID:     "",
 			ID:      user.ID,
-			Expires: time.Now().AddDate(1,0,0),
+			Expires: sessionExpires,
 		}
 		return sessionUseCase.sessionRepo.Create(session)
 	}

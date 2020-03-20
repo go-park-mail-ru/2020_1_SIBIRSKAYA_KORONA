@@ -16,7 +16,7 @@ func (u *User) TableName() string {
 	return "users"
 }
 
-func Create(reqBody []byte) *User {
+func CreateUser(reqBody []byte) *User {
 	usr := new(User)
 	if json.Unmarshal(reqBody, usr) != nil {
 		return nil
