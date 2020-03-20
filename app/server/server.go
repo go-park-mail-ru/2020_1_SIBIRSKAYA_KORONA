@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"log"
 
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
@@ -14,9 +13,9 @@ import (
 	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
-	// Нереализованные пока нами вещи заменим на стандартные из echo
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
