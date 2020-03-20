@@ -9,7 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 type SessionStore struct {
@@ -21,10 +21,10 @@ func CreateRepository(db *memcache.Client) session.Repository {
 }
 
 func (sessionStore *SessionStore) Create(session *models.Session) (string, error) {
-	session.SID = xid.New().String()
+	session.SID = uuid.New().String()
 	err := sessionStore.DB.Set(&memcache.Item{
-		Key: session.SID,
-		Value: []byte(fmt.Sprintf("%d", session.ID)),
+		Key:        session.SID,
+		Value:      []byte(fmt.Sprintf("%d", session.ID)),
 		Expiration: int32(time.Since(session.Expires).Seconds()),
 	})
 	//
