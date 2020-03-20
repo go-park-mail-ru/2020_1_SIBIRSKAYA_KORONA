@@ -48,6 +48,7 @@ func (server *Server) Run() {
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	// memCache
 	memCacheClient := memcache.New("127.0.0.1:11211")
+	defer memCacheClient.DeleteAll()
 	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 	// use case
 	sesUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
