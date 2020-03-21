@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	_ "time"
 
@@ -20,6 +21,9 @@ func CreateRepository(db *memcache.Client) session.Repository {
 }
 
 func (sessionStore *SessionStore) Create(session *models.Session) (string, error) {
+	if session == nil {
+		return "", errors.New("internal error")
+	}
 	session.SID = uuid.New().String()
 	err := sessionStore.DB.Set(&memcache.Item{
 		Key:        session.SID,

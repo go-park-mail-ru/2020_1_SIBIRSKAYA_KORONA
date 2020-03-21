@@ -63,6 +63,9 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 }
 
 func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {
+	if newUser == nil {
+		return errors.New("internal error")
+	}
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
 		return errors.New("no user")

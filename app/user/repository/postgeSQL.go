@@ -39,6 +39,9 @@ func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 }
 
 func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
+	if newUser == nil {
+		return errors.New("internal error")
+	}
 	oldUser := new(models.User)
 	if userStore.DB.First(&oldUser, newUser.ID).Error != nil {
 		return nil

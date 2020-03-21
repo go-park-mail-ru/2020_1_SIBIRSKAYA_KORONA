@@ -22,8 +22,11 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 }
 
 func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+	if user == nil {
+		return "", errors.New("bad password")
+	}
 	realUser := sessionUseCase.userRepo.GetByNickname(user.Nickname)
-	if realUser.Password == user.Password {
+	if realUser != nil && realUser.Password == user.Password {
 		ses := &models.Session{
 			SID:     "",
 			ID:      user.ID,
