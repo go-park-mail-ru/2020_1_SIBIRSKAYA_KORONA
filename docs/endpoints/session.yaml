@@ -4,7 +4,7 @@ paths:
       tags:
       - "session"
       summary: "Операция авторизации в нашем сервисе"
-      description: "ФИВА"
+      description: "..."
           
       requestBody:
         description: Данные, необходимые для авторизации
@@ -19,7 +19,6 @@ paths:
               "password": "qwerty1234",
             } 
 
-      # вставить хедера для ответа
       responses:
         200:
           description: "Успешно авторизовались, в ответе вшита кука"
@@ -29,11 +28,3 @@ paths:
               schema:
                 type: string
               description: Наша авторизационная кука.
-
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 200
-              }

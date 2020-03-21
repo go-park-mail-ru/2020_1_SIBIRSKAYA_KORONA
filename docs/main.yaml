@@ -31,10 +31,10 @@ paths:
     $ref: "endpoints/settings.yaml#/paths/~1settings"
   /session:
     $ref: "endpoints/session.yaml#/paths/~1session"
-  /profile:
-    $ref: "endpoints/profile.yaml#/paths/~1profile"
-  /board:
-    $ref: "endpoints/board.yaml#/paths/~1board"  
+  /profile/{id}:
+    $ref: "endpoints/profile.yaml#/paths/~1profile~1{id}"
+  /profile/{nickname}:
+    $ref: "endpoints/profile.yaml#/paths/~1profile~1{nickname}"
 
 components:
   schemas:
