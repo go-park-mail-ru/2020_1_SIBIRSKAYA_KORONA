@@ -48,8 +48,8 @@ func (server *Server) Run() {
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	// memCache
 	memCacheClient := memcache.New("127.0.0.1:11211")
-	// err = memCacheClient.Ping()
-	if memCacheClient == nil {
+	err = memCacheClient.Ping()
+	if err != nil {
 		log.Fatal(err)
 	}
 	defer memCacheClient.DeleteAll()
