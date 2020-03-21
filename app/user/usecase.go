@@ -8,8 +8,8 @@ import (
 
 type UseCase interface {
 	Create(user *models.User, sessionExpires time.Time) (string, error)
-	Get(userKey string) *models.User // userKey - id, nickname
-	GetAll(sid string) *models.User
+	GetByUserKey(userKey string) *models.User // userKey - id, nickname
+	GetByCookie(sid string) *models.User
 	Update(sid string, oldPass string, newUser *models.User) error
 	Delete(sid string) error
 }

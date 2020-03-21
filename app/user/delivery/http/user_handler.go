@@ -36,11 +36,11 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 
 	reqBody, err := ioutil.ReadAll(ctx.Request().Body)
 	usr := models.CreateUser(reqBody)
-	if err != nil ||  usr == nil {
+	if err != nil || usr == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	defer ctx.Request().Body.Close()
-	sessionExpires := time.Now().AddDate(1,0,0)
+	sessionExpires := time.Now().AddDate(1, 0, 0)
 	sid, err := userHandler.useCase.Create(usr, sessionExpires)
 	if err != nil {
 		return ctx.NoContent(http.StatusConflict)
@@ -56,7 +56,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	userData := userHandler.useCase.Get(ctx.Param("user"))
+	userData := userHandler.useCase.GetByUserKey(ctx.Param("user"))
 	if userData == nil {
 		return ctx.NoContent(http.StatusNotFound)
 	}
@@ -75,7 +75,7 @@ func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 	}
 	//
 
-	userData := userHandler.useCase.GetAll(cookie.Value)
+	userData := userHandler.useCase.GetByCookie(cookie.Value)
 	if userData == nil {
 		return ctx.NoContent(http.StatusNotFound)
 	}
@@ -97,7 +97,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	newUser := new(models.User)
 	newUser.Name = ctx.FormValue("newName")
 	newUser.Surname = ctx.FormValue("newSurname")
-	newUser.Nickname= ctx.FormValue("newNickname")
+	newUser.Nickname = ctx.FormValue("newNickname")
 	newUser.Email = ctx.FormValue("newEmail")
 	newUser.Password = ctx.FormValue("newPassword")
 	oldPass := ctx.FormValue("oldPassword")
@@ -107,7 +107,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	* if err != nil {
 	*     return err
 	* }
-	*/
+	 */
 
 	// TODO класс ошибок
 	if userHandler.useCase.Update(cookie.Value, oldPass, newUser) != nil {

@@ -12,13 +12,13 @@ import (
 
 type UserUseCase struct {
 	sessionRepo session.Repository
-	userRepo user.Repository
+	userRepo    user.Repository
 }
 
 func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) user.UseCase {
 	return &UserUseCase{
 		sessionRepo: sessionRepo_,
-		userRepo: userRepo_,
+		userRepo:    userRepo_,
 	}
 }
 
@@ -27,28 +27,39 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 	if err != nil {
 		return "", err
 	}
-	session := &models.Session{
+	ses := &models.Session{
 		SID:     "",
 		ID:      user.ID,
 		Expires: sessionExpires,
 	}
-	return userUseCase.sessionRepo.Create(session)
+	return userUseCase.sessionRepo.Create(ses)
 }
 
-func (userUseCase *UserUseCase) Get(userKey string) *models.User {
+func (userUseCase *UserUseCase) GetByUserKey(userKey string) *models.User {
 	var id uint
 	_, err := fmt.Sscan(userKey, &id)
+	usr := new(models.User)
 	if err == nil {
-		return userUseCase.userRepo.GetByID(id)
+		usr = userUseCase.userRepo.GetByID(id)
+	} else {
+		usr = userUseCase.userRepo.GetByNickname(userKey)
 	}
-	return userUseCase.userRepo.GetByNickName(userKey)
+	if usr != nil {
+		usr.Password = ""
+	}
+	return usr
 }
 
-func (userUseCase *UserUseCase) GetAll(sid string) *models.User {
-	if id, has := userUseCase.sessionRepo.Get(sid); has {
-		return userUseCase.userRepo.GetAll(id)
+func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
+	id, has := userUseCase.sessionRepo.Get(sid)
+	if !has {
+		return nil
 	}
-	return nil
+	usr := userUseCase.userRepo.GetByID(id)
+	if usr != nil {
+		usr.Password = ""
+	}
+	return usr
 }
 
 func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {

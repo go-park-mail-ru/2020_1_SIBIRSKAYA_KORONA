@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 	_ "time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -25,7 +24,7 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 	err := sessionStore.DB.Set(&memcache.Item{
 		Key:        session.SID,
 		Value:      []byte(fmt.Sprintf("%d", session.ID)),
-		Expiration: int32(time.Since(session.Expires).Seconds()),
+		Expiration: int32(session.Expires.Unix()),
 	})
 	//
 	fmt.Println(sessionStore.DB.Get(session.SID))

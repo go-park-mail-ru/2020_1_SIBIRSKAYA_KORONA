@@ -11,25 +11,25 @@ import (
 
 type SessionUseCase struct {
 	sessionRepo session.Repository
-	userRepo user.Repository
+	userRepo    user.Repository
 }
 
 func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) session.UseCase {
 	return &SessionUseCase{
 		sessionRepo: sessionRepo_,
-		userRepo: userRepo_,
+		userRepo:    userRepo_,
 	}
 }
 
 func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
-	realUser := sessionUseCase.userRepo.GetByNickName(user.Nickname)
+	realUser := sessionUseCase.userRepo.GetByNickname(user.Nickname)
 	if realUser.Password == user.Password {
-		session := &models.Session{
+		ses := &models.Session{
 			SID:     "",
 			ID:      user.ID,
 			Expires: sessionExpires,
 		}
-		return sessionUseCase.sessionRepo.Create(session)
+		return sessionUseCase.sessionRepo.Create(ses)
 	}
 	return "", errors.New("bad password")
 }

@@ -29,20 +29,12 @@ func (userStore *UserStore) GetByID(id uint) *models.User {
 	return userData
 }
 
-func (userStore *UserStore) GetByNickName(nickName string) *models.User {
+func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 	userData := new(models.User)
-	if userStore.DB.Where("nick_name = ?", nickName).First(&userData).Error != nil {
+	if userStore.DB.Where("nickname = ?", nickname).First(&userData).Error != nil {
 		return nil
 	}
 	userData.Password = ""
-	return userData
-}
-
-func (userStore *UserStore) GetAll(id uint) *models.User {
-	userData := new(models.User)
-	if userStore.DB.First(&userData, id).Error != nil {
-		return nil
-	}
 	return userData
 }
 
