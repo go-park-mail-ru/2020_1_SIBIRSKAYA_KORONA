@@ -4,7 +4,7 @@ paths:
       tags:
       - "settings"
       summary: "Регистрируем пользователя в нашем сервисе"
-      description: "ФИВА"
+      description: "..."
           
       requestBody:
         description: Данные, необходимые для регистрации
@@ -23,51 +23,28 @@ paths:
 
       responses:
         200:
-          description: "Успешная регистрация"  
-          content:
-            application/json:
+          description: "Успешная регистрация"
+          headers:
+            session_id:
               schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 200
-              }
+                type: string 
+              description: Наша авторизационная кука (пример - 4d756d94-b9d8-48dd-a4fe-cdc14d251ec2).
+              
 
-        308:
-          description: "В запросе присутствует валидная кука, редирект на главную страницу"
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 308
-              }
+        303:
+          description: "Постучались на данный endpoint с выставленной кукой"
 
         400:
           description: "Тело запроса не соответствует модели пользователя"
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 400
-              }
         
-
         409:
           description: "Пользователь с такими регистрационными данными уже существует"
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 409
-              }
 
     get:
       tags:
       - "settings"
       summary: "Получаем все данные о пользователе (у нас сейчас приходят одни и те же данные, что из /profile/{..}"
-      description: "ФИВА"
+      description: "..."
 
       parameters:
         - in: cookie
@@ -82,18 +59,13 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
                 - $ref: "../models/user.yaml#/components/schemas/User"
-                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
               example: {
-                  "status": 200,
-                  "user": {
-                    "name": "Vasya",
-                    "surname": "Pupkin",
-                    "nickname": "Legolas1",
-                    "email": "VasyaPupkin@gmail.com",
-                    "avatar": "Обсуждаем",
-                  }
+                "name": "Vasya",
+                "surname": "Pupkin",
+                "nickname": "Legolas1",
+                "email": "VasyaPupkin@gmail.com",
+                "avatar": "Обсуждаем",
               }
 
         303:
@@ -102,15 +74,12 @@ paths:
             application/json:
               schema:
                 $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 303
-              }
 
     put:
       tags:
         - "settings"
       summary: "Обновляем данные пользователя"
-      description: "ФИВА"
+      description: "..."
             
       parameters:
         - in: cookie
@@ -142,19 +111,6 @@ paths:
                 avatar:
                   type: string
                   format: binary
-
-
-          # application/json:
-          #   schema:
-          #     $ref: "../models/user.yaml#/components/schemas/User"
-          #   example: {
-          #     "name": "Vasya",
-          #     "surname": "Pupkin",
-          #     "nickname": "Legolas1",
-          #     "email": "VasyaPupkin@gmail.com",
-          #     "password": "qwerty1234",
-          #   } 
-
       responses:
         200:
           description: "Успешная регистрация"  
@@ -162,6 +118,3 @@ paths:
             application/json:
               schema:
                 $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                "status": 200
-              }
