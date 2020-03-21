@@ -41,13 +41,17 @@ func (server *Server) Run() {
 	// postgres
 	dsn := `host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable`
 	postgresClient, err := gorm.Open("postgres", dsn)
-    if err != nil {
-    	log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	// memCache
 	memCacheClient := memcache.New("127.0.0.1:11211")
+	// err = memCacheClient.Ping()
+	if memCacheClient == nil {
+		log.Fatal(err)
+	}
 	defer memCacheClient.DeleteAll()
 	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 	// use case
