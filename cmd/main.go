@@ -19,7 +19,7 @@ const allowOriginUrl = frontendUrl
 
 func main() {
 	srv := &server.Server{
-		IP: "127.0.0.1",
+		IP:   "0.0.0.0",
 		Port: 8080,
 	}
 	srv.Run()
