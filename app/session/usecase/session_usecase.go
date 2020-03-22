@@ -29,7 +29,7 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 	if realUser != nil && realUser.Password == user.Password {
 		ses := &models.Session{
 			SID:     "",
-			ID:      user.ID,
+			ID:      realUser.ID,
 			Expires: sessionExpires,
 		}
 		return sessionUseCase.sessionRepo.Create(ses)

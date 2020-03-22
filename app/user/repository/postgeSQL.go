@@ -64,8 +64,8 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
 	if newUser.Email != "" {
 		oldUser.Email = newUser.Email
 	}
-	if newUser.Img != "" {
-		oldUser.Img = newUser.Img
+	if newUser.Avatar != "" {
+		oldUser.Avatar = newUser.Avatar
 	}
 	return userStore.DB.Save(oldUser).Error
 }
