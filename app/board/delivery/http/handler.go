@@ -59,7 +59,6 @@ func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusForbidden)
 	}
-
 	bAdmin, bMember, err := boardHandler.useCase.GetAll(cookie.Value)
 	// TODO: Антон
 	if err != nil || (len(bAdmin) == 0 && len(bMember) == 0) {

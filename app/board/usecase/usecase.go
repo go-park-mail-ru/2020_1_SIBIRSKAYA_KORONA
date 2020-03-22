@@ -35,7 +35,7 @@ func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error 
 	if usr == nil {
 		return errors.New("not found")
 	}
-	board.Admins = []models.User{*usr}
+	board.Admins = []*models.User{usr}
 	return boardUseCase.boardRepo.Create(board)
 }
 
