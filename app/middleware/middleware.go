@@ -27,6 +27,7 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 		ctx.Response().Header().Set("Access-Control-Allow-Origin", mw.frontendUrl)
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		return next(ctx)
 	}
 }
@@ -34,9 +35,9 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 // TODO: пришить логгер
 func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Println("panicMiddleware", c.Request().URL.Path)
 		defer func() {
 			if err := recover(); err != nil {
+				fmt.Println("panicMiddleware", c.Request().URL.Path)
 				fmt.Println("Panic is catched: ", err)
 				// TODO: решить какой ответ отдавать клиенту
 			}

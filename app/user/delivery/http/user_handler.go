@@ -20,6 +20,9 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase) {
 	handler := &UserHandler{
 		useCase: useCase,
 	}
+	router.OPTIONS("/settings", func(ctx echo.Context) error {
+		return ctx.NoContent(http.StatusOK)
+	})
 	router.POST("/settings", handler.Create)
 	router.GET("/profile/:user", handler.Get) // по id или nicName
 	router.GET("/settings", handler.GetAll)   // получ все настройки

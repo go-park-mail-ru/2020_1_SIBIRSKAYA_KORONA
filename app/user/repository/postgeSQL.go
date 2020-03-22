@@ -25,7 +25,6 @@ func (userStore *UserStore) GetByID(id uint) *models.User {
 	if userStore.DB.First(&userData, id).Error != nil {
 		return nil
 	}
-	userData.Password = ""
 	return userData
 }
 
@@ -34,7 +33,6 @@ func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 	if userStore.DB.Where("nickname = ?", nickname).First(&userData).Error != nil {
 		return nil
 	}
-	userData.Password = ""
 	return userData
 }
 

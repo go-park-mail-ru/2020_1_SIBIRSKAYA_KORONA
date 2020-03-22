@@ -18,6 +18,9 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase) {
 	handler := &SessionHandler{
 		useCase: useCase,
 	}
+	router.OPTIONS("/session", func(ctx echo.Context) error {
+		return ctx.NoContent(http.StatusOK)
+	})
 	router.POST("/session", handler.LogIn)
 	router.GET("/session", handler.IsAuth)
 	router.DELETE("/session", handler.LogOut)

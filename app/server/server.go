@@ -2,11 +2,10 @@ package server
 
 import (
 	"fmt"
-	"log"
-
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
+	"log"
 
 	sessionHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/delivery/http"
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
@@ -37,14 +36,8 @@ func (server *Server) Run() {
 	router.Use(echoMiddleware.Logger())
 	mw := drelloMiddleware.InitMiddleware()
 
-	router.OPTIONS("/*", func(ctx echo.Context) error {
-		ctx.Response().Header().Set("Access-Control-Allow-Origin", "http://localhost:5757")
-		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-		return nil
-	})
 	router.Use(mw.CORS)
-	router.Use(mw.ProcessPanic)
+	// router.Use(mw.ProcessPanic)
 	// repo
 	// postgres
 	dbms := viper.GetString("database.dbms")
