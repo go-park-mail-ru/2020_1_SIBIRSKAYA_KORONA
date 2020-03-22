@@ -28,6 +28,9 @@ const allowOriginUrl = frontendUrl
 func init() {
 	flag.StringVar(&opts.configPath, "c", "", "path to configuration file")
 	flag.StringVar(&opts.configPath, "config", "", "path to configuration file")
+}
+
+func main() {
 	flag.Parse()
 
 	// к этому моменту уже создан инстанс этого объекта в функции init() соответсвующего пакета
@@ -38,14 +41,10 @@ func init() {
 		// в main() можно даже не переходить
 		panic(err)
 	}
-}
-
-func main() {
-	flag.Parse()
 
 	srv := &server.Server{
 		IP:   viper.GetString("server.ip"),
-		Port: viper.GetInt("server.port"),
+		Port: uint(viper.GetInt("server.port")),
 	}
 	srv.Run()
 }

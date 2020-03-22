@@ -1,13 +1,26 @@
 server: {
-  ip: localhost,
+  ip: 0.0.0.0,
   port: 8080,
 }
 
 database: {
   dbms: postgres,
+  # host: postgres,
   host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
   sslmode: disable
+}
+
+memcached: {
+  # host: memcached,
+  host: localhost,
+  port: 11211,
+}
+
+frontend: {
+  protocol: http,
+  ip: localhost,
+  port: 5757.
 }

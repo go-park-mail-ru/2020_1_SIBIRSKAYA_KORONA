@@ -6,6 +6,6 @@ create UNLOGGED table users (
     surname  TEXT not null,
     nickname TEXT not null unique,
     email    TEXT,
-    img      TEXT,
+    avatar      TEXT,
     password TEXT not null
 );

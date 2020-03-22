@@ -1,18 +1,18 @@
 paths:
-  /profile:
+  /profile/{id}:
     get:
       tags:
       - "profile"
-      summary: "Публичный запрос к данным пользователя"
-      description: "ФИВА"
+      summary: "Запрос к публичным данным пользователя по id в сервисе"
 
       parameters:
         - in: path
-          name: nickname
+          name: id
           required: true
           schema:
             type: string
-          description: Ник пользователя, публичные данные которого хотим просмотреть
+          description: id пользователя, публичные данные которого хотим просмотреть
+          example: 1106234 
           
       responses:
         200:
@@ -21,16 +21,55 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
                 - $ref: "../models/user.yaml#/components/schemas/User"
-                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
-              example: {
-                  "status": 200,
-                  "user": {
-                    "name": "Vasya",
-                    "surname": "Pupkin",
-                    "nickname": "Legolas1",
-                    "email": "VasyaPupkin@gmail.com",
-                    "avatar": "Обсуждаем",
-                  }
+              example: {  
+                "name": "Vasya",
+                "surname": "Pupkin",
+                "nickname": "Legolas1",
+                "email": "VasyaPupkin@gmail.com",
+                "avatar": "Обсуждаем",
               }
+        404:
+          description: "Пользователь не найден"
+
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"
+
+
+  /profile/{nickname}:
+    get:
+      tags:
+      - "profile"
+      summary: "Запрос к публичным данным пользователя по его никнейму"
+      description: "Получить можем "
+
+      parameters:
+        - in: path
+          name: nickname
+          required: true
+          schema:
+            type: string
+          description: Ник пользователя, публичные данные которого хотим просмотреть
+          example: VasyaSuper
+          
+      responses:
+        200:
+          description: "Корректный запрос, существующий пользователь, данные в теле ответа"
+
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/user.yaml#/components/schemas/User"
+              example: {
+                "name": "Vasya",
+                "surname": "Pupkin",
+                "nickname": "Legolas1",
+                "email": "VasyaPupkin@gmail.com",
+                "avatar": "Обсуждаем",
+              }
+
+        404:
+          description: "Пользователь не найден"
+          
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"   
