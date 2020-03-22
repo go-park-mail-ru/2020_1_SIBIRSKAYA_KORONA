@@ -28,3 +28,63 @@ paths:
               schema:
                 type: string
               description: Наша авторизационная кука.
+
+        303:
+          description: "Постучались на данный endpoint с выставленной кукой"
+
+        400:
+          description: "Невалидное тело запроса"
+         
+        #TODO: доделать после внедрения кастомных ошибок
+        409:
+          description: "Пароль неверный"
+    get:
+      tags:
+        - "session"
+      summary: "Проверяем наличие сессии"
+      description: "..."
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      responses:
+        200:
+          description: "В запросе выставлена актуальная кука, всё ок"
+
+        403:
+          description: "В запросе куки нет"
+          
+        500:
+          description: "На сервере ошибка cоответствия куки пользователя и кукой, которая лежит в базе (пока в работе)"
+
+    delete:
+      tags:
+        - "session"
+      summary: "Операция logout, удаляем куку"
+      description: "..."
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      responses:
+        200:
+          description: "Успешно удалили куку"
+
+        403:
+          description: "В запросе куки нет"
+            
+        500:
+          description: "На сервере ошибка удаления куки из хранилища"     
+
+
+
+
+          

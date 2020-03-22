@@ -30,13 +30,10 @@ paths:
                 type: string 
               description: Наша авторизационная кука (пример - 4d756d94-b9d8-48dd-a4fe-cdc14d251ec2).
               
-
         303:
           description: "Постучались на данный endpoint с выставленной кукой"
-
         400:
           description: "Тело запроса не соответствует модели пользователя"
-        
         409:
           description: "Пользователь с такими регистрационными данными уже существует"
 
@@ -61,6 +58,7 @@ paths:
               schema:
                 - $ref: "../models/user.yaml#/components/schemas/User"
               example: {
+                "id": 110323,
                 "name": "Vasya",
                 "surname": "Pupkin",
                 "nickname": "Legolas1",
@@ -68,12 +66,12 @@ paths:
                 "avatar": "Обсуждаем",
               }
 
-        303:
+        403:
           description: "В запросе на данные отсутствует кука"
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+        404:
+          description: "Пользователя по куке не нашли"
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"
 
     put:
       tags:
@@ -89,7 +87,7 @@ paths:
           required: true
 
       requestBody:
-        description: Данные, необходимые для регистрации (все завернуто в мультипарт-форму)
+        description: Данные, необходимые для обновления (все завернуто в мультипарт-форму)
         required: true
         content:
           multipart/form-data:
@@ -113,8 +111,29 @@ paths:
                   format: binary
       responses:
         200:
-          description: "Успешная регистрация"  
-          content:
-            application/json:
-              schema:
-                $ref: "../models/user.yaml#/components/schemas/ApiResponse"
+          description: "Успешная регистрация"
+        400:
+          description: "Невалидное тело запроса с информацией для обновления"
+        403:
+          description: "В запросе отсутствует кука"
+
+    delete:
+      tags:
+        - "settings"
+      summary: "Удаляем нашего пользователя"
+      description: "..."
+            
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      responses:
+        200:
+          description: "Успешная регистрация"
+        403:
+          description: "В запросе отсутствует"
+        500:
+          description: "Ошибка на сервере при удалении"  

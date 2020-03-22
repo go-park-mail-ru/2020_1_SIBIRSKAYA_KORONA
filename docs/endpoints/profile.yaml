@@ -21,9 +21,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
                 - $ref: "../models/user.yaml#/components/schemas/User"
-                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
               example: {  
                 "name": "Vasya",
                 "surname": "Pupkin",
@@ -31,6 +29,13 @@ paths:
                 "email": "VasyaPupkin@gmail.com",
                 "avatar": "Обсуждаем",
               }
+        404:
+          description: "Пользователь не найден"
+
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"
+
+
   /profile/{nickname}:
     get:
       tags:
@@ -54,13 +59,17 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
                 - $ref: "../models/user.yaml#/components/schemas/User"
-                - $ref: "../models/user.yaml#/components/schemas/ApiResponse"
               example: {
                 "name": "Vasya",
                 "surname": "Pupkin",
                 "nickname": "Legolas1",
                 "email": "VasyaPupkin@gmail.com",
                 "avatar": "Обсуждаем",
-              }            
+              }
+
+        404:
+          description: "Пользователь не найден"
+          
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"   

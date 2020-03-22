@@ -2,10 +2,11 @@ package server
 
 import (
 	"fmt"
+	"log"
+
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
-	"log"
 
 	sessionHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/delivery/http"
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
@@ -14,16 +15,16 @@ import (
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
-	"github.com/spf13/viper"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
 )
 
 type Server struct {
 	IP   string
-	Port int
+	Port uint
 }
 
 func (server *Server) GetAddr() string {
@@ -61,7 +62,10 @@ func (server *Server) Run() {
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	// memCache
-	memCacheClient := memcache.New("127.0.0.1:11211")
+	memcacheHost := viper.GetString("memcached.host")
+	memcachePort := viper.GetString("memcached.port")
+	memcacheConnection := fmt.Sprintf("%s:%s", memcacheHost, memcachePort)
+	memCacheClient := memcache.New(memcacheConnection)
 	err = memCacheClient.Ping()
 	if err != nil {
 		log.Fatal(err)

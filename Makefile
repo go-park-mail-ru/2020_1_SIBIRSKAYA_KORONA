@@ -1,3 +1,4 @@
+BINARY=drello_binary
 API_DOC_TARGET=api.yaml
 PROJECT_DIR := ${CURDIR}
 
@@ -5,8 +6,18 @@ PROJECT_DIR := ${CURDIR}
 test-cover:
 	go test -v -cover -covermode=atomic ./... --test-config="$(PROJECT_DIR)/config.yaml"
 
-test-coverpkg:
-	go test -v -coverpkg=./... -covermode=atomic ./... --test-config="$(PROJECT_DIR)/config.yaml"
+# docker
+build-binary:
+	go build -o ${BINARY} cmd/main.go
+
+docker-image:
+	docker build -t drello-backend .
+
+start:
+	docker-compose up -d
+
+stop:
+	docker-compose down
 
 # документация
 doc-prepare:
@@ -18,7 +29,7 @@ doc-create:
 	echo ${PROJECT_DIR}
 
 doc-host:	
-	docker run -p 80:8080 -e SWAGGER_JSON=/api.yaml -v $(PROJECT_DIR)/api.yaml:/api.yaml swaggerapi/swagger-ui
+	docker run -p 80:8080 -e SWAGGER_JSON=/api.yaml -v $(MAKEFILE_PATH)/../api.yaml:/api.yaml swaggerapi/swagger-ui
 
-# во избежание конфликта с папками
-#.PHONY: all test clean
+.PHONY:
+	start stop

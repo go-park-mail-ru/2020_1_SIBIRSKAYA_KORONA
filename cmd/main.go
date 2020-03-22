@@ -44,7 +44,7 @@ func main() {
 
 	srv := &server.Server{
 		IP:   viper.GetString("server.ip"),
-		Port: viper.GetInt("server.port"),
+		Port: uint(viper.GetInt("server.port")),
 	}
 	srv.Run()
 }
