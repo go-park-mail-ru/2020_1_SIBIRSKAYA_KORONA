@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
@@ -52,13 +53,14 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	// memCache
-	memcacheHost := viper.GetString("memcached.host")
-	memcachePort := viper.GetString("memcached.port")
-	memcacheConnection := fmt.Sprintf("%s:%s", memcacheHost, memcachePort)
-	memCacheClient := memcache.New(memcacheConnection)
+	memCacheHost := viper.GetString("memcached.host")
+	memCachePort := viper.GetString("memcached.port")
+	memCacheConnection := fmt.Sprintf("%s:%s", memCacheHost, memCachePort)
+	memCacheClient := memcache.New(memCacheConnection)
 	err = memCacheClient.Ping()
 	if err != nil {
 		log.Fatal(err)

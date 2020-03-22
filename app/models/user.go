@@ -2,6 +2,9 @@ package models
 
 import (
 	"encoding/json"
+	"io/ioutil"
+
+	"github.com/labstack/echo/v4"
 )
 
 type User struct {
@@ -18,9 +21,14 @@ func (u *User) TableName() string {
 	return "users"
 }
 
-func CreateUser(reqBody []byte) *User {
+func CreateUser(ctx echo.Context) *User {
+	body, err := ioutil.ReadAll(ctx.Request().Body)
+	if err != nil {
+		return nil
+	}
+	defer ctx.Request().Body.Close()
 	usr := new(User)
-	if json.Unmarshal(reqBody, usr) != nil {
+	if json.Unmarshal(body, usr) != nil {
 		return nil
 	}
 	return usr

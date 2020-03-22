@@ -1,7 +1,6 @@
 package http
 
 import (
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -33,9 +32,8 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 	}
 	//
 
-	reqBody, err := ioutil.ReadAll(ctx.Request().Body)
-	usr := models.CreateUser(reqBody)
-	if err != nil ||  usr == nil {
+	usr := models.CreateUser(ctx)
+	if usr == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	defer ctx.Request().Body.Close()
