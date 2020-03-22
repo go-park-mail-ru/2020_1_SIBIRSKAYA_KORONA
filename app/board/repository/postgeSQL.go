@@ -20,12 +20,16 @@ func (userStore *BoardStore) Create(board *models.Board) error {
 	return userStore.DB.Create(board).Error
 }
 
-func (userStore *BoardStore) GetAll(user *models.User) ([]models.Board, []models.Board, error) {
+func (userStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
 	var adminsBoard []models.Board
-	err := userStore.DB.Model(user).Related(&adminsBoard).Error
+	err := userStore.DB.Model(usr).Related(&adminsBoard, "board_admins").Error
 	if err != nil {
 		return nil, nil, err
 	}
-	// var membersBoard []models.Board
-	return adminsBoard, nil, nil
+	var membersBoard []models.Board
+	err = userStore.DB.Model(usr).Related(&membersBoard, "board_members").Error
+	if err != nil {
+		return nil, nil, err
+	}
+	return adminsBoard, membersBoard, nil
 }

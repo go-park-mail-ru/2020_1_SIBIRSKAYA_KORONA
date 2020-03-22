@@ -21,8 +21,8 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase) {
 		return ctx.NoContent(http.StatusOK)
 	})
 	router.POST("/boards", handler.Create)
-	router.GET("/boards", handler.Get)
-	router.GET("/boards/:board", handler.GetAll)
+	router.GET("/boards/:board", handler.Get)
+	router.GET("/boards", handler.GetAll)
 	router.PUT("/boards", handler.Update)
 }
 
