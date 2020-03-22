@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -27,7 +26,6 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 		return "", errors.New("bad password")
 	}
 	realUser := sessionUseCase.userRepo.GetByNickname(user.Nickname)
-	fmt.Println("!!!! pass !!!!", realUser.Password, user.Password)
 	if realUser != nil && realUser.Password == user.Password {
 		ses := &models.Session{
 			SID:     "",
