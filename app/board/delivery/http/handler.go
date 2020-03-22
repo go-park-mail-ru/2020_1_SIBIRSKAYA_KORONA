@@ -40,14 +40,14 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	}
 	//
 
-	board := models.CreateBoard(ctx)
-	if board == nil {
+	brd := models.CreateBoard(ctx)
+	if brd == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if boardHandler.useCase.Create(cookie.Value, board) != nil {
+	if boardHandler.useCase.Create(cookie.Value, brd) != nil {
 		return ctx.NoContent(http.StatusInternalServerError) // TODO: пока хз
 	}
-	body, err := message.GetBody(message.Pair{Name: "board", Data: *board})
+	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
@@ -55,7 +55,18 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
-	return ctx.NoContent(http.StatusOK)
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		return ctx.NoContent(http.StatusForbidden)
+	}
+
+	bAdmin, bMember, err := boardHandler.useCase.GetAll(cookie.Value)
+	// TODO: Антон
+	if err != nil || (len(bAdmin) == 0 && len(bMember) == 0) {
+		return ctx.NoContent(http.StatusNotFound)
+	}
+	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
+	return ctx.String(http.StatusOK, body)
 }
 
 func (boardHandler *BoardHandler) Get(ctx echo.Context) error {

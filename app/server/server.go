@@ -12,6 +12,10 @@ import (
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
 	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/usecase"
 
+	boardHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/delivery/http"
+	boardRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/repository"
+	boardUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/usecase"
+
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
@@ -40,6 +44,17 @@ func (server *Server) Run() {
 	router.Use(mw.CORS)
 	// router.Use(mw.ProcessPanic)
 	// repo
+	// memCache
+	memCacheHost := viper.GetString("memcached.host")
+	memCachePort := viper.GetString("memcached.port")
+	memCacheConnection := fmt.Sprintf("%s:%s", memCacheHost, memCachePort)
+	memCacheClient := memcache.New(memCacheConnection)
+	err := memCacheClient.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer memCacheClient.DeleteAll()
+	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 	// postgres
 	dbms := viper.GetString("database.dbms")
 	dbHost := viper.GetString("database.host")
@@ -48,7 +63,6 @@ func (server *Server) Run() {
 	dbName := viper.GetString("database.name")
 	dbMode := viper.GetString("database.sslmode")
 	dbConnection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode)
-
 	postgresClient, err := gorm.Open(dbms, dbConnection)
 	if err != nil {
 		log.Fatal(err)
@@ -56,23 +70,16 @@ func (server *Server) Run() {
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
-	// memCache
-	memCacheHost := viper.GetString("memcached.host")
-	memCachePort := viper.GetString("memcached.port")
-	memCacheConnection := fmt.Sprintf("%s:%s", memCacheHost, memCachePort)
-	memCacheClient := memcache.New(memCacheConnection)
-	err = memCacheClient.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer memCacheClient.DeleteAll()
-	sesRepo := sessionRepo.CreateRepository(memCacheClient)
+	bRepo := boardRepo.CreateRepository(postgresClient)
 	// use case
-	sesUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
-	usrUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
+	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
+	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
+	bUseCase := boardUseCase.CreateUseCase(sesRepo, usrRepo, bRepo)
 	// delivery
-	userHandler.CreateHandler(router, usrUseCase)
-	sessionHandler.CreateHandler(router, sesUseCase)
+	sessionHandler.CreateHandler(router, sUseCase)
+	userHandler.CreateHandler(router, uUseCase)
+	boardHandler.CreateHandler(router, bUseCase)
+
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {
 		log.Fatal(err)

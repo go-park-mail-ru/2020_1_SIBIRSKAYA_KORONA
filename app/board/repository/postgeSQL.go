@@ -19,3 +19,13 @@ func CreateRepository(db *gorm.DB) board.Repository {
 func (userStore *BoardStore) Create(board *models.Board) error {
 	return userStore.DB.Create(board).Error
 }
+
+func (userStore *BoardStore) GetAll(user *models.User) ([]models.Board, []models.Board, error) {
+	var adminsBoard []models.Board
+	err := userStore.DB.Model(user).Related(&adminsBoard).Error
+	if err != nil {
+		return nil, nil, err
+	}
+	// var membersBoard []models.Board
+	return adminsBoard, nil, nil
+}
