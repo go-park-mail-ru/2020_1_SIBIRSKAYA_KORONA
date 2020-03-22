@@ -29,24 +29,19 @@ func (userStore *UserStore) GetByID(id uint) *models.User {
 	return userData
 }
 
-func (userStore *UserStore) GetByNickName(nickName string) *models.User {
+func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 	userData := new(models.User)
-	if userStore.DB.Where("nick_name = ?", nickName).First(&userData).Error != nil {
+	if userStore.DB.Where("nickname = ?", nickname).First(&userData).Error != nil {
 		return nil
 	}
 	userData.Password = ""
 	return userData
 }
 
-func (userStore *UserStore) GetAll(id uint) *models.User {
-	userData := new(models.User)
-	if userStore.DB.First(&userData, id).Error != nil {
-		return nil
-	}
-	return userData
-}
-
 func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
+	if newUser == nil {
+		return errors.New("internal error")
+	}
 	oldUser := new(models.User)
 	if userStore.DB.First(&oldUser, newUser.ID).Error != nil {
 		return nil
@@ -69,8 +64,8 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
 	if newUser.Email != "" {
 		oldUser.Email = newUser.Email
 	}
-	if newUser.Img != "" {
-		oldUser.Img = newUser.Img
+	if newUser.Avatar != "" {
+		oldUser.Avatar = newUser.Avatar
 	}
 	return userStore.DB.Save(oldUser).Error
 }
