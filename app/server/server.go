@@ -2,10 +2,11 @@ package server
 
 import (
 	"fmt"
+	"log"
+
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
-	"log"
 
 	sessionHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/delivery/http"
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
@@ -69,8 +70,8 @@ func (server *Server) Run() {
 	sesUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	usrUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
 	// delivery
-	userHandler.CreateHandler(router, usrUseCase)
-	sessionHandler.CreateHandler(router, sesUseCase)
+	userHandler.CreateHandler(router, usrUseCase, mw)
+	sessionHandler.CreateHandler(router, sesUseCase, mw)
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {
 		log.Fatal(err)
