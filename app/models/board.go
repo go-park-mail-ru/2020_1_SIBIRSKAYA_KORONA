@@ -11,8 +11,8 @@ type Board struct {
 	ID   uint   `json:"id" gorm:"primary_key"`
 	Name string `json:"name"`
 	// Cols    []string `json:"cols"`
-	Admins  []*User `json:"admins" gorm:"many2many:board_admins;"`
-	Members []*User `json:"members" gorm:"many2many:board_members;"`
+	Admins  []*User `json:"admins,omitempty" gorm:"many2many:board_admins;"`
+	Members []*User `json:"members,omitempty" gorm:"many2many:board_members;"`
 	// Tasks []Task
 }
 
