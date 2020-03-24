@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"net/http"
@@ -21,16 +22,10 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase) {
 		return ctx.NoContent(http.StatusOK)
 	})
 	router.POST("/boards", handler.Create)
-	router.GET("/boards/:board", handler.Get)
+	router.GET("/boards/:bid", handler.Get)
 	router.GET("/boards", handler.GetAll)
 	router.PUT("/boards", handler.Update)
 }
-
-/*
-	/boards (GET)  -  все доски. дл каждой доски: админ, имя доски, участники, BID
-	/boards (POST) -  с фронта: имя доски. с бэка статус + bid
-	/boards/{bid} (GET) -  конкретная доска: админ, имя доски, uid - участников, tid - задач
-*/
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	// в миддлвар
@@ -54,6 +49,29 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, body)
 }
 
+func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
+	// в миддлвар
+	cookie, err := ctx.Cookie("session_id")
+	if err != nil {
+		return ctx.NoContent(http.StatusForbidden)
+	}
+	//
+	var bid uint
+	_, err = fmt.Sscan(ctx.Param("bid"), &bid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	brd := boardHandler.useCase.Get(cookie.Value, bid)
+	if brd == nil {
+		return ctx.NoContent(http.StatusNotFound)
+	}
+	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
+}
+
 func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
 	cookie, err := ctx.Cookie("session_id")
 	if err != nil {
@@ -66,10 +84,6 @@ func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
 	}
 	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
 	return ctx.String(http.StatusOK, body)
-}
-
-func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
-	return ctx.NoContent(http.StatusOK)
 }
 
 func (boardHandler *BoardHandler) Update(ctx echo.Context) error {

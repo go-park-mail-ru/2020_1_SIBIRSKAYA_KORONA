@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -37,6 +38,17 @@ func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error 
 	}
 	board.Admins = []*models.User{usr}
 	return boardUseCase.boardRepo.Create(board)
+}
+
+func (boardUseCase *BoardUseCase) Get(sid string, bid uint) *models.Board {
+	usr := boardUseCase.GetUser(sid)
+	if usr == nil {
+		return nil
+	}
+	brd := boardUseCase.boardRepo.Get(bid)
+	fmt.Println(brd)
+	// TODO: приватность доски => where table.uid = usr.uid или фильтровать тут по массиву
+	return brd
 }
 
 func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, error) {

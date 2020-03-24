@@ -16,18 +16,27 @@ func CreateRepository(db *gorm.DB) board.Repository {
 	return &BoardStore{DB: db}
 }
 
-func (userStore *BoardStore) Create(board *models.Board) error {
-	return userStore.DB.Create(board).Error
+func (boardStore *BoardStore) Create(board *models.Board) error {
+	return boardStore.DB.Create(board).Error
 }
 
-func (userStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
+func (boardStore *BoardStore) Get(bid uint) *models.Board {
+	brd := new(models.Board)
+	userData := new(models.User)
+	if boardStore.DB.First(&userData, bid).Error != nil {
+		return nil
+	}
+	return brd
+}
+
+func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
 	var adminsBoard []models.Board
-	err := userStore.DB.Model(usr).Related(&adminsBoard, "Admin").Error
+	err := boardStore.DB.Model(usr).Related(&adminsBoard, "Admin").Error
 	if err != nil {
 		return nil, nil, err
 	}
 	var membersBoard []models.Board
-	err = userStore.DB.Model(usr).Related(&membersBoard, "Member").Error
+	err = boardStore.DB.Model(usr).Related(&membersBoard, "Member").Error
 	if err != nil {
 		return nil, nil, err
 	}
