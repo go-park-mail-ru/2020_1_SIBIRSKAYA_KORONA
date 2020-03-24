@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
 	"github.com/spf13/viper"
 )
@@ -32,7 +31,6 @@ func init() {
 
 func main() {
 	flag.Parse()
-
 	// к этому моменту уже создан инстанс этого объекта в функции init() соответсвующего пакета
 	// в дальнейшем можно обращаться к конфигу через его методы в остальных пакетах
 	viper.SetConfigFile(opts.configPath)

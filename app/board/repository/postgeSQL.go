@@ -22,9 +22,20 @@ func (boardStore *BoardStore) Create(board *models.Board) error {
 
 func (boardStore *BoardStore) Get(bid uint) *models.Board {
 	brd := new(models.Board)
-	userData := new(models.User)
-	if boardStore.DB.First(&userData, bid).Error != nil {
+	brd.ID = bid
+	err := boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Error
+	if err != nil {
 		return nil
+	}
+	for _, admins := range brd.Admins {
+		admins.Password = ""
+	}
+	err = boardStore.DB.Model(brd).Related(&brd.Members, "Members").Error
+	if err != nil {
+		return nil
+	}
+	for _, members := range brd.Members {
+		members.Password = ""
 	}
 	return brd
 }
@@ -40,5 +51,6 @@ func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models
 	if err != nil {
 		return nil, nil, err
 	}
+	usr.Password = ""
 	return adminsBoard, membersBoard, nil
 }
