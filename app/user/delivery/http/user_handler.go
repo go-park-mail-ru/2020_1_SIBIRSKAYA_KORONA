@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/custom_errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
@@ -105,10 +106,11 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	* }
 	 */
 
-	// TODO класс ошибок
-	if userHandler.useCase.Update(cookie, oldPass, newUser) != nil {
-		return ctx.NoContent(http.StatusBadRequest)
+	if err := userHandler.useCase.Update(cookie, oldPass, newUser); err != nil {
+		err := err.(*custom_errors.CustomUsecaseError)
+		return ctx.String(err.Code, err.Error())
 	}
+
 	return ctx.NoContent(http.StatusOK)
 }
 

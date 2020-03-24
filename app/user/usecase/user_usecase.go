@@ -3,11 +3,20 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/custom_errors"
+)
+
+// Создаем ошибки, характерные для юзкейса пользователя
+var (
+	ErrUserNotExist    = errors.New("User not exist")
+	ErrUserBadMarshall = errors.New("Invalid data for user update")
 )
 
 type UserUseCase struct {
@@ -64,11 +73,11 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 
 func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {
 	if newUser == nil {
-		return errors.New("internal error")
+		return &custom_errors.CustomUsecaseError{Err: ErrUserBadMarshall, Code: http.StatusBadRequest}
 	}
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return errors.New("no user")
+		return &custom_errors.CustomUsecaseError{Err: ErrUserNotExist, Code: http.StatusBadRequest}
 	}
 	newUser.ID = id
 	return userUseCase.userRepo.Update(oldPass, newUser)
