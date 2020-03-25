@@ -2,11 +2,13 @@ package server
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
-	"log"
 
 	sessionHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/delivery/http"
 	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/repository"
@@ -76,8 +78,8 @@ func (server *Server) Run() {
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
 	bUseCase := boardUseCase.CreateUseCase(sesRepo, usrRepo, bRepo)
 	// delivery
-	sessionHandler.CreateHandler(router, sUseCase)
-	userHandler.CreateHandler(router, uUseCase)
+	sessionHandler.CreateHandler(router, sUseCase, mw)
+	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase)
 
 	// start

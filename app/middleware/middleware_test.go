@@ -39,26 +39,26 @@ func TestMain(m *testing.M) {
 
 func TestCORS(t *testing.T) {
 	e := echo.New()
-	req := test.NewRequest(echo.GET, "/", nil)
-	res := test.NewRecorder()
-	c := e.NewContext(req, res)
-	m := middleware.InitMiddleware()
+	request := test.NewRequest(echo.GET, "/", nil)
+	response := test.NewRecorder()
+	context := e.NewContext(request, response)
+	middle := middleware.InitMiddleware()
 
-	h := m.CORS(echo.HandlerFunc(func(c echo.Context) error {
+	executableHandler := middle.CORS(echo.HandlerFunc(func(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}))
 
-	err := h(c)
+	err := executableHandler(context)
 	require.NoError(t, err)
-	assert.Equal(t, "http://localhost:5757", res.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "http://localhost:5757", response.Header().Get("Access-Control-Allow-Origin"))
 }
 
 func TestPanicProcess(t *testing.T) {
 	e := echo.New()
-	req := test.NewRequest(echo.GET, "/", nil)
-	res := test.NewRecorder()
-	c := e.NewContext(req, res)
-	m := middleware.InitMiddleware()
+	request := test.NewRequest(echo.GET, "/", nil)
+	response := test.NewRecorder()
+	context := e.NewContext(request, response)
+	middle := middleware.InitMiddleware()
 
 	panicHandler := echo.HandlerFunc(func(c echo.Context) error {
 		if 2+2 == 4 {
@@ -67,8 +67,39 @@ func TestPanicProcess(t *testing.T) {
 		return c.NoContent(http.StatusOK)
 	})
 
-	processedPanicHandler := m.ProcessPanic(panicHandler)
+	processedPanicHandler := middle.ProcessPanic(panicHandler)
 
-	err := processedPanicHandler(c)
+	err := processedPanicHandler(context)
 	require.NoError(t, err)
+}
+
+func TestCheckCookieExist(t *testing.T) {
+	e := echo.New()
+
+	middle := middleware.InitMiddleware()
+
+	noCookieRequest := test.NewRequest(echo.GET, "/", nil)
+	noCookieResponse := test.NewRecorder()
+	noCookieContext := e.NewContext(noCookieRequest, noCookieResponse)
+
+	withCookieRequest := test.NewRequest(echo.GET, "/", nil)
+	withCookieResponse := test.NewRecorder()
+	withCookieContext := e.NewContext(withCookieRequest, withCookieResponse)
+
+	cookie := http.Cookie{Name: "session_id", Value: "check_only_for_exist"}
+	withCookieContext.Request().AddCookie(&cookie)
+
+	testHandler := echo.HandlerFunc(func(context echo.Context) error {
+		return context.NoContent(http.StatusOK)
+	})
+
+	executableHandler := middle.CheckCookieExist(testHandler)
+
+	noCookieErr := executableHandler(noCookieContext)
+	require.NoError(t, noCookieErr)
+	assert.Equal(t, noCookieContext.Response().Status, http.StatusForbidden)
+
+	withCookieErr := executableHandler(withCookieContext)
+	require.NoError(t, withCookieErr)
+	assert.Equal(t, withCookieContext.Response().Status, http.StatusOK)
 }

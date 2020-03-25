@@ -22,5 +22,9 @@ memcached: {
 frontend: {
   protocol: http,
   ip: localhost,
-  port: 5757.
+  port: 5757,
+  public_dir: /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public,
+  #relative
+  avatar_dir: /img/avatar,
+  default_avatar: /img/default_avatar.png
 }

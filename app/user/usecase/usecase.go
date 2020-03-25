@@ -3,11 +3,15 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 )
 
 type UserUseCase struct {
@@ -62,16 +66,31 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 	return usr
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.CustomUsecaseError {
 	if newUser == nil {
-		return errors.New("internal error")
+		return &cstmerr.CustomUsecaseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
 	}
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return errors.New("no user")
+		return &cstmerr.CustomUsecaseError{Err: models.ErrUserNotExist, Code: http.StatusBadRequest}
 	}
 	newUser.ID = id
-	return userUseCase.userRepo.Update(oldPass, newUser)
+
+	var responseStatus int
+	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
+	switch repoErr.Err {
+	case models.ErrWrongPassword:
+		responseStatus = http.StatusForbidden
+	case models.ErrInternal:
+		responseStatus = http.StatusInternalServerError
+	case models.ErrDbBadOperation:
+		responseStatus = http.StatusInternalServerError
+		repoErr.Err = models.ErrInternal
+	case nil:
+		responseStatus = http.StatusOK
+	}
+
+	return &cstmerr.CustomUsecaseError{Err: repoErr.Err, Code: responseStatus}
 }
 
 func (userUseCase *UserUseCase) Delete(sid string) error {
