@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -36,17 +36,17 @@ func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 	return userData
 }
 
-func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
+func (userStore *UserStore) Update(oldPass string, newUser *models.User) *cstmerr.CustomRepositoryError {
 	if newUser == nil {
-		return errors.New("internal error")
+		return &cstmerr.CustomRepositoryError{Err: models.ErrInternal}
 	}
 	oldUser := new(models.User)
 	if userStore.DB.First(&oldUser, newUser.ID).Error != nil {
-		return nil
+		return &cstmerr.CustomRepositoryError{Err: models.ErrDbBadOperation}
 	}
 	if oldPass != "" && newUser.Password != "" {
 		if oldUser.Password != oldPass {
-			return errors.New("wrong password")
+			return &cstmerr.CustomRepositoryError{Err: models.ErrWrongPassword}
 		}
 		oldUser.Password = newUser.Password
 	}
@@ -65,9 +65,14 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User) error {
 	if newUser.Avatar != "" {
 		oldUser.Avatar = newUser.Avatar
 	}
-	return userStore.DB.Save(oldUser).Error
+	// Обернуть ошибки из базы, чтобы можно было логировать
+	if userStore.DB.Save(oldUser).Error != nil {
+		return &cstmerr.CustomRepositoryError{Err: models.ErrDbBadOperation}
+	}
+	return &cstmerr.CustomRepositoryError{Err: nil}
 }
 
 func (userStore *UserStore) Delete(id uint) error {
-	return userStore.DB.Delete(models.User{}, " = ?", id).Error
+	err := userStore.DB.Delete(models.User{}, " = ?", id).Error
+	return &cstmerr.CustomRepositoryError{Err: err}
 }

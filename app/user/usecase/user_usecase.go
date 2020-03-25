@@ -10,13 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/custom_errors"
-)
-
-// Создаем ошибки, характерные для юзкейса пользователя
-var (
-	ErrUserNotExist    = errors.New("User not exist")
-	ErrUserBadMarshall = errors.New("Invalid data for user update")
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 )
 
 type UserUseCase struct {
@@ -71,16 +65,31 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 	return usr
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) error {
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) *cstmerr.CustomUsecaseError {
 	if newUser == nil {
-		return &custom_errors.CustomUsecaseError{Err: ErrUserBadMarshall, Code: http.StatusBadRequest}
+		return &cstmerr.CustomUsecaseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
 	}
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return &custom_errors.CustomUsecaseError{Err: ErrUserNotExist, Code: http.StatusBadRequest}
+		return &cstmerr.CustomUsecaseError{Err: models.ErrUserNotExist, Code: http.StatusBadRequest}
 	}
 	newUser.ID = id
-	return userUseCase.userRepo.Update(oldPass, newUser)
+
+	var responseStatus int
+	repoErr := userUseCase.userRepo.Update(oldPass, newUser)
+	switch repoErr.Err {
+	case models.ErrWrongPassword:
+		responseStatus = http.StatusForbidden
+	case models.ErrInternal:
+		responseStatus = http.StatusInternalServerError
+	case models.ErrDbBadOperation:
+		responseStatus = http.StatusInternalServerError
+		repoErr.Err = models.ErrInternal
+	case nil:
+		responseStatus = http.StatusOK
+	}
+
+	return &cstmerr.CustomUsecaseError{Err: repoErr.Err, Code: responseStatus}
 }
 
 func (userUseCase *UserUseCase) Delete(sid string) error {
