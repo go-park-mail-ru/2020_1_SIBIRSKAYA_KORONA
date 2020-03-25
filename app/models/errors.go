@@ -16,5 +16,6 @@ var (
 	ErrUserBadMarshall = errors.New("Invalid data for user update")
 
 	// ошибки, связанные с бд
-	ErrDbBadOperation = errors.New("Unsuccessful ORM operation")
+	ErrDbBadOperation  = errors.New("Unsuccessful ORM operation")
+	ErrBadAvatarUpload = errors.New("Unsuccessful avatar upload")
 )

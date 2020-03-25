@@ -10,7 +10,11 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
+	"fmt"
+
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
+	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
@@ -42,6 +46,13 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 
 	reqBody, err := ioutil.ReadAll(ctx.Request().Body)
 	usr := models.CreateUser(reqBody)
+
+	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
+		viper.GetString("frontend.protocol"),
+		viper.GetString("frontend.ip"),
+		viper.GetString("frontend.port"),
+		viper.GetString("frontend.default_avatar"))
+
 	if err != nil || usr == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
@@ -98,14 +109,12 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	newUser.Password = ctx.FormValue("newPassword")
 	oldPass := ctx.FormValue("oldPassword")
 
-	/*
-	* file, err := ctx.FormFile("avatar")
-	* if err != nil {
-	*     return err
-	* }
-	 */
+	avatarFileDescriptor, err := ctx.FormFile("avatar")
+	if err != nil {
+		log.Error("FormFile avatar error: ", err)
+	}
 
-	if err := userHandler.useCase.Update(cookie, oldPass, newUser); err != nil {
+	if err := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); err.Err != nil {
 		//TODO: добавить запись ошибки(с указанием) в логгер
 		//return ctx.String(err.Code, err.Error())
 		return ctx.JSON(err.Code, err.Err.Error())

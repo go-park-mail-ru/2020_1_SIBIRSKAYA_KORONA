@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"time"
 
@@ -65,7 +66,7 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 	return usr
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User) *cstmerr.CustomUsecaseError {
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.CustomUsecaseError {
 	if newUser == nil {
 		return &cstmerr.CustomUsecaseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
 	}
@@ -76,7 +77,7 @@ func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *mode
 	newUser.ID = id
 
 	var responseStatus int
-	repoErr := userUseCase.userRepo.Update(oldPass, newUser)
+	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
 	switch repoErr.Err {
 	case models.ErrWrongPassword:
 		responseStatus = http.StatusForbidden
