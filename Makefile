@@ -16,6 +16,15 @@ build-binary:
 docker-image:
 	docker build -t drello-backend .
 
+docker-container-clean:
+	./scripts/rm_container.sh
+
+docker-volume-clean:
+	docker volume prune
+
+docker-image-clean:
+	./scripts/clean_images.sh
+
 start:
 	docker-compose up -d
 
@@ -29,7 +38,6 @@ doc-prepare:
 
 doc-create:
 	speccy resolve docs/main.yaml -o $(API_DOC_TARGET)
-	echo ${PROJECT_DIR}
 
 doc-host:	
 	docker run -p 80:8080 -e SWAGGER_JSON=/api.yaml -v $(PROJECT_DIR)/api.yaml:/api.yaml swaggerapi/swagger-ui

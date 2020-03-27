@@ -16,6 +16,8 @@ import (
 	"fmt"
 	"mime/multipart"
 
+	"github.com/pkg/errors"
+
 	// Понятное дело, что заниматься декодированием картинок на бэкенд-сервере плохо,
 	// но до появления отдельного решения пока пусть будет так
 
@@ -56,9 +58,11 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 	if newUser == nil {
 		return &cstmerr.CustomRepositoryError{Err: models.ErrInternal}
 	}
+
 	oldUser := new(models.User)
-	if userStore.DB.First(&oldUser, newUser.ID).Error != nil {
-		return &cstmerr.CustomRepositoryError{Err: models.ErrDbBadOperation}
+
+	if err := userStore.DB.First(&oldUser, newUser.ID).Error; err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
 	if oldPass != "" && newUser.Password != "" {
 		if oldUser.Password != oldPass {
@@ -95,8 +99,11 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 }
 
 func (userStore *UserStore) Delete(id uint) error {
-	err := userStore.DB.Delete(models.User{}, " = ?", id).Error
-	return &cstmerr.CustomRepositoryError{Err: err}
+	if err := userStore.DB.Delete(models.User{}, " = ?", id).Error; err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+	}
+
+	return &cstmerr.CustomRepositoryError{Err: nil}
 }
 
 // не тащим наружу, костыль костылём

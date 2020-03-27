@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
 	"github.com/spf13/viper"
 
@@ -28,11 +30,13 @@ func main() {
 
 	avatarDir := viper.GetString("frontend.public_dir") + viper.GetString("frontend.avatar_dir")
 	if removeErr := os.RemoveAll(avatarDir); removeErr != nil {
-		log.Fatal(err)
+		log.Fatal(models.ErrBadAvatarUpload, removeErr)
+
 	}
 	if mkdirErr := os.Mkdir(avatarDir, os.ModePerm); mkdirErr != nil {
-		log.Fatal(err)
+		log.Fatal(models.ErrBadAvatarUpload, mkdirErr)
 	}
+	log.Println("Avatar static storage up!")
 
 	srv := &server.Server{
 		IP:   viper.GetString("server.ip"),

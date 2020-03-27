@@ -1,4 +1,4 @@
-version: "3.5"
+version: "2.3"
 
 services:
   web:
@@ -7,9 +7,14 @@ services:
     ports:
       - "8080:8080"
 
-    depends_on: 
-      - "postgres"
-      - "memcached"
+    volumes:
+      - /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public:/app/public
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      memcached:
+        condition: service_started
 
   memcached:
     container_name: memcached_container
@@ -29,4 +34,8 @@ services:
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "--dbname", "drello_db", "--host", "postgres", "--port", "5432", "--username", "drello_user"]
+      timeout: 2s
+      retries: 2
+      start_period: 3s

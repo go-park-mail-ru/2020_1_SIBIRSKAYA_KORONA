@@ -5,8 +5,8 @@ server: {
 
 database: {
   dbms: postgres,
-  # host: postgres,
-  host: localhost,
+  host: postgres,
+  #host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
@@ -14,8 +14,8 @@ database: {
 }
 
 memcached: {
-  # host: memcached,
-  host: localhost,
+  host: memcached,
+  #host: localhost,
   port: 11211,
 }
 
@@ -23,7 +23,8 @@ frontend: {
   protocol: http,
   ip: localhost,
   port: 5757,
-  public_dir: /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public,
+  #public_dir: /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public,
+  public_dir: /app/public,
   #relative
   avatar_dir: /img/avatar,
   default_avatar: /img/default_avatar.png

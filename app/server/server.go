@@ -46,6 +46,7 @@ func (server *Server) Run() {
 	router.Use(mw.CORS)
 	// router.Use(mw.ProcessPanic)
 	// repo
+
 	// memCache
 	memCacheHost := viper.GetString("memcached.host")
 	memCachePort := viper.GetString("memcached.port")
@@ -54,9 +55,12 @@ func (server *Server) Run() {
 	err := memCacheClient.Ping()
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		log.Println("Memcached succesfull start")
 	}
 	defer memCacheClient.DeleteAll()
 	sesRepo := sessionRepo.CreateRepository(memCacheClient)
+
 	// postgres
 	dbms := viper.GetString("database.dbms")
 	dbHost := viper.GetString("database.host")
@@ -68,11 +72,14 @@ func (server *Server) Run() {
 	postgresClient, err := gorm.Open(dbms, dbConnection)
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		log.Println("Postgresql succesfull start")
 	}
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	bRepo := boardRepo.CreateRepository(postgresClient)
+
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
