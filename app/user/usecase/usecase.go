@@ -80,7 +80,7 @@ func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *mode
 	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
 	switch repoErr.Err {
 	case models.ErrWrongPassword:
-		responseStatus = http.StatusForbidden
+		responseStatus = http.StatusUnauthorized
 	case models.ErrInternal:
 		responseStatus = http.StatusInternalServerError
 	case models.ErrDbBadOperation:
