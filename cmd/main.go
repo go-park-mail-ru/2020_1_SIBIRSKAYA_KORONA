@@ -29,13 +29,22 @@ func main() {
 	}
 
 	avatarDir := viper.GetString("frontend.public_dir") + viper.GetString("frontend.avatar_dir")
-	if removeErr := os.RemoveAll(avatarDir); removeErr != nil {
-		log.Fatal(models.ErrBadAvatarUpload, removeErr)
 
+	_, avatarErr := os.Stat(avatarDir)
+	if os.IsNotExist(avatarErr) {
+		errDir := os.MkdirAll(avatarDir, os.ModePerm)
+		if errDir != nil {
+			log.Fatal(models.ErrBadAvatarUpload, errDir)
+		}
 	}
-	if mkdirErr := os.Mkdir(avatarDir, os.ModePerm); mkdirErr != nil {
-		log.Fatal(models.ErrBadAvatarUpload, mkdirErr)
-	}
+
+	// // if removeErr := os.RemoveAll(avatarDir); removeErr != nil {
+	// // 	log.Fatal(models.ErrBadAvatarUpload, removeErr)
+
+	// // }
+	// if mkdirErr := os.Mkdir(avatarDir, os.ModePerm); mkdirErr != nil {
+	// 	log.Fatal(models.ErrBadAvatarUpload, mkdirErr)
+	// }
 	log.Println("Avatar static storage up!")
 
 	srv := &server.Server{

@@ -59,7 +59,7 @@ func (boardUseCase *BoardUseCase) Get(sid string, bid uint) *models.Board {
 func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, *cstmerr.UseError) {
 	usr := boardUseCase.GetUser(sid)
 	if usr == nil {
-		return nil, nil, &cstmerr.UseError{Err: models.ErrUserNotExist, Code: http.StatusUnauthorized}
+		return nil, nil, &cstmerr.UseError{Err: models.ErrSessionNotExist, Code: http.StatusUnauthorized}
 	}
 
 	adminsBoard, membersBoard, repoErr := boardUseCase.boardRepo.GetAll(usr)

@@ -15,6 +15,9 @@ var (
 	ErrWrongPassword   = errors.New("Wrong password")
 	ErrUserBadMarshall = errors.New("Invalid data for user update")
 
+	// ошибки, связанные с сессией
+	ErrSessionNotExist = errors.New("Session non exist")
+
 	// ошибки, связанные с досками
 	ErrBoardsNotFound = errors.New("Boards not found for this user")
 
