@@ -5,19 +5,13 @@ paths:
       - "boards"
       summary: "Операция авторизации в нашем сервисе"
           
-      requestBody:
-        description: Данные, необходимые для авторизации
-        required: true
-        content:
-          application/json:
-            schema:
-              # составить модели для логина
-              $ref: "../models/user.yaml#/components/schemas/User"
-            example: {
-              "nickname": "Legolas1",
-              "password": "qwerty1234",
-            } 
-
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+          
       responses:
         200:
           description: "Успешно создали доску"
