@@ -15,6 +15,9 @@ var (
 	ErrWrongPassword   = errors.New("Wrong password")
 	ErrUserBadMarshall = errors.New("Invalid data for user update")
 
+	// ошибки, связанные с досками
+	ErrBoardsNotFound = errors.New("Boards not found for this user")
+
 	// ошибки, связанные с бд
 	ErrDbBadOperation  = errors.New("Unsuccessful ORM operation")
 	ErrBadAvatarUpload = errors.New("Unsuccessful avatar upload")

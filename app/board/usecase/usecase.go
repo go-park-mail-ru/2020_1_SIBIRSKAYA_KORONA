@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
@@ -53,10 +56,23 @@ func (boardUseCase *BoardUseCase) Get(sid string, bid uint) *models.Board {
 	return nil
 }
 
-func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, error) {
+func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, *cstmerr.UseError) {
 	usr := boardUseCase.GetUser(sid)
 	if usr == nil {
-		return nil, nil, errors.New("not found")
+		return nil, nil, &cstmerr.UseError{Err: models.ErrBoardsNotFound, Code: http.StatusOK}
 	}
-	return boardUseCase.boardRepo.GetAll(usr)
+
+	adminsBoard, membersBoard, repoErr := boardUseCase.boardRepo.GetAll(usr)
+	var responseCode int
+	switch repoErr.Err {
+	case models.ErrDbBadOperation:
+		responseCode = http.StatusInternalServerError
+		repoErr.Err = models.ErrInternal
+	case models.ErrBoardsNotFound:
+		responseCode = http.StatusOK
+	case nil:
+		responseCode = http.StatusOK
+	}
+
+	return adminsBoard, membersBoard, &cstmerr.UseError{Err: repoErr.Err, Code: responseCode}
 }

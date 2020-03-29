@@ -54,19 +54,19 @@ func (userStore *UserStore) GetByNickname(nickname string) *models.User {
 	return userData
 }
 
-func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.CustomRepositoryError {
+func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.RepoError {
 	if newUser == nil {
-		return &cstmerr.CustomRepositoryError{Err: models.ErrInternal}
+		return &cstmerr.RepoError{Err: models.ErrInternal}
 	}
 
 	oldUser := new(models.User)
 
 	if err := userStore.DB.First(&oldUser, newUser.ID).Error; err != nil {
-		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+		return &cstmerr.RepoError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
 	if oldPass != "" && newUser.Password != "" {
 		if oldUser.Password != oldPass {
-			return &cstmerr.CustomRepositoryError{Err: models.ErrWrongPassword}
+			return &cstmerr.RepoError{Err: models.ErrWrongPassword}
 		}
 		oldUser.Password = newUser.Password
 	}
@@ -93,17 +93,17 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 	}
 
 	if userStore.DB.Save(oldUser).Error != nil {
-		return &cstmerr.CustomRepositoryError{Err: models.ErrDbBadOperation}
+		return &cstmerr.RepoError{Err: models.ErrDbBadOperation}
 	}
-	return &cstmerr.CustomRepositoryError{Err: nil}
+	return &cstmerr.RepoError{Err: nil}
 }
 
 func (userStore *UserStore) Delete(id uint) error {
 	if err := userStore.DB.Delete(models.User{}, " = ?", id).Error; err != nil {
-		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+		return &cstmerr.RepoError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
 
-	return &cstmerr.CustomRepositoryError{Err: nil}
+	return &cstmerr.RepoError{Err: nil}
 }
 
 // не тащим наружу, костыль костылём

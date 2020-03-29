@@ -11,6 +11,6 @@ type Repository interface {
 	Create(user *models.User) error
 	GetByID(id uint) *models.User
 	GetByNickname(nickname string) *models.User
-	Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.CustomRepositoryError
+	Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.RepoError
 	Delete(id uint) error
 }

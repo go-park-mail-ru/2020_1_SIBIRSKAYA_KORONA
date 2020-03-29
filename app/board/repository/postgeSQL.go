@@ -3,9 +3,11 @@ package repository
 import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/pkg/errors"
 )
 
 type BoardStore struct {
@@ -33,11 +35,11 @@ func (boardStore *BoardStore) Get(bid uint) *models.Board {
 	return brd
 }
 
-func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
+func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, *cstmerr.RepoError) {
 	var adminsBoard, membersBoard []models.Board
 	err := boardStore.DB.Model(usr).Related(&adminsBoard, "Admin").Related(&membersBoard, "Member").Error
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, &cstmerr.RepoError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
-	return adminsBoard, membersBoard, nil
+	return adminsBoard, membersBoard, &cstmerr.RepoError{Err: nil}
 }

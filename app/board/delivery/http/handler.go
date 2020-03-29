@@ -2,9 +2,10 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
-	"net/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 	"github.com/labstack/echo/v4"
@@ -78,11 +79,13 @@ func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusForbidden)
 	}
-	bAdmin, bMember, err := boardHandler.useCase.GetAll(cookie.Value)
-	// TODO: Антон
-	if err != nil {
-		return ctx.NoContent(http.StatusNotFound)
+
+	bAdmin, bMember, useErr := boardHandler.useCase.GetAll(cookie.Value)
+
+	if useErr.Err != nil {
+		return ctx.JSON(useErr.Code, useErr.Err.Error())
 	}
+
 	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
 	return ctx.String(http.StatusOK, body)
 }

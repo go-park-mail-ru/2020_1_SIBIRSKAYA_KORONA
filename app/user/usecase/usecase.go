@@ -66,13 +66,13 @@ func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
 	return usr
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.CustomUsecaseError {
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.UseError {
 	if newUser == nil {
-		return &cstmerr.CustomUsecaseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
+		return &cstmerr.UseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
 	}
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return &cstmerr.CustomUsecaseError{Err: models.ErrUserNotExist, Code: http.StatusBadRequest}
+		return &cstmerr.UseError{Err: models.ErrUserNotExist, Code: http.StatusBadRequest}
 	}
 	newUser.ID = id
 
@@ -90,7 +90,7 @@ func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *mode
 		responseStatus = http.StatusOK
 	}
 
-	return &cstmerr.CustomUsecaseError{Err: repoErr.Err, Code: responseStatus}
+	return &cstmerr.UseError{Err: repoErr.Err, Code: responseStatus}
 }
 
 func (userUseCase *UserUseCase) Delete(sid string) error {
