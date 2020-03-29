@@ -25,6 +25,16 @@ tags:
   externalDocs:
     description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
+- name: "profile"
+  description: "Основная работа с профилем"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "boards"
+  description: "Основная работа с досками"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
 
 paths:
   /settings:
@@ -35,6 +45,8 @@ paths:
     $ref: "endpoints/profile.yaml#/paths/~1profile~1{id}"
   /profile/{nickname}:
     $ref: "endpoints/profile.yaml#/paths/~1profile~1{nickname}"
+  /boards:
+    $ref: "endpoints/boards.yaml#/paths/~1boards"
 
 components:
   schemas:

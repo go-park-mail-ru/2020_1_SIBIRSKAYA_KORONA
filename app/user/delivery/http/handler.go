@@ -46,7 +46,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	usr := models.CreateUser(ctx)
 	if usr == nil {
 		return ctx.NoContent(http.StatusBadRequest)
-	}	
+	}
 	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
 		viper.GetString("frontend.protocol"),
 		viper.GetString("frontend.ip"),
@@ -110,10 +110,9 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 		log.Error("FormFile avatar error: ", err)
 	}
 
-	if err := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); err.Err != nil {
+	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr.Err != nil {
 		//TODO: добавить запись ошибки(с указанием) в логгер
-		//return ctx.String(err.Code, err.Error())
-		return ctx.JSON(err.Code, err.Err.Error())
+		return ctx.String(err.Code, useErr.Err.Error())
 	}
 
 	return ctx.NoContent(http.StatusOK)

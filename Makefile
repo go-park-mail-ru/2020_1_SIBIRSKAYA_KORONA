@@ -1,6 +1,7 @@
 BINARY=drello_binary
 API_DOC_TARGET=api.yaml
 PROJECT_DIR := ${CURDIR}
+DOCUMENTATION_CONTAINER_NAME=documentation
 
 # тесты
 test-cover:
@@ -40,7 +41,11 @@ doc-create:
 	speccy resolve docs/main.yaml -o $(API_DOC_TARGET)
 
 doc-host:	
-	docker run -d -p 80:8080 -e SWAGGER_JSON=/api.yaml -v $(PROJECT_DIR)/api.yaml:/api.yaml swaggerapi/swagger-ui
+	docker run --name=documentation -d -p 80:8080 -e SWAGGER_JSON=/api.yaml -v $(PROJECT_DIR)/api.yaml:/api.yaml swaggerapi/swagger-ui
+
+doc-stop:
+	docker stop ${DOCUMENTATION_CONTAINER_NAME}
+	docker rm ${DOCUMENTATION_CONTAINER_NAME}
 
 .PHONY:
 	start stop
