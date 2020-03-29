@@ -3,7 +3,7 @@ paths:
     post:
       tags:
       - "boards"
-      summary: "Операция авторизации в нашем сервисе"
+      summary: "Создаем доску"
           
       parameters:
         - in: cookie
@@ -41,6 +41,9 @@ paths:
       responses:
         200:
           description: "Успешно получили список досок (пустой список в том числе)"
+
+        401:
+          description: "В запросе невалидная кука (дропнулся мэмкеш)"
 
         403:
           description: "В запросе отсутствует кука"

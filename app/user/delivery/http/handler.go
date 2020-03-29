@@ -112,7 +112,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 
 	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr.Err != nil {
 		//TODO: добавить запись ошибки(с указанием) в логгер
-		return ctx.String(err.Code, useErr.Err.Error())
+		return ctx.String(useErr.Code, useErr.Err.Error())
 	}
 
 	return ctx.NoContent(http.StatusOK)

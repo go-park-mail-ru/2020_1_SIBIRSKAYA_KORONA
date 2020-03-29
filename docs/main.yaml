@@ -16,7 +16,7 @@ security:
 
 tags:
 - name: "settings"
-  description: "Рутина для настройки профиля (в том числе регистрация)"
+  description: "Основная работа по настройке профиля (в том числе регистрация)"
   externalDocs:
     description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
