@@ -35,14 +35,18 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase) {
 
 	router.GET("/boards/:bid/members", handler.throwError)
 	router.POST("/boards/:bid/members", handler.throwError)
+	router.DELETE("/boards/:bid/members/:uid", handler.throwError)
 
-	router.GET("/boards/:bid/tasks", handler.throwError)
-	router.POST("/boards/:bid/tasks", handler.throwError)
+	router.GET("/boards/:bid/admins", handler.throwError)
+	router.POST("/boards/:bid/admins", handler.throwError)
+	router.DELETE("/boards/:bid/admins/:uid", handler.throwError)
 
-	router.GET("/boards/:bid/labels", handler.throwError)
-	router.POST("/boards/:bid/labels", handler.throwError)
+
 
 	// TODO(Alexandr | Timofei): move to label handler
+
+	//router.GET("/boards/:bid/labels", handler.throwError)
+	//router.POST("/boards/:bid/labels", handler.throwError)
 	//router.GET("/boards/:bid/labels/:lid", handler.throwError)
 	//router.PUT("/boards/:bid/labels/:lid", handler.throwError)
 	//router.DELETE("/boards/:bid/labels/:lid", handler.throwError)

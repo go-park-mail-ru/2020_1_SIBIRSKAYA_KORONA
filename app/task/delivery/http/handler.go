@@ -10,11 +10,22 @@ type TaskHandler struct {
 }
 
 func CreateHandler(router *echo.Echo, useCase task.UseCase) {
-	handler:= &TaskHandler{useCase:useCase}
+	handler := &TaskHandler{useCase: useCase}
+
+	router.GET("boards/:bid/columns/:cid/tasks", handler.throwError)
+	router.POST("boards/:bid/columns/:cid/tasks", handler.throwError)
 
 	router.GET("boards/:bid/tasks/:tid", handler.throwError)
 	router.PUT("boards/:bid/tasks/:tid", handler.throwError)
 	router.DELETE("boards/:bid/tasks/:tid", handler.throwError)
+
+	router.GET("/boards/:bid/tasks/:tid/labels", handler.throwError)
+	router.POST("/boards/:bid/tasks/:tid/labels", handler.throwError)
+	router.DELETE("/boards/:bid/tasks/:tid/labels/:lid", handler.throwError)
+
+	router.GET("/boards/:bid/tasks/:tid/members", handler.throwError)
+	router.POST("/boards/:bid/tasks/:tid/members", handler.throwError)
+	router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)
 }
 
 // TODO(Alexandr): remove after debug

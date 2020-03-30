@@ -10,7 +10,10 @@ type ColumnHandler struct {
 }
 
 func CreateHandler(router *echo.Echo, useCase column.UseCase) {
-	handler:= &ColumnHandler{useCase:useCase}
+	handler := &ColumnHandler{useCase: useCase}
+
+	router.GET("/boards/:bid/columns", handler.throwError)
+	router.POST("/boards/:bid/columns", handler.throwError)
 
 	router.GET("boards/:bid/columns/:cid", handler.throwError)
 	router.PUT("boards/:bid/columns/:cid", handler.throwError)
