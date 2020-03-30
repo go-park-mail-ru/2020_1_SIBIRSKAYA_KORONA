@@ -9,7 +9,7 @@ import (
 )
 
 type UseCase interface {
-	Create(user *models.User, sessionExpires time.Time) (string, error)
+	Create(user *models.User, sessionExpires time.Time) (string, *cstmerr.UseError)
 	GetByUserKey(userKey string) *models.User // userKey - id, nickname
 	GetByCookie(sid string) *models.User
 	Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.UseError

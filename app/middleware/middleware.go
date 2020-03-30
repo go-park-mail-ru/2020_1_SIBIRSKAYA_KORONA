@@ -42,16 +42,17 @@ func (mw *GoMiddleware) CheckCookieExist(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-// TODO: пришить логгер
 func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		defer func() {
+	return func(ctx echo.Context) error {
+		defer func() error {
 			if err := recover(); err != nil {
-				fmt.Println("panicMiddleware", c.Request().URL.Path)
-				fmt.Println("Panic is catched: ", err)
-				// TODO: решить какой ответ отдавать клиенту
+				fmt.Println("ProcessPanic up on ", ctx.Request().Method, ctx.Request().URL.Path)
+				fmt.Println("Panic statement: ", err)
+				return ctx.NoContent(http.StatusInternalServerError)
 			}
+
+			return nil
 		}()
-		return next(c)
+		return next(ctx)
 	}
 }

@@ -55,9 +55,12 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 
 	sessionExpires := time.Now().AddDate(1, 0, 0)
 	sid, err := userHandler.useCase.Create(usr, sessionExpires)
-	if err != nil {
-		return ctx.NoContent(http.StatusConflict)
+
+	// TODO: слетела кука
+	if err.Err != nil {
+		return ctx.NoContent(err.Code)
 	}
+
 	cookie := &http.Cookie{
 		Name:    "session_id",
 		Value:   sid,

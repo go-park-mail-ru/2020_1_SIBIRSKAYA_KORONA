@@ -37,14 +37,6 @@ func main() {
 			log.Fatal(models.ErrBadAvatarUpload, errDir)
 		}
 	}
-
-	// // if removeErr := os.RemoveAll(avatarDir); removeErr != nil {
-	// // 	log.Fatal(models.ErrBadAvatarUpload, removeErr)
-
-	// // }
-	// if mkdirErr := os.Mkdir(avatarDir, os.ModePerm); mkdirErr != nil {
-	// 	log.Fatal(models.ErrBadAvatarUpload, mkdirErr)
-	// }
 	log.Println("Avatar static storage up!")
 
 	srv := &server.Server{

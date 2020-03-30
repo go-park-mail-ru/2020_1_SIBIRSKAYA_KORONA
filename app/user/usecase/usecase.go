@@ -26,17 +26,29 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) u
 	}
 }
 
-func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, *cstmerr.UseError) {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
-		return "", err
+		return "", &cstmerr.UseError{Err: err, Code: http.StatusInternalServerError}
 	}
 	ses := &models.Session{
 		SID:     "",
 		ID:      user.ID,
 		Expires: sessionExpires,
 	}
-	return userUseCase.sessionRepo.Create(ses)
+
+	var responseStatus int
+	sid, repoErr := userUseCase.sessionRepo.Create(ses)
+	switch repoErr.Err {
+	case nil:
+		responseStatus = http.StatusOK
+	case models.ErrInternal:
+		responseStatus = http.StatusInternalServerError
+	default:
+		responseStatus = http.StatusInternalServerError
+
+	}
+	return sid, &cstmerr.UseError{Err: repoErr.Err, Code: responseStatus}
 }
 
 func (userUseCase *UserUseCase) GetByUserKey(userKey string) *models.User {

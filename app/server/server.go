@@ -44,7 +44,8 @@ func (server *Server) Run() {
 	mw := drelloMiddleware.InitMiddleware()
 
 	router.Use(mw.CORS)
-	// router.Use(mw.ProcessPanic)
+	router.Use(mw.ProcessPanic)
+
 	// repo
 
 	// memCache

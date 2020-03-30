@@ -41,19 +41,19 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 	}
 	defer ctx.Request().Body.Close()
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	sid, err := sessionHandler.useCase.Create(usr, sessionExpires)
-	if err != nil {
-		return ctx.NoContent(http.StatusConflict)
+	if sid, err := sessionHandler.useCase.Create(usr, sessionExpires); err.Err != nil {
+		return ctx.JSON(err.Code, err.Err.Error())
+	} else {
+		cookie := &http.Cookie{
+			Name:    "session_id",
+			Value:   sid,
+			Path:    "/",
+			Expires: sessionExpires,
+			// SameSite: http.SameSiteStrictMode,
+		}
+		ctx.SetCookie(cookie)
+		return ctx.NoContent(http.StatusOK)
 	}
-	cookie := &http.Cookie{
-		Name:    "session_id",
-		Value:   sid,
-		Path:    "/",
-		Expires: sessionExpires,
-		// SameSite: http.SameSiteStrictMode,
-	}
-	ctx.SetCookie(cookie)
-	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {

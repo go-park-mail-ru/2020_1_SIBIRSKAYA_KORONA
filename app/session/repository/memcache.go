@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	_ "time"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
 	"github.com/google/uuid"
 )
 
@@ -20,9 +20,9 @@ func CreateRepository(db *memcache.Client) session.Repository {
 	return &SessionStore{db}
 }
 
-func (sessionStore *SessionStore) Create(session *models.Session) (string, error) {
+func (sessionStore *SessionStore) Create(session *models.Session) (string, *cstmerr.RepoError) {
 	if session == nil {
-		return "", errors.New("internal error")
+		return "", &cstmerr.RepoError{Err: models.ErrInternal}
 	}
 	session.SID = uuid.New().String()
 	err := sessionStore.DB.Set(&memcache.Item{
@@ -34,9 +34,9 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 	fmt.Println(sessionStore.DB.Get(session.SID))
 	//
 	if err != nil {
-		return "", err
+		return "", &cstmerr.RepoError{Err: err}
 	}
-	return session.SID, nil
+	return session.SID, &cstmerr.RepoError{Err: nil}
 }
 
 func (sessionStore *SessionStore) Get(sid string) (uint, bool) {
