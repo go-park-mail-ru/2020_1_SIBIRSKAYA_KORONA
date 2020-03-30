@@ -7,7 +7,7 @@ type Repository interface {
 	Update(task *models.Task) error
 	Delete(task *models.Task) error
 
-	GetByBoardID(bid uint) []*models.Task
-	GetByColumnID(cid uint) []*models.Task
-	GetByID(tid uint) *models.Task
+	GetByBoardID(bid uint) ([]*models.Task, error)
+	GetByColumnID(cid uint) ([]*models.Task, error)
+	GetByID(tid uint) (*models.Task, error)
 }
