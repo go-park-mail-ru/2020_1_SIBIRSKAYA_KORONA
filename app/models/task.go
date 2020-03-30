@@ -10,8 +10,8 @@ import (
 type Task struct {
 	ID          uint      `json:"id" gorm:"primary_key"`
 	Description string    `json:"description"`
-	Members     []*User   `json:"members" gorm:"many2many:task_members"` // TODO(Alexandr): preload
-	Order       float32   `json:"order"`	// TODO(Alexandr): auto_increment
+	Members     []*User   `json:"members" gorm:"many2many:task_members"`
+	Position    float32   `json:"position"`
 	CreatedAt   time.Time `json:"createdAt"`
 
 	//Labels []*Label

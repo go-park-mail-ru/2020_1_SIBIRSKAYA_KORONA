@@ -9,9 +9,9 @@ import (
 
 type Column struct {
 	ID        uint      `json:"id" gorm:"primary_key"`
-	Title     string    `json:"title"`
+	Title     *string    `json:"title"`
 	Tasks     []*Task   `json:"tasks"`
-	Order     float32   `json:"order"`
+	Position     *float32   `json:"position"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
