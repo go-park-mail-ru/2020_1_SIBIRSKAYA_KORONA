@@ -3,6 +3,8 @@ package repository
 import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
+	"github.com/pkg/errors"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -17,27 +19,59 @@ func CreateRepository(db *gorm.DB) board.Repository {
 }
 
 func (boardStore *BoardStore) Create(board *models.Board) error {
-	return boardStore.DB.Create(board).Error
+	err := boardStore.DB.Create(board).Error
+	if err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+	}
+	return nil
 }
 
-func (boardStore *BoardStore) Get(bid uint) *models.Board {
+func (boardStore *BoardStore) Update(newBoard *models.Board) error {
+	oldBoard := new(models.Board)
+	err := boardStore.DB.First(oldBoard, newBoard.ID).Error
+	if err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrBoardNotExist.Error())}
+	}
+
+	oldBoard.Name = newBoard.Name
+
+	err = boardStore.DB.Save(oldBoard).Error
+	if err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+	}
+	return nil
+}
+
+func (boardStore *BoardStore) Delete(bid uint) error {
+	err := boardStore.DB.Delete(&models.Column{ID: bid}).Error
+	if err != nil {
+		return &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
+	}
+
+	return nil
+}
+
+func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 	brd := new(models.Board)
 	brd.ID = bid
-	err := boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Related(&brd.Members, "Members").Error
+	err := boardStore.DB.First(brd).Error
+
 	if err != nil {
-		return nil
+		return nil, &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
-	for _, member := range append(brd.Admins, brd.Members...) {
-		member.Password = ""
-	}
-	return brd
+
+	return brd, nil
 }
 
 func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
-	var adminsBoard, membersBoard []models.Board
-	err := boardStore.DB.Model(usr).Related(&adminsBoard, "Admin").Related(&membersBoard, "Member").Error
+	var adminsBoards, membersBoards []models.Board
+	err := boardStore.DB.Model(usr).
+		Related(&adminsBoards, "Admin").
+		Related(&membersBoards, "Member").Error
+
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, &cstmerr.CustomRepositoryError{Err: errors.Wrap(err, models.ErrDbBadOperation.Error())}
 	}
-	return adminsBoard, membersBoard, nil
+
+	return adminsBoards, membersBoards, nil
 }

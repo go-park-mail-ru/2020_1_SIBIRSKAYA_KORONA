@@ -30,6 +30,7 @@ func (boardUseCase *BoardUseCase) GetUser(sid string) *models.User {
 	}
 	return boardUseCase.userRepo.GetByID(id)
 }
+
 func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error {
 	usr := boardUseCase.GetUser(sid)
 	if usr == nil {
@@ -37,6 +38,52 @@ func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error 
 	}
 	board.Admins = []*models.User{usr}
 	return boardUseCase.boardRepo.Create(board)
+}
+
+func (boardUseCase *BoardUseCase) Update(sid string, newBoard *models.Board) error {
+	usr := boardUseCase.GetUser(sid)
+	if usr == nil {
+		return errors.New("not found")
+	}
+
+	oldBoard, err := boardUseCase.boardRepo.Get(newBoard.ID)
+	isAdmin := false
+
+	for _, admin := range oldBoard.Admins {
+		if usr.ID == admin.ID {
+			isAdmin = true
+			break
+		}
+	}
+
+	if !isAdmin {
+		return errors.New("no permission")
+	}
+
+	return boardUseCase.boardRepo.Update(newBoard)
+}
+
+func (boardUseCase *BoardUseCase) Delete(sid string, bid uint) error {
+	usr := boardUseCase.GetUser(sid)
+	if usr == nil {
+		return errors.New("not found")
+	}
+
+	boardToDelete := boardUseCase.boardRepo.Get(bid)
+	isAdmin := false
+
+	for _, admin := range boardToDelete.Admins {
+		if usr.ID == admin.ID {
+			isAdmin = true
+			break
+		}
+	}
+
+	if !isAdmin {
+		return errors.New("no permission to delete")
+	}
+
+	return boardUseCase.boardRepo.Delete(bid)
 }
 
 func (boardUseCase *BoardUseCase) Get(sid string, bid uint) *models.Board {
