@@ -21,6 +21,7 @@ var (
 
 	// ошибки, связанные с досками
 	ErrBoardsNotFound = errors.New("Boards not found for this user")
+	ErrNoPermission   = errors.New("No permission for current operation")
 
 	// ошибки, связанные с бд
 	ErrDbBadOperation  = errors.New("Unsuccessful ORM operation")
@@ -35,6 +36,9 @@ var errorToCodeMap = map[error]int{
 	ErrUserBadMarshall: http.StatusBadRequest,
 
 	ErrSessionNotExist: http.StatusUnauthorized,
+
+	ErrBoardsNotFound: http.StatusNotFound,
+	ErrNoPermission:   http.StatusUnauthorized,
 }
 
 func ResolveErrorToCode(err error) (code int) {
