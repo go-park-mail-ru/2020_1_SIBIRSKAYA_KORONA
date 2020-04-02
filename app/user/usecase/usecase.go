@@ -1,17 +1,16 @@
 package usecase
 
 import (
-	"errors"
 	"fmt"
 	"mime/multipart"
-	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 )
 
 type UserUseCase struct {
@@ -26,10 +25,11 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) u
 	}
 }
 
-func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, *cstmerr.UseError) {
+func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
-		return "", &cstmerr.UseError{Err: err, Code: http.StatusInternalServerError}
+		logger.Error(err)
+		return "", err
 	}
 	ses := &models.Session{
 		SID:     "",
@@ -37,78 +37,77 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 		Expires: sessionExpires,
 	}
 
-	var responseStatus int
 	sid, repoErr := userUseCase.sessionRepo.Create(ses)
-	switch repoErr.Err {
-	case nil:
-		responseStatus = http.StatusOK
-	case models.ErrInternal:
-		responseStatus = http.StatusInternalServerError
-	default:
-		responseStatus = http.StatusInternalServerError
-
+	if repoErr != nil {
+		logger.Error(repoErr)
+		return "", repoErr
 	}
-	return sid, &cstmerr.UseError{Err: repoErr.Err, Code: responseStatus}
+
+	return sid, nil
 }
 
-func (userUseCase *UserUseCase) GetByUserKey(userKey string) *models.User {
+func (userUseCase *UserUseCase) GetByUserKey(userKey string) (*models.User, error) {
 	var id uint
 	_, err := fmt.Sscan(userKey, &id)
 	usr := new(models.User)
 	if err == nil {
-		usr = userUseCase.userRepo.GetByID(id)
+		usr, err = userUseCase.userRepo.GetByID(id)
+		if err != nil {
+			logger.Error(err)
+			return nil, err
+		}
 	} else {
-		usr = userUseCase.userRepo.GetByNickname(userKey)
+		usr, err = userUseCase.userRepo.GetByNickname(userKey)
+		if err != nil {
+			logger.Error(err)
+			return nil, err
+		}
 	}
 	if usr != nil {
 		usr.Password = ""
 	}
-	return usr
+	return usr, nil
 }
 
-func (userUseCase *UserUseCase) GetByCookie(sid string) *models.User {
+func (userUseCase *UserUseCase) GetByCookie(sid string) (*models.User, error) {
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return nil
+		return nil, errors.ErrSessionNotExist
 	}
-	usr := userUseCase.userRepo.GetByID(id)
-	if usr != nil {
-		usr.Password = ""
+	usr, err := userUseCase.userRepo.GetByID(id)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
 	}
-	return usr
+
+	return usr, nil
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) *cstmerr.UseError {
+func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
-		return &cstmerr.UseError{Err: models.ErrUserBadMarshall, Code: http.StatusBadRequest}
+		return errors.ErrUserBadMarshall
 	}
+
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return &cstmerr.UseError{Err: models.ErrUserNotExist, Code: http.StatusBadRequest}
+		return errors.ErrSessionNotExist
 	}
+
 	newUser.ID = id
 
-	var responseStatus int
 	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
-	switch repoErr.Err {
-	case models.ErrWrongPassword:
-		responseStatus = http.StatusUnauthorized
-	case models.ErrInternal:
-		responseStatus = http.StatusInternalServerError
-	case models.ErrDbBadOperation:
-		responseStatus = http.StatusInternalServerError
-		repoErr.Err = models.ErrInternal
-	case nil:
-		responseStatus = http.StatusOK
+	if repoErr != nil {
+		logger.Error(repoErr)
+		return repoErr
 	}
 
-	return &cstmerr.UseError{Err: repoErr.Err, Code: responseStatus}
+	return nil
 }
 
 func (userUseCase *UserUseCase) Delete(sid string) error {
 	id, has := userUseCase.sessionRepo.Get(sid)
 	if !has {
-		return errors.New("no user")
+		return errors.ErrUserNotExist
 	}
 	err := userUseCase.sessionRepo.Delete(sid)
 	if err != nil {

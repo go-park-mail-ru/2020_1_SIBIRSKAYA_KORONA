@@ -19,9 +19,9 @@ import (
 	boardUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
@@ -40,7 +40,6 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	router := echo.New()
 
-	router.Use(echoMiddleware.Logger())
 	mw := drelloMiddleware.InitMiddleware()
 
 	router.Use(mw.CORS)
@@ -55,9 +54,9 @@ func (server *Server) Run() {
 	memCacheClient := memcache.New(memCacheConnection)
 	err := memCacheClient.Ping()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	} else {
-		log.Println("Memcached succesfull start")
+		logger.Info("Memcached succesfull start")
 	}
 	defer memCacheClient.DeleteAll()
 	sesRepo := sessionRepo.CreateRepository(memCacheClient)
@@ -72,9 +71,9 @@ func (server *Server) Run() {
 	dbConnection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode)
 	postgresClient, err := gorm.Open(dbms, dbConnection)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	} else {
-		log.Println("Postgresql succesfull start")
+		logger.Info("Postgresql succesfull start")
 	}
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
@@ -88,7 +87,7 @@ func (server *Server) Run() {
 	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
-	boardHandler.CreateHandler(router, bUseCase)
+	boardHandler.CreateHandler(router, bUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {

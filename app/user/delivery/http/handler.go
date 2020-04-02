@@ -7,17 +7,22 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
 	useCase user.UseCase
+}
+
+type ResponseError struct {
+	Message string `json:"message"`
 }
 
 func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMiddleware) {
@@ -55,10 +60,9 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 
 	sessionExpires := time.Now().AddDate(1, 0, 0)
 	sid, err := userHandler.useCase.Create(usr, sessionExpires)
-
-	// TODO: слетела кука
-	if err.Err != nil {
-		return ctx.NoContent(err.Code)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
 
 	cookie := &http.Cookie{
@@ -72,9 +76,10 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	userData := userHandler.useCase.GetByUserKey(ctx.Param("user"))
-	if userData == nil {
-		return ctx.NoContent(http.StatusNotFound)
+	userData, err := userHandler.useCase.GetByUserKey(ctx.Param("user"))
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
 	if err != nil {
@@ -86,9 +91,10 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 	cookie := ctx.Get("sid").(string)
 
-	userData := userHandler.useCase.GetByCookie(cookie)
-	if userData == nil {
-		return ctx.NoContent(http.StatusNotFound)
+	userData, err := userHandler.useCase.GetByCookie(cookie)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
 	if err != nil {
@@ -110,12 +116,12 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
-		log.Error("FormFile avatar error: ", err)
+		logger.Error(err)
 	}
 
-	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr.Err != nil {
-		//TODO: добавить запись ошибки(с указанием) в логгер
-		return ctx.String(useErr.Code, useErr.Err.Error())
+	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr != nil {
+		logger.Error(useErr)
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
 	}
 
 	return ctx.NoContent(http.StatusOK)

@@ -1,14 +1,14 @@
 package usecase
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/cstmerr"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 )
 
 type SessionUseCase struct {
@@ -23,12 +23,17 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 	}
 }
 
-func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, *cstmerr.UseError) {
+func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	if user == nil {
-		return "", &cstmerr.UseError{Err: models.ErrUserNotExist, Code: http.StatusUnauthorized}
+		return "", errors.ErrUserNotExist
 	}
 
-	realUser := sessionUseCase.userRepo.GetByNickname(user.Nickname)
+	realUser, err := sessionUseCase.userRepo.GetByNickname(user.Nickname)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+
 	if realUser != nil && realUser.Password == user.Password {
 		ses := &models.Session{
 			SID:     "",
@@ -36,23 +41,15 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 			Expires: sessionExpires,
 		}
 
-		var responseStatus int
 		sid, repoErr := sessionUseCase.sessionRepo.Create(ses)
-		switch repoErr.Err {
-		case models.ErrWrongPassword:
-			responseStatus = http.StatusUnauthorized
-		case models.ErrInternal:
-			responseStatus = http.StatusInternalServerError
-		case nil:
-			responseStatus = http.StatusOK
-		default:
-			responseStatus = http.StatusInternalServerError
+		if repoErr != nil {
+			logger.Error(err)
+			return "", repoErr
 		}
-
-		return sid, &cstmerr.UseError{Err: repoErr.Err, Code: responseStatus}
+		return sid, nil
 	}
 
-	return "", &cstmerr.UseError{Err: models.ErrWrongPassword, Code: http.StatusUnauthorized}
+	return "", errors.ErrWrongPassword
 }
 
 func (sessionUseCase *SessionUseCase) Has(sid string) bool {
