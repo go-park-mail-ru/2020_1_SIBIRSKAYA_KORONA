@@ -7,17 +7,22 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
 type UserHandler struct {
 	useCase user.UseCase
+}
+
+type ResponseError struct {
+	Message string `json:"message"`
 }
 
 func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMiddleware) {
@@ -29,7 +34,7 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	})
 
 	// TODO: решить как вешать мидлу на handler.Create
-	router.POST("/settings", handler.Create)
+	router.POST("/settings", handler.Create, mw.DebugMiddle)
 	router.GET("/profile/:user", handler.Get)                    // по id или nicName
 	router.GET("/settings", handler.GetAll, mw.CheckCookieExist) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckCookieExist)
@@ -46,7 +51,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	usr := models.CreateUser(ctx)
 	if usr == nil {
 		return ctx.NoContent(http.StatusBadRequest)
-	}	
+	}
 	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
 		viper.GetString("frontend.protocol"),
 		viper.GetString("frontend.ip"),
@@ -56,8 +61,10 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	sessionExpires := time.Now().AddDate(1, 0, 0)
 	sid, err := userHandler.useCase.Create(usr, sessionExpires)
 	if err != nil {
-		return ctx.NoContent(http.StatusConflict)
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
+
 	cookie := &http.Cookie{
 		Name:    "session_id",
 		Value:   sid,
@@ -69,9 +76,10 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	userData := userHandler.useCase.GetByUserKey(ctx.Param("user"))
-	if userData == nil {
-		return ctx.NoContent(http.StatusNotFound)
+	userData, err := userHandler.useCase.GetByUserKey(ctx.Param("user"))
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
 	if err != nil {
@@ -83,9 +91,10 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 	cookie := ctx.Get("sid").(string)
 
-	userData := userHandler.useCase.GetByCookie(cookie)
-	if userData == nil {
-		return ctx.NoContent(http.StatusNotFound)
+	userData, err := userHandler.useCase.GetByCookie(cookie)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
 	if err != nil {
@@ -107,13 +116,12 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
-		log.Error("FormFile avatar error: ", err)
+		logger.Error(err)
 	}
 
-	if err := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); err.Err != nil {
-		//TODO: добавить запись ошибки(с указанием) в логгер
-		//return ctx.String(err.Code, err.Error())
-		return ctx.JSON(err.Code, err.Err.Error())
+	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr != nil {
+		logger.Error(useErr)
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
 	}
 
 	return ctx.NoContent(http.StatusOK)

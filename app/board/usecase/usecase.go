@@ -1,8 +1,9 @@
 package usecase
 
 import (
-	"errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
@@ -23,20 +24,28 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository, b
 	}
 }
 
-func (boardUseCase *BoardUseCase) GetUser(sid string) *models.User {
+func (boardUseCase *BoardUseCase) GetUser(sid string) (*models.User, error) {
 	id, has := boardUseCase.sessionRepo.Get(sid)
 	if !has {
-		return nil
+		return nil, errors.ErrSessionNotExist
 	}
-	return boardUseCase.userRepo.GetByID(id)
+
+	user, err := boardUseCase.userRepo.GetByID(id)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error {
-	usr := boardUseCase.GetUser(sid)
-	if usr == nil {
-		return errors.New("not found")
+	user, err := boardUseCase.GetUser(sid)
+	if err != nil {
+		logger.Error(err)
+		return err
 	}
-	board.Admins = []*models.User{usr}
+	board.Admins = []*models.User{user}
 	return boardUseCase.boardRepo.Create(board)
 }
 
@@ -86,24 +95,39 @@ func (boardUseCase *BoardUseCase) Delete(sid string, bid uint) error {
 	return boardUseCase.boardRepo.Delete(bid)
 }
 
-func (boardUseCase *BoardUseCase) Get(sid string, bid uint) *models.Board {
-	usr := boardUseCase.GetUser(sid)
-	if usr == nil {
-		return nil
+func (boardUseCase *BoardUseCase) Get(sid string, bid uint) (*models.Board, error) {
+	user, err := boardUseCase.GetUser(sid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
 	}
-	brd := boardUseCase.boardRepo.Get(bid)
+
+	brd, err := boardUseCase.boardRepo.Get(bid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
 	for _, member := range append(brd.Admins, brd.Members...) {
-		if member.ID == usr.ID {
-			return brd
+		if member.ID == user.ID {
+			return brd, nil
 		}
 	}
-	return nil
+	return nil, errors.ErrBoardsNotFound
 }
 
 func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, error) {
-	usr := boardUseCase.GetUser(sid)
-	if usr == nil {
-		return nil, nil, errors.New("not found")
+	user, err := boardUseCase.GetUser(sid)
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, err
 	}
-	return boardUseCase.boardRepo.GetAll(usr)
+
+	adminsBoard, membersBoard, repoErr := boardUseCase.boardRepo.GetAll(user)
+	if repoErr != nil {
+		logger.Error(repoErr)
+		return nil, nil, repoErr
+	}
+
+	return adminsBoard, membersBoard, nil
 }

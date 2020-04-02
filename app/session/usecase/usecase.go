@@ -1,12 +1,14 @@
 package usecase
 
 import (
-	"errors"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 )
 
 type SessionUseCase struct {
@@ -23,18 +25,31 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 
 func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	if user == nil {
-		return "", errors.New("bad password")
+		return "", errors.ErrUserNotExist
 	}
-	realUser := sessionUseCase.userRepo.GetByNickname(user.Nickname)
+
+	realUser, err := sessionUseCase.userRepo.GetByNickname(user.Nickname)
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+
 	if realUser != nil && realUser.Password == user.Password {
 		ses := &models.Session{
 			SID:     "",
 			ID:      realUser.ID,
 			Expires: sessionExpires,
 		}
-		return sessionUseCase.sessionRepo.Create(ses)
+
+		sid, repoErr := sessionUseCase.sessionRepo.Create(ses)
+		if repoErr != nil {
+			logger.Error(err)
+			return "", repoErr
+		}
+		return sid, nil
 	}
-	return "", errors.New("bad password")
+
+	return "", errors.ErrWrongPassword
 }
 
 func (sessionUseCase *SessionUseCase) Has(sid string) bool {

@@ -19,9 +19,9 @@ import (
 	boardUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
@@ -40,12 +40,13 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	router := echo.New()
 
-	router.Use(echoMiddleware.Logger())
 	mw := drelloMiddleware.InitMiddleware()
 
 	router.Use(mw.CORS)
-	// router.Use(mw.ProcessPanic)
+	router.Use(mw.ProcessPanic)
+
 	// repo
+
 	// memCache
 	memCacheHost := viper.GetString("memcached.host")
 	memCachePort := viper.GetString("memcached.port")
@@ -53,10 +54,13 @@ func (server *Server) Run() {
 	memCacheClient := memcache.New(memCacheConnection)
 	err := memCacheClient.Ping()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
+	} else {
+		logger.Info("Memcached succesfull start")
 	}
 	defer memCacheClient.DeleteAll()
 	sesRepo := sessionRepo.CreateRepository(memCacheClient)
+
 	// postgres
 	dbms := viper.GetString("database.dbms")
 	dbHost := viper.GetString("database.host")
@@ -67,12 +71,15 @@ func (server *Server) Run() {
 	dbConnection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode)
 	postgresClient, err := gorm.Open(dbms, dbConnection)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
+	} else {
+		logger.Info("Postgresql succesfull start")
 	}
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	bRepo := boardRepo.CreateRepository(postgresClient)
+
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
@@ -80,7 +87,7 @@ func (server *Server) Run() {
 	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
-	boardHandler.CreateHandler(router, bUseCase)
+	boardHandler.CreateHandler(router, bUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {

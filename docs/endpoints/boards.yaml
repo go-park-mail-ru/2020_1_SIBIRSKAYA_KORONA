@@ -1,0 +1,52 @@
+paths:
+  /boards:
+    post:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+          
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+          
+      responses:
+        200:
+          description: "Успешно создали доску"
+
+        400:
+          description: "Невалидное тело"      
+
+        403:
+          description: "В запросе отсутствует кука"
+
+        500:
+          description: "Внутренняя ошибка сервера"
+
+    get:
+      tags:
+      - "boards"
+      summary: "Получаем все доски, к которым пользователь имеет отношение"
+          
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      # вставить хедера для ответа
+      responses:
+        200:
+          description: "Успешно получили список досок (пустой список в том числе)"
+
+        401:
+          description: "В запросе невалидная кука (дропнулся мэмкеш)"
+
+        403:
+          description: "В запросе отсутствует кука"
+
+        500:
+          description: "Внутренняя ошибка сервера"

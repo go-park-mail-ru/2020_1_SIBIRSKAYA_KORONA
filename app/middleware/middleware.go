@@ -3,13 +3,16 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 )
 
 type GoMiddleware struct {
 	frontendUrl string
+	serverMode  string
 }
 
 func InitMiddleware() *GoMiddleware {
@@ -18,6 +21,8 @@ func InitMiddleware() *GoMiddleware {
 			viper.GetString("frontend.protocol"),
 			viper.GetString("frontend.ip"),
 			viper.GetString("frontend.port")),
+
+		serverMode: viper.GetString("server.mode"),
 	}
 }
 
@@ -42,16 +47,31 @@ func (mw *GoMiddleware) CheckCookieExist(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-// TODO: пришить логгер
 func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		defer func() {
+	return func(ctx echo.Context) error {
+		defer func() error {
 			if err := recover(); err != nil {
-				fmt.Println("panicMiddleware", c.Request().URL.Path)
-				fmt.Println("Panic is catched: ", err)
-				// TODO: решить какой ответ отдавать клиенту
+				fmt.Println("ProcessPanic up on ", ctx.Request().Method, ctx.Request().URL.Path)
+				fmt.Println("Panic statement: ", err)
+				return ctx.NoContent(http.StatusInternalServerError)
 			}
+
+			return nil
 		}()
-		return next(c)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		if mw.serverMode == "debug" {
+			dump, err := httputil.DumpRequest(ctx.Request(), true)
+			if err != nil {
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+			logger.Debugf("\nRequest dump begin :--------------\n\n%s\n\nRequest dump end :--------------", dump)
+		}
+
+		return next(ctx)
 	}
 }

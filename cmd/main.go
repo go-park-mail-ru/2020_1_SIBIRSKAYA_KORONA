@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/server"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/spf13/viper"
 
 	"log"
@@ -26,13 +28,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	logger.InitLogger()
+
 	avatarDir := viper.GetString("frontend.public_dir") + viper.GetString("frontend.avatar_dir")
-	if removeErr := os.RemoveAll(avatarDir); removeErr != nil {
-		log.Fatal(err)
+
+	_, avatarErr := os.Stat(avatarDir)
+	if os.IsNotExist(avatarErr) {
+		errDir := os.MkdirAll(avatarDir, os.ModePerm)
+		if errDir != nil {
+			logger.Fatal(errDir)
+		}
 	}
-	if mkdirErr := os.Mkdir(avatarDir, os.ModePerm); mkdirErr != nil {
-		log.Fatal(err)
-	}
+	logger.Info("Avatar static storage up!")
 
 	srv := &server.Server{
 		IP:   viper.GetString("server.ip"),

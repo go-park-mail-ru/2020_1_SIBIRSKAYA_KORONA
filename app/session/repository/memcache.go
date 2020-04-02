@@ -1,14 +1,15 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	_ "time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/google/uuid"
 )
 
@@ -22,7 +23,7 @@ func CreateRepository(db *memcache.Client) session.Repository {
 
 func (sessionStore *SessionStore) Create(session *models.Session) (string, error) {
 	if session == nil {
-		return "", errors.New("internal error")
+		return "", errors.ErrInternal
 	}
 	session.SID = uuid.New().String()
 	err := sessionStore.DB.Set(&memcache.Item{
@@ -34,7 +35,8 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 	fmt.Println(sessionStore.DB.Get(session.SID))
 	//
 	if err != nil {
-		return "", err
+		logger.Error(err)
+		return "", errors.ErrDbBadOperation
 	}
 	return session.SID, nil
 }

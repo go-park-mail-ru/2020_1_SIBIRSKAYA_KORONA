@@ -7,11 +7,16 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/labstack/echo/v4"
 )
 
 type SessionHandler struct {
 	useCase session.UseCase
+}
+
+type ResponseError struct {
+	Message string `json:"message"`
 }
 
 func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.GoMiddleware) {
@@ -41,19 +46,19 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 	}
 	defer ctx.Request().Body.Close()
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	sid, err := sessionHandler.useCase.Create(usr, sessionExpires)
-	if err != nil {
-		return ctx.NoContent(http.StatusConflict)
+	if sid, useErr := sessionHandler.useCase.Create(usr, sessionExpires); useErr != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
+	} else {
+		cookie := &http.Cookie{
+			Name:    "session_id",
+			Value:   sid,
+			Path:    "/",
+			Expires: sessionExpires,
+			// SameSite: http.SameSiteStrictMode,
+		}
+		ctx.SetCookie(cookie)
+		return ctx.NoContent(http.StatusOK)
 	}
-	cookie := &http.Cookie{
-		Name:    "session_id",
-		Value:   sid,
-		Path:    "/",
-		Expires: sessionExpires,
-		// SameSite: http.SameSiteStrictMode,
-	}
-	ctx.SetCookie(cookie)
-	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
