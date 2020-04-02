@@ -34,7 +34,7 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	})
 
 	// TODO: решить как вешать мидлу на handler.Create
-	router.POST("/settings", handler.Create)
+	router.POST("/settings", handler.Create, mw.DebugMiddle)
 	router.GET("/profile/:user", handler.Get)                    // по id или nicName
 	router.GET("/settings", handler.GetAll, mw.CheckCookieExist) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckCookieExist)
