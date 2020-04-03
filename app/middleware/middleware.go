@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -13,9 +16,12 @@ import (
 type GoMiddleware struct {
 	frontendUrl string
 	serverMode  string
+
+	sRepo    session.Repository
+	bUsecase board.UseCase
 }
 
-func InitMiddleware() *GoMiddleware {
+func InitMiddleware(sRepo_ session.Repository) *GoMiddleware {
 	return &GoMiddleware{
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
@@ -23,6 +29,8 @@ func InitMiddleware() *GoMiddleware {
 			viper.GetString("frontend.port")),
 
 		serverMode: viper.GetString("server.mode"),
+
+		sRepo: sRepo_,
 	}
 }
 
@@ -32,17 +40,6 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
 		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		return next(ctx)
-	}
-}
-
-func (mw *GoMiddleware) CheckCookieExist(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		cookie, err := ctx.Cookie("session_id")
-		if err != nil {
-			return ctx.NoContent(http.StatusForbidden)
-		}
-		ctx.Set("sid", cookie.Value)
 		return next(ctx)
 	}
 }
@@ -62,35 +59,59 @@ func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// TODO: уровень Info
-// func (ac *AccessLogger) accessLogMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		start := time.Now()
-// 		next.ServeHTTP(w, r)
+func (mw *GoMiddleware) AuthByCookie(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie("session_id")
+		if err != nil {
+			return ctx.NoContent(http.StatusForbidden)
+		}
 
-// 		fmt.Printf("FMT [%s] %s, %s %s\n",
-// 			r.Method, r.RemoteAddr, r.URL.Path, time.Since(start))
+		sid := cookie.Value
+		userID, exist := mw.sRepo.Get(sid)
+		if exist != true {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
 
-// 		log.Printf("LOG [%s] %s, %s %s\n",
-// 			r.Method, r.RemoteAddr, r.URL.Path, time.Since(start))
+		ctx.Set("userID", userID)
+		ctx.Set("sessionID", sid)
+		return next(ctx)
+	}
+}
 
-// 		ac.StdLogger.Printf("[%s] %s, %s %s\n",
-// 			r.Method, r.RemoteAddr, r.URL.Path, time.Since(start))
+// Вызывается после AuthByCookie
+func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var bid uint
+		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
 
-// 		ac.ZapLogger.Info(r.URL.Path,
-// 			zap.String("method", r.Method),
-// 			zap.String("remote_addr", r.RemoteAddr),
-// 			zap.String("url", r.URL.Path),
-// 			zap.Duration("work_time", time.Since(start)),
-// 		)
+		uid := ctx.Get("userID").(uint)
 
-// 		ac.LogrusLogger.WithFields(logrus.Fields{
-// 			"method":      r.Method,
-// 			"remote_addr": r.RemoteAddr,
-// 			"work_time":   time.Since(start),
-// 		}).Info(r.URL.Path)
-// 	})
-// }
+		if _, err := mw.bUsecase.Get(uid, bid, false); err != nil {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var bid uint
+		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+
+		uid := ctx.Get("userID").(uint)
+
+		if _, err := mw.bUsecase.Get(uid, bid, true); err != nil {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+		return next(ctx)
+	}
+}
 
 func (mw *GoMiddleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {

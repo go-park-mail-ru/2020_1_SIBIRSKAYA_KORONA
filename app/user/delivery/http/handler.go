@@ -35,10 +35,10 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 
 	// TODO: решить как вешать мидлу на handler.Create
 	router.POST("/settings", handler.Create, mw.DebugMiddle)
-	router.GET("/profile/:user", handler.Get)                    // по id или nicName
-	router.GET("/settings", handler.GetAll, mw.CheckCookieExist) // получ все настройки
-	router.PUT("/settings", handler.Update, mw.CheckCookieExist)
-	router.DELETE("/settings", handler.Delete, mw.CheckCookieExist)
+	router.GET("/profile/:user", handler.Get)                // по id или nicName
+	router.GET("/settings", handler.GetAll, mw.AuthByCookie) // получ все настройки
+	router.PUT("/settings", handler.Update, mw.AuthByCookie)
+	router.DELETE("/settings", handler.Delete, mw.AuthByCookie)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
@@ -76,7 +76,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	userData, err := userHandler.useCase.GetByUserKey(ctx.Param("user"))
+	userData, err := userHandler.useCase.GetByNickname(ctx.Param("user"))
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
@@ -89,13 +89,14 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	userID := ctx.Get("userID").(uint)
 
-	userData, err := userHandler.useCase.GetByCookie(cookie)
+	userData, err := userHandler.useCase.GetByID(userID)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), ResponseError{Message: err.Error()})
 	}
+
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -104,7 +105,7 @@ func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Update(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	userID := ctx.Get("userID").(uint)
 
 	newUser := new(models.User)
 	newUser.Name = ctx.FormValue("newName")
@@ -112,6 +113,8 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	newUser.Nickname = ctx.FormValue("newNickname")
 	newUser.Email = ctx.FormValue("newEmail")
 	newUser.Password = ctx.FormValue("newPassword")
+	newUser.ID = userID
+
 	oldPass := ctx.FormValue("oldPassword")
 
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
@@ -119,7 +122,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 		logger.Error(err)
 	}
 
-	if useErr := userHandler.useCase.Update(cookie, oldPass, newUser, avatarFileDescriptor); useErr != nil {
+	if useErr := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); useErr != nil {
 		logger.Error(useErr)
 		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
 	}
@@ -128,13 +131,14 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Delete(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	sessionID := ctx.Get("sessionID").(string)
+	userID := ctx.Get("userID").(uint)
 
-	if userHandler.useCase.Delete(cookie) != nil {
+	if userHandler.useCase.Delete(userID, sessionID) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 
-	newCookie := http.Cookie{Name: "session_id", Value: cookie, Expires: time.Now().AddDate(-1, 0, 0)}
+	newCookie := http.Cookie{Name: "session_id", Value: sessionID, Expires: time.Now().AddDate(-1, 0, 0)}
 	ctx.SetCookie(&newCookie)
 
 	return ctx.NoContent(http.StatusOK)

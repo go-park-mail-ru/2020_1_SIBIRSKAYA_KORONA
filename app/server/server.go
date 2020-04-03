@@ -38,13 +38,6 @@ func (server *Server) GetAddr() string {
 }
 
 func (server *Server) Run() {
-	router := echo.New()
-
-	mw := drelloMiddleware.InitMiddleware()
-
-	router.Use(mw.CORS)
-	router.Use(mw.ProcessPanic)
-
 	// repo
 
 	// memCache
@@ -80,10 +73,15 @@ func (server *Server) Run() {
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	bRepo := boardRepo.CreateRepository(postgresClient)
 
+	mw := drelloMiddleware.InitMiddleware(sesRepo)
+	router := echo.New()
+	router.Use(mw.CORS)
+	router.Use(mw.ProcessPanic)
+
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
-	bUseCase := boardUseCase.CreateUseCase(sesRepo, usrRepo, bRepo)
+	bUseCase := boardUseCase.CreateUseCase(usrRepo, bRepo)
 	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)

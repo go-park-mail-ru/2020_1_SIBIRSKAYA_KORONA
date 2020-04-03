@@ -33,23 +33,22 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 		return ctx.NoContent(http.StatusOK)
 	})
 
-    // TODO: ОФОРМИТЬ В ГРУППУ
-	router.POST("/boards", handler.Create, mw.CheckCookieExist)
-	router.GET("/boards", handler.GetAll, mw.CheckCookieExist)
+	// router.Group("/boards", mw.AuthByCookie)
 
-	router.GET("/boards/:bid", handler.Get, mw.CheckCookieExist)
-	router.PUT("/boards/:bid", handler.Update, mw.CheckCookieExist)
-	router.DELETE("/boards/:bid", handler.Delete, mw.CheckCookieExist)
+	router.POST("/boards", handler.Create, mw.AuthByCookie)
+	router.GET("/boards", handler.GetAll, mw.AuthByCookie)
 
-	router.GET("/boards/:bid/members", handler.throwError, mw.CheckCookieExist)
-	router.POST("/boards/:bid/members", handler.throwError, mw.CheckCookieExist)
-	router.DELETE("/boards/:bid/members/:uid", handler.throwError, mw.CheckCookieExist)
+	router.GET("/boards/:bid", handler.Get, mw.AuthByCookie)
+	router.PUT("/boards/:bid", handler.Update, mw.CheckBoardAdminPermission, mw.AuthByCookie)
+	router.DELETE("/boards/:bid", handler.Delete, mw.CheckBoardAdminPermission)
 
-	router.GET("/boards/:bid/admins", handler.throwError, mw.CheckCookieExist)
-	router.POST("/boards/:bid/admins", handler.throwError, mw.CheckCookieExist)
-	router.DELETE("/boards/:bid/admins/:uid", handler.throwError, mw.CheckCookieExist)
+	router.GET("/boards/:bid/members", handler.throwError, mw.CheckBoardMemberPermission)
+	router.POST("/boards/:bid/members", handler.throwError, mw.CheckBoardAdminPermission)
+	router.DELETE("/boards/:bid/members/:uid", handler.throwError, mw.CheckBoardAdminPermission)
 
-
+	router.GET("/boards/:bid/admins", handler.throwError, mw.CheckBoardMemberPermission)
+	router.POST("/boards/:bid/admins", handler.throwError, mw.CheckBoardAdminPermission)
+	router.DELETE("/boards/:bid/admins/:uid", handler.throwError, mw.CheckBoardAdminPermission)
 
 	// TODO(Alexandr | Timofey): move to label handler
 
@@ -66,13 +65,13 @@ func (boardHandler *BoardHandler) throwError(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	userID := ctx.Get("userID").(uint)
 
 	brd := models.CreateBoard(ctx)
 	if brd == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if boardHandler.useCase.Create(cookie, brd) != nil {
+	if boardHandler.useCase.Create(userID, brd) != nil {
 		return ctx.NoContent(http.StatusInternalServerError) // TODO: пока хз
 	}
 
@@ -85,14 +84,15 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	userID := ctx.Get("userID").(uint)
+
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	brd, useErr := boardHandler.useCase.Get(cookie, bid)
+	brd, useErr := boardHandler.useCase.Get(userID, bid, false)
 	if useErr != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
 	}
@@ -106,9 +106,9 @@ func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	userID := ctx.Get("userID").(uint)
 
-	bAdmin, bMember, useErr := boardHandler.useCase.GetAll(cookie)
+	bAdmin, bMember, useErr := boardHandler.useCase.GetAll(userID)
 
 	if useErr != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})

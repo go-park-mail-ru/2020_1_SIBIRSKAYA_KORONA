@@ -6,41 +6,23 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
 )
 
 type BoardUseCase struct {
-	sessionRepo session.Repository
-	userRepo    user.Repository
-	boardRepo   board.Repository
+	userRepo  user.Repository
+	boardRepo board.Repository
 }
 
-func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository, boardRepo_ board.Repository) board.UseCase {
+func CreateUseCase(userRepo_ user.Repository, boardRepo_ board.Repository) board.UseCase {
 	return &BoardUseCase{
-		sessionRepo: sessionRepo_,
-		userRepo:    userRepo_,
-		boardRepo:   boardRepo_,
+		userRepo:  userRepo_,
+		boardRepo: boardRepo_,
 	}
 }
 
-func (boardUseCase *BoardUseCase) GetUser(sid string) (*models.User, error) {
-	id, has := boardUseCase.sessionRepo.Get(sid)
-	if !has {
-		return nil, errors.ErrSessionNotExist
-	}
-
-	user, err := boardUseCase.userRepo.GetByID(id)
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error {
-	user, err := boardUseCase.GetUser(sid)
+func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
+	user, err := boardUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -49,28 +31,8 @@ func (boardUseCase *BoardUseCase) Create(sid string, board *models.Board) error 
 	return boardUseCase.boardRepo.Create(board)
 }
 
-func (boardUseCase *BoardUseCase) Update(sid string, newBoard *models.Board) error {
-	usr, err := boardUseCase.GetUser(sid)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	oldBoard, err := boardUseCase.boardRepo.Get(newBoard.ID)
-	isAdmin := false
-
-	for _, admin := range oldBoard.Admins {
-		if usr.ID == admin.ID {
-			isAdmin = true
-			break
-		}
-	}
-
-	if !isAdmin {
-		return errors.ErrNoPermission
-	}
-
-	err = boardUseCase.boardRepo.Update(newBoard)
+func (boardUseCase *BoardUseCase) Update(uid uint, newBoard *models.Board) error {
+	err := boardUseCase.boardRepo.Update(newBoard)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -79,33 +41,14 @@ func (boardUseCase *BoardUseCase) Update(sid string, newBoard *models.Board) err
 	return nil
 }
 
-func (boardUseCase *BoardUseCase) Delete(sid string, bid uint) error {
-	usr, err := boardUseCase.GetUser(sid)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
+func (boardUseCase *BoardUseCase) Delete(uid uint, bid uint) error {
+	// _, err := boardUseCase.Get(uid, bid, true)
+	// if err != nil {
+	// 	logger.Error(err)
+	// 	return err
+	// }
 
-	boardToDelete, err := boardUseCase.boardRepo.Get(bid)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	isAdmin := false
-
-	for _, admin := range boardToDelete.Admins {
-		if usr.ID == admin.ID {
-			isAdmin = true
-			break
-		}
-	}
-
-	if !isAdmin {
-		return errors.ErrNoPermission
-	}
-
-	err = boardUseCase.boardRepo.Delete(bid)
+	err := boardUseCase.boardRepo.Delete(bid)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -114,29 +57,26 @@ func (boardUseCase *BoardUseCase) Delete(sid string, bid uint) error {
 	return nil
 }
 
-func (boardUseCase *BoardUseCase) Get(sid string, bid uint) (*models.Board, error) {
-	user, err := boardUseCase.GetUser(sid)
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-
+func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.Board, error) {
 	brd, err := boardUseCase.boardRepo.Get(bid)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-
-	for _, member := range append(brd.Admins, brd.Members...) {
-		if member.ID == user.ID {
+	tmp := brd.Admins
+	if !isAdmin {
+		tmp = append(tmp, brd.Members...)
+	}
+	for _, member := range tmp {
+		if member.ID == id {
 			return brd, nil
 		}
 	}
 	return nil, errors.ErrBoardsNotFound
 }
 
-func (boardUseCase *BoardUseCase) GetAll(sid string) ([]models.Board, []models.Board, error) {
-	user, err := boardUseCase.GetUser(sid)
+func (boardUseCase *BoardUseCase) GetAll(uid uint) ([]models.Board, []models.Board, error) {
+	user, err := boardUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return nil, nil, err

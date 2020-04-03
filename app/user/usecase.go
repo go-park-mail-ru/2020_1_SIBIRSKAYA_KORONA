@@ -9,8 +9,8 @@ import (
 
 type UseCase interface {
 	Create(user *models.User, sessionExpires time.Time) (string, error)
-	GetByUserKey(userKey string) (*models.User, error) // userKey - id, nickname
-	GetByCookie(sid string) (*models.User, error)
-	Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error
-	Delete(sid string) error
+	GetByID(id uint) (*models.User, error)
+	GetByNickname(nickname string) (*models.User, error)
+	Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error
+	Delete(uid uint, sid string) error
 }

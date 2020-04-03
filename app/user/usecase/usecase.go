@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"mime/multipart"
 	"time"
 
@@ -46,54 +45,30 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 	return sid, nil
 }
 
-func (userUseCase *UserUseCase) GetByUserKey(userKey string) (*models.User, error) {
-	var id uint
-	_, err := fmt.Sscan(userKey, &id)
-	usr := new(models.User)
-	if err == nil {
-		usr, err = userUseCase.userRepo.GetByID(id)
-		if err != nil {
-			logger.Error(err)
-			return nil, err
-		}
-	} else {
-		usr, err = userUseCase.userRepo.GetByNickname(userKey)
-		if err != nil {
-			logger.Error(err)
-			return nil, err
-		}
-	}
-	if usr != nil {
-		usr.Password = ""
-	}
-	return usr, nil
-}
-
-func (userUseCase *UserUseCase) GetByCookie(sid string) (*models.User, error) {
-	id, has := userUseCase.sessionRepo.Get(sid)
-	if !has {
-		return nil, errors.ErrSessionNotExist
-	}
-	usr, err := userUseCase.userRepo.GetByID(id)
+func (userUseCase *UserUseCase) GetByID(userID uint) (*models.User, error) {
+	user, err := userUseCase.userRepo.GetByID(userID)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	return usr, nil
+	return user, nil
 }
 
-func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (userUseCase *UserUseCase) GetByNickname(nickname string) (*models.User, error) {
+	user, err := userUseCase.userRepo.GetByNickname(nickname)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrUserBadMarshall
 	}
-
-	id, has := userUseCase.sessionRepo.Get(sid)
-	if !has {
-		return errors.ErrSessionNotExist
-	}
-
-	newUser.ID = id
 
 	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
 	if repoErr != nil {
@@ -104,14 +79,10 @@ func (userUseCase *UserUseCase) Update(sid string, oldPass string, newUser *mode
 	return nil
 }
 
-func (userUseCase *UserUseCase) Delete(sid string) error {
-	id, has := userUseCase.sessionRepo.Get(sid)
-	if !has {
-		return errors.ErrUserNotExist
-	}
+func (userUseCase *UserUseCase) Delete(uid uint, sid string) error {
 	err := userUseCase.sessionRepo.Delete(sid)
 	if err != nil {
 		return err
 	}
-	return userUseCase.userRepo.Delete(id)
+	return userUseCase.userRepo.Delete(uid)
 }

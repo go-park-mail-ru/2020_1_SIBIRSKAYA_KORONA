@@ -5,9 +5,9 @@ import (
 )
 
 type UseCase interface {
-	Create(sid string, board *models.Board) error
-	Get(sid string, bid uint) (*models.Board, error)
-	GetAll(sid string) ([]models.Board, []models.Board, error)
-	Update(sid string, board *models.Board) error
-	Delete(sid string, bid uint) error
+	Create(uid uint, board *models.Board) error
+	Get(uid uint, bid uint, isAdmin bool) (*models.Board, error)
+	GetAll(uid uint) ([]models.Board, []models.Board, error)
+	Update(uid uint, board *models.Board) error
+	Delete(uid uint, bid uint) error
 }

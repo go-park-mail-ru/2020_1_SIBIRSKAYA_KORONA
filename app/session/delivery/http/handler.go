@@ -29,8 +29,8 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Go
 
 	// TODO: решить как вешать мидлу на handler.LogIn
 	router.POST("/session", handler.LogIn)
-	router.GET("/session", handler.IsAuth, mw.CheckCookieExist)
-	router.DELETE("/session", handler.LogOut, mw.CheckCookieExist)
+	router.GET("/session", handler.IsAuth, mw.AuthByCookie)
+	router.DELETE("/session", handler.LogOut, mw.AuthByCookie)
 }
 
 func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
@@ -62,7 +62,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 }
 
 func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	cookie := ctx.Get("sessionID").(string)
 
 	if !sessionHandler.useCase.Has(cookie) {
 		return ctx.NoContent(http.StatusInternalServerError)
@@ -71,7 +71,7 @@ func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {
-	cookie := ctx.Get("sid").(string)
+	cookie := ctx.Get("sessionID").(string)
 
 	if sessionHandler.useCase.Delete(cookie) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
