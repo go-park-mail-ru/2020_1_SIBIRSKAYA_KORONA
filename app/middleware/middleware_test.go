@@ -55,14 +55,14 @@ func TestCORS(t *testing.T) {
 
 func TestPanicProcess(t *testing.T) {
 	e := echo.New()
-	request := test.NewRequest(echo.GET, "/", nil)
+	request := test.NewRequest(echo.GET, "/settings", nil)
 	response := test.NewRecorder()
 	context := e.NewContext(request, response)
 	middle := middleware.InitMiddleware()
 
 	panicHandler := echo.HandlerFunc(func(c echo.Context) error {
 		if 2+2 == 4 {
-			panic("oamoamaoama")
+			panic("big panic")
 		}
 		return c.NoContent(http.StatusOK)
 	})

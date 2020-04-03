@@ -2,13 +2,15 @@ BINARY=drello_binary
 API_DOC_TARGET=api.yaml
 PROJECT_DIR := ${CURDIR}
 DOCUMENTATION_CONTAINER_NAME=documentation
+TEST_FLAGS = \
+	-covermode=atomic ./... \
+	--test-config="$(PROJECT_DIR)/config.yaml"
 
 # тесты
 test-cover:
-	go test -v -cover -covermode=atomic ./... --test-config="$(PROJECT_DIR)/config.yaml"
-
+	go test -v -cover $(TEST_FLAGS)
 test-coverpkg:
-	go test -v -coverpkg=./... -covermode=atomic ./... --test-config="$(PROJECT_DIR)/config.yaml"
+	go test -v -coverpkg=./... $(TEST_FLAGS)
 
 # docker
 build-binary:

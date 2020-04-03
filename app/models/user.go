@@ -9,14 +9,14 @@ import (
 
 type User struct {
 	ID       uint     `json:"id" gorm:"primary_key"`
-	Name     string   `json:"name" gorm:"not null"`
-	Surname  string   `json:"surname" gorm:"not null"`
-	Nickname string   `json:"nickname" gorm:"unique;not null"`
-	Email    string   `json:"email"`
-	Avatar   string   `json:"avatar"`
-	Password string   `json:"password,omitempty" gorm:"not null"`
-	Admin    []*Board `json:"-" gorm:"many2many:board_admins;"`
-	Member   []*Board `json:"-" gorm:"many2many:board_members;"`
+	Name     string   `json:"name" gorm:"not null" faker:"name"`
+	Surname  string   `json:"surname" gorm:"not null" faker:"last_name"`
+	Nickname string   `json:"nickname" gorm:"unique;not null" faker:"username"`
+	Email    string   `json:"email" faker:"email" faker:"email"`
+	Avatar   string   `json:"avatar" faker:"url"`
+	Password string   `json:"password,omitempty" gorm:"not null" faker:"password"`
+	Admin    []*Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
+	Member   []*Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
 }
 
 func (u *User) TableName() string {
