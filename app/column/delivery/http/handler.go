@@ -18,9 +18,9 @@ type ColumnHandler struct {
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
 	handler := &ColumnHandler{useCase: useCase}
 	router.POST("/boards/:bid/columns", handler.Create, mw.AuthByCookie, mw.CheckBoardAdminPermission)
-	router.GET("boards/:bid/columns/:cid", handler.throwError)
-	router.PUT("boards/:bid/columns/:cid", handler.throwError)
-	router.DELETE("boards/:bid/columns/:cid", handler.throwError)
+	router.GET("/boards/:bid/columns/:cid", handler.throwError)
+	router.PUT("/boards/:bid/columns/:cid", handler.throwError)
+	router.DELETE("/boards/:bid/columns/:cid", handler.throwError)
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {

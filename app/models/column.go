@@ -7,8 +7,8 @@ import (
 )
 
 type Column struct {
-	ID    uint   `json:"id" gorm:"primary_key"`
-	Title string `json:"title"`
+	ID   uint   `json:"id" gorm:"primary_key"`
+	Name string `json:"name"`
 	// Tasks     []*Task   `json:"tasks"`
 	Pos float64 `json:"position"`
 	Bid uint    `json:"-"`
