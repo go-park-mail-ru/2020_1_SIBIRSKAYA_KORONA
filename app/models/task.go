@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
-	"time"
 )
 
 type Task struct {
-	ID       uint      `json:"id" gorm:"primary_key"`
-	Name     string    `json:"name"`
-	About    string    `json:"about"`
-	Level    uint      `json:"level,omitempty"`
-	Deadline time.Time `json:"deadline,omitempty"`
+	ID       uint   `json:"id" gorm:"primary_key"`
+	Name     string `json:"name"`
+	About    string `json:"about"`
+	Level    uint   `json:"level,omitempty"`
+	Deadline string `json:"deadline,omitempty"`
 	// Members     []User   `json:"members,omitempty" gorm:"many2many:task_members"`
 	Pos float32 `json:"position"`
 	Cid uint    `json:"-"`

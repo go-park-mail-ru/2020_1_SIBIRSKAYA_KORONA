@@ -20,17 +20,19 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 
-	/*router.GET("boards/:bid/tasks/:tid", handler.throwError)
-	router.PUT("boards/:bid/tasks/:tid", handler.throwError)
-	router.DELETE("boards/:bid/tasks/:tid", handler.throwError)
+	router.PUT("boards/:bid/tasks/:tid", handler.Update)
+	router.DELETE("boards/:bid/tasks/:tid", handler.Delete)
 
-	router.GET("/boards/:bid/tasks/:tid/labels", handler.throwError)
-	router.POST("/boards/:bid/tasks/:tid/labels", handler.throwError)
-	router.DELETE("/boards/:bid/tasks/:tid/labels/:lid", handler.throwError)
+	/*
+		router.GET("boards/:bid/tasks/:tid", handler.throwError)
 
-	router.GET("/boards/:bid/tasks/:tid/members", handler.throwError)
-	router.POST("/boards/:bid/tasks/:tid/members", handler.throwError)
-	router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)*/
+		router.GET("/boards/:bid/tasks/:tid/labels", handler.throwError)
+		router.POST("/boards/:bid/tasks/:tid/labels", handler.throwError)
+		router.DELETE("/boards/:bid/tasks/:tid/labels/:lid", handler.throwError)
+
+		router.GET("/boards/:bid/tasks/:tid/members", handler.throwError)
+		router.POST("/boards/:bid/tasks/:tid/members", handler.throwError)
+		router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)*/
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
@@ -50,4 +52,12 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.JSON(http.StatusOK, body)
+}
+
+func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, "body")
+}
+
+func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, "body")
 }
