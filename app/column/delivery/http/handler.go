@@ -17,9 +17,10 @@ type ColumnHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
 	handler := &ColumnHandler{useCase: useCase}
-	// CORS
 	router.POST("/boards/:bid/columns", handler.Create, mw.CheckAuth, mw.CheckBoardAdminPermission)
-	//router.GET("/boards/:bid/columns/:cid", handler.throwError, mw.CheckBoardMemberPermission)
+	router.GET("/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.GET("/boards/:bid/columns/:cid/tasks", handler.GetTasks,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	//router.PUT("/boards/:bid/columns/:cid", handler.throwError, mw.CheckBoardAdminPermission)
 	//router.DELETE("/boards/:bid/columns/:cid", handler.throwError, mw.CheckBoardAdminPermission)
 }
@@ -36,9 +37,44 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
-	return ctx.JSON(http.StatusOK, col)
+	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.JSON(http.StatusOK, body)
 }
 
-func (columnHandler *ColumnHandler) throwError(ctx echo.Context) error {
-	panic("handler not implemented")
+func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
+	var bid, cid uint
+	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	_, err = fmt.Sscan(ctx.Param("cid"), &cid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	col, useErr := columnHandler.useCase.Get(bid, cid)
+	if useErr != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	}
+	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
+}
+
+func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
+	var cid uint
+	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
+	tsks, useErr := columnHandler.useCase.GetTasksByID(cid)
+	if useErr != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	}
+	body, err := message.GetBody(message.Pair{Name: "tasks", Data: tsks})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
 }

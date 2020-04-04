@@ -52,9 +52,8 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 	return "", errors.ErrWrongPassword
 }
 
-func (sessionUseCase *SessionUseCase) Has(sid string) bool {
-	_, has := sessionUseCase.sessionRepo.Get(sid)
-	return has
+func (sessionUseCase *SessionUseCase) Get(sid string) (uint, bool) {
+	return sessionUseCase.sessionRepo.Get(sid)
 }
 
 func (sessionUseCase *SessionUseCase) Delete(sid string) error {

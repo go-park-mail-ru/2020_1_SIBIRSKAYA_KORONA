@@ -8,17 +8,18 @@ import (
 )
 
 type Task struct {
-	ID          uint      `json:"id" gorm:"primary_key"`
-	Description string    `json:"description"`
-	Members     []*User   `json:"members" gorm:"many2many:task_members"`
-	Position    float32   `json:"position"`
-	CreatedAt   time.Time `json:"createdAt"`
-
+	ID       uint      `json:"id" gorm:"primary_key"`
+	Name     string    `json:"name"`
+	About    string    `json:"about"`
+	Level    uint      `json:"level,omitempty"`
+	Deadline time.Time `json:"deadline,omitempty"`
+	// Members     []User   `json:"members,omitempty" gorm:"many2many:task_members"`
+	Pos float32 `json:"position"`
+	Cid uint    `json:"-"`
 	//Labels []*Label
-
 }
 
-func (t *Task) TablaName() string {
+func (tsk *Task) TablaName() string {
 	return "tasks"
 }
 
@@ -28,7 +29,6 @@ func CreateTask(ctx echo.Context) *Task {
 		return nil
 	}
 	defer ctx.Request().Body.Close()
-
 	task := new(Task)
 	if json.Unmarshal(body, task) != nil {
 		return nil

@@ -21,7 +21,6 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Go
 		useCase: useCase,
 	}
 	router.POST("/session", handler.LogIn)
-	router.GET("/session", handler.IsAuth, mw.CheckAuth)
 	router.DELETE("/session", handler.LogOut, mw.CheckAuth)
 }
 
@@ -45,14 +44,6 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 		ctx.SetCookie(cookie)
 		return ctx.NoContent(http.StatusOK)
 	}
-}
-
-func (sessionHandler *SessionHandler) IsAuth(ctx echo.Context) error {
-	sid := ctx.Get("sessionID").(string)
-	if !sessionHandler.useCase.Has(sid) {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {

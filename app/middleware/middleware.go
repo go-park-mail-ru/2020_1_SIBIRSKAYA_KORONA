@@ -2,6 +2,9 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"net/http"
 	"net/http/httputil"
 
@@ -17,11 +20,12 @@ type GoMiddleware struct {
 	frontendUrl string
 	serverMode  string
 
-	sRepo    session.Repository
-	bUsecase board.UseCase
+	sUseCase session.UseCase
+	bUseCase board.UseCase
+	cUseCase column.UseCase
 }
 
-func CreateMiddleware(sRepo_ session.Repository, bUsecase_ board.UseCase) *GoMiddleware {
+func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase) *GoMiddleware {
 	return &GoMiddleware{
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
@@ -30,8 +34,9 @@ func CreateMiddleware(sRepo_ session.Repository, bUsecase_ board.UseCase) *GoMid
 
 		serverMode: viper.GetString("server.mode"),
 
-		sRepo:    sRepo_,
-		bUsecase: bUsecase_,
+		sUseCase: sUseCase_,
+		bUseCase: bUseCase_,
+		cUseCase: cUseCase_,
 	}
 }
 
@@ -69,7 +74,7 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return ctx.NoContent(http.StatusForbidden)
 		}
 		sid := cookie.Value
-		userID, exist := mw.sRepo.Get(sid)
+		userID, exist := mw.sUseCase.Get(sid)
 		if exist != true {
 			return ctx.NoContent(http.StatusNotFound)
 		}
@@ -88,7 +93,7 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 			return ctx.NoContent(http.StatusBadRequest)
 		}
 		uid := ctx.Get("userID").(uint)
-		if _, err := mw.bUsecase.Get(uid, bid, false); err != nil {
+		if _, err := mw.bUseCase.Get(uid, bid, false); err != nil {
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
 		return next(ctx)
@@ -103,9 +108,24 @@ func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.Ha
 			return ctx.NoContent(http.StatusBadRequest)
 		}
 		uid := ctx.Get("userID").(uint)
-
-		if _, err := mw.bUsecase.Get(uid, bid, true); err != nil {
+		if _, err := mw.bUseCase.Get(uid, bid, true); err != nil {
 			return ctx.NoContent(http.StatusUnauthorized)
+		}
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var bid, cid uint
+		if _, err := fmt.Sscan(ctx.Param("bid"), &bid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := fmt.Sscan(ctx.Param("cid"), &cid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, useErr := mw.cUseCase.Get(bid, cid); useErr != nil {
+			return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
 		}
 		return next(ctx)
 	}

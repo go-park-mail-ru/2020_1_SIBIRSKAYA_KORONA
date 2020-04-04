@@ -37,7 +37,6 @@ func (userStore *UserStore) Create(user *models.User) error {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }
 
@@ -47,7 +46,6 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
-
 	return userData, nil
 }
 

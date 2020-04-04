@@ -22,6 +22,10 @@ import (
 	colsRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/repository"
 	colsUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/usecase"
 
+	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/delivery/http"
+	taskRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/repository"
+	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/usecase"
+
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -56,7 +60,6 @@ func (server *Server) Run() {
 		logger.Info("Memcached succesfull start")
 	}
 	defer memCacheClient.DeleteAll()
-	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 
 	// postgres
 	dbms := viper.GetString("database.dbms")
@@ -74,20 +77,23 @@ func (server *Server) Run() {
 	}
 	defer postgresClient.Close()
 
-	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{})
+	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{})
 
+	sesRepo := sessionRepo.CreateRepository(memCacheClient)
 	usrRepo := userRepo.CreateRepository(postgresClient)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
+	tskRepo := taskRepo.CreateRepository(postgresClient)
 
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
 	bUseCase := boardUseCase.CreateUseCase(usrRepo, brdRepo)
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
+	tUseCase := taskUseCase.CreateUseCase(tskRepo)
 
 	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sesRepo, bUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase)
 	router := echo.New()
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
@@ -95,6 +101,7 @@ func (server *Server) Run() {
 	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase, mw)
 	colsHandler.CreateHandler(router, cUseCase, mw)
+	taskHandler.CreateHandler(router, tUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {

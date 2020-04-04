@@ -8,6 +8,6 @@ import (
 
 type UseCase interface {
 	Create(user *models.User, sessionExpires time.Time) (string, error)
-	Has(sid string) bool
+	Get(sid string) (uint, bool)
 	Delete(sid string) error
 }
