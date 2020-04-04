@@ -30,25 +30,31 @@ func (boardStore *BoardStore) Create(board *models.Board) error {
 func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 	brd := new(models.Board)
 	brd.ID = bid
-	err := boardStore.DB.First(brd).Error
+	err := boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Error
 	if err != nil {
-		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
+	}
+	for _, admins := range brd.Admins {
+		admins.Password = ""
+	}
+	err = boardStore.DB.Model(brd).Related(&brd.Members, "Members").Error
+	if err != nil {
+		return nil, errors.ErrDbBadOperation
+	}
+	for _, members := range brd.Members {
+		members.Password = ""
 	}
 	return brd, nil
 }
 
-func (boardStore *BoardStore) GetAll(usr *models.User) ([]models.Board, []models.Board, error) {
-	var adminsBoards, membersBoards []models.Board
-	err := boardStore.DB.Model(usr).
-		Related(&adminsBoards, "Admin").
-		Related(&membersBoards, "Member").Error
-
+func (boardStore *BoardStore) GetColumnsByID(bid uint) ([]models.Column, error) {
+	var cols []models.Column
+	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&cols).Error
 	if err != nil {
 		logger.Error(err)
-		return nil, nil, errors.ErrDbBadOperation
+		return nil, errors.ErrDbBadOperation
 	}
-	return adminsBoards, membersBoards, nil
+	return cols, nil
 }
 
 func (boardStore *BoardStore) Update(newBoard *models.Board) error {
@@ -59,7 +65,6 @@ func (boardStore *BoardStore) Update(newBoard *models.Board) error {
 		return errors.ErrDbBadOperation
 	}
 	oldBoard.Name = newBoard.Name
-
 	err = boardStore.DB.Save(oldBoard).Error
 	if err != nil {
 		logger.Error(err)

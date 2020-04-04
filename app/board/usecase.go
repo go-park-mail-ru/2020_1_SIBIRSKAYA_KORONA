@@ -7,7 +7,7 @@ import (
 type UseCase interface {
 	Create(uid uint, board *models.Board) error
 	Get(uid uint, bid uint, isAdmin bool) (*models.Board, error)
-	GetAll(uid uint) ([]models.Board, []models.Board, error)
-	Update(uid uint, board *models.Board) error
-	Delete(uid uint, bid uint) error
+	GetColumnsByID(bid uint) ([]models.Column, error)
+	Update(board *models.Board) error
+	Delete(bid uint) error
 }

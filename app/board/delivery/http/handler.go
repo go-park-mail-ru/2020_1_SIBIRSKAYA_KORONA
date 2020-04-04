@@ -17,10 +17,6 @@ type BoardHandler struct {
 	useCase board.UseCase
 }
 
-type ResponseError struct {
-	Message string `json:"message"`
-}
-
 func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMiddleware) {
 	handler := &BoardHandler{
 		useCase: useCase,
@@ -32,26 +28,11 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	router.OPTIONS("/boards/:bid", func(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusOK)
 	})
-
-	// router.Group("/boards", mw.AuthByCookie)
-
 	router.POST("/boards", handler.Create, mw.AuthByCookie)
-	router.GET("/boards", handler.GetAll, mw.AuthByCookie)
-
 	router.GET("/boards/:bid", handler.Get, mw.AuthByCookie)
-	router.PUT("/boards/:bid", handler.Update, mw.CheckBoardAdminPermission, mw.AuthByCookie)
-	router.DELETE("/boards/:bid", handler.Delete, mw.CheckBoardAdminPermission)
-
-	router.GET("/boards/:bid/members", handler.throwError, mw.CheckBoardMemberPermission)
-	router.POST("/boards/:bid/members", handler.throwError, mw.CheckBoardAdminPermission)
-	router.DELETE("/boards/:bid/members/:uid", handler.throwError, mw.CheckBoardAdminPermission)
-
-	router.GET("/boards/:bid/admins", handler.throwError, mw.CheckBoardMemberPermission)
-	router.POST("/boards/:bid/admins", handler.throwError, mw.CheckBoardAdminPermission)
-	router.DELETE("/boards/:bid/admins/:uid", handler.throwError, mw.CheckBoardAdminPermission)
-
-	// TODO(Alexandr | Timofey): move to label handler
-
+	router.GET("/boards/:bid/columns", handler.GetColumns, mw.AuthByCookie, mw.CheckBoardMemberPermission)
+	router.PUT("/boards/:bid", handler.Update, mw.AuthByCookie, mw.CheckBoardAdminPermission)
+	router.DELETE("/boards/:bid", handler.Delete, mw.AuthByCookie, mw.CheckBoardAdminPermission)
 	//router.GET("/boards/:bid/labels", handler.throwError)
 	//router.POST("/boards/:bid/labels", handler.throwError)
 	//router.GET("/boards/:bid/labels/:lid", handler.throwError)
@@ -59,14 +40,8 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	//router.DELETE("/boards/:bid/labels/:lid", handler.throwError)
 }
 
-// TODO(Alexandr): remove after debug
-func (boardHandler *BoardHandler) throwError(ctx echo.Context) error {
-	panic("handler not implemented")
-}
-
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	userID := ctx.Get("userID").(uint)
-
 	brd := models.CreateBoard(ctx)
 	if brd == nil {
 		return ctx.NoContent(http.StatusBadRequest)
@@ -74,47 +49,39 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	if boardHandler.useCase.Create(userID, brd) != nil {
 		return ctx.NoContent(http.StatusInternalServerError) // TODO: пока хз
 	}
-
 	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-
 	return ctx.String(http.StatusOK, body)
 }
 
 func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 	userID := ctx.Get("userID").(uint)
-
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
 	brd, useErr := boardHandler.useCase.Get(userID, bid, false)
 	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
 	}
-
 	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-
 	return ctx.String(http.StatusOK, body)
 }
 
-func (boardHandler *BoardHandler) GetAll(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
-
-	bAdmin, bMember, useErr := boardHandler.useCase.GetAll(userID)
-
+func (boardHandler *BoardHandler) GetColumns(ctx echo.Context) error {
+	var bid uint
+	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+	cols, useErr := boardHandler.useCase.GetColumnsByID(bid)
 	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), ResponseError{Message: useErr.Error()})
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
 	}
-
-	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
+	body, err := message.GetBody(message.Pair{Name: "columns", Data: cols})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}

@@ -41,41 +41,45 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 		logger.Error(repoErr)
 		return "", repoErr
 	}
-
 	return sid, nil
 }
 
 func (userUseCase *UserUseCase) GetByID(userID uint) (*models.User, error) {
-	user, err := userUseCase.userRepo.GetByID(userID)
+	usr, err := userUseCase.userRepo.GetByID(userID)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-
-	return user, nil
+	return usr, nil
 }
 
 func (userUseCase *UserUseCase) GetByNickname(nickname string) (*models.User, error) {
-	user, err := userUseCase.userRepo.GetByNickname(nickname)
+	usr, err := userUseCase.userRepo.GetByNickname(nickname)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
+	return usr, nil
+}
 
-	return user, nil
+func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
+	adminsBoard, membersBoard, repoErr := userUseCase.userRepo.GetBoardsByID(uid)
+	if repoErr != nil {
+		logger.Error(repoErr)
+		return nil, nil, repoErr
+	}
+	return adminsBoard, membersBoard, nil
 }
 
 func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrUserBadMarshall
 	}
-
 	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
 	if repoErr != nil {
 		logger.Error(repoErr)
 		return repoErr
 	}
-
 	return nil
 }
 

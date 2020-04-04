@@ -18,6 +18,10 @@ import (
 	boardRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/repository"
 	boardUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/usecase"
 
+	colsHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/delivery/http"
+	colsRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/repository"
+	colsUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/usecase"
+
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -68,10 +72,13 @@ func (server *Server) Run() {
 	} else {
 		logger.Info("Postgresql succesfull start")
 	}
-	postgresClient.AutoMigrate(&models.User{}, &models.Board{})
 	defer postgresClient.Close()
+
+	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{})
+
 	usrRepo := userRepo.CreateRepository(postgresClient)
-	bRepo := boardRepo.CreateRepository(postgresClient)
+	brdRepo := boardRepo.CreateRepository(postgresClient)
+	colRepo := colsRepo.CreateRepository(postgresClient)
 
 	mw := drelloMiddleware.InitMiddleware(sesRepo)
 	router := echo.New()
@@ -81,11 +88,14 @@ func (server *Server) Run() {
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
-	bUseCase := boardUseCase.CreateUseCase(usrRepo, bRepo)
+	bUseCase := boardUseCase.CreateUseCase(usrRepo, brdRepo)
+	cUseCase := colsUseCase.CreateUseCase(colRepo)
+
 	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase, mw)
+	colsHandler.CreateHandler(router, cUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {

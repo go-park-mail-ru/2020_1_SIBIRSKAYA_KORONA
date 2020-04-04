@@ -60,6 +60,18 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 	return userData, nil
 }
 
+func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
+	var adminsBoards, membersBoards []models.Board
+	usr := &models.User{ID: uid}
+	err := userStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").
+		Preload("Members").Related(&membersBoards, "Member").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, errors.ErrDbBadOperation
+	}
+	return adminsBoards, membersBoards, nil
+}
+
 func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal

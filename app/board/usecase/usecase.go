@@ -22,39 +22,13 @@ func CreateUseCase(userRepo_ user.Repository, boardRepo_ board.Repository) board
 }
 
 func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
-	user, err := boardUseCase.userRepo.GetByID(uid)
+	usr, err := boardUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-	board.Admins = []*models.User{user}
+	board.Admins = []*models.User{usr}
 	return boardUseCase.boardRepo.Create(board)
-}
-
-func (boardUseCase *BoardUseCase) Update(uid uint, newBoard *models.Board) error {
-	err := boardUseCase.boardRepo.Update(newBoard)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	return nil
-}
-
-func (boardUseCase *BoardUseCase) Delete(uid uint, bid uint) error {
-	// _, err := boardUseCase.Get(uid, bid, true)
-	// if err != nil {
-	// 	logger.Error(err)
-	// 	return err
-	// }
-
-	err := boardUseCase.boardRepo.Delete(bid)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	return nil
 }
 
 func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.Board, error) {
@@ -63,11 +37,11 @@ func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.
 		logger.Error(err)
 		return nil, err
 	}
-	tmp := brd.Admins
+	usrs := brd.Admins
 	if !isAdmin {
-		tmp = append(tmp, brd.Members...)
+		usrs = append(usrs, brd.Members...)
 	}
-	for _, member := range tmp {
+	for _, member := range usrs {
 		if member.ID == id {
 			return brd, nil
 		}
@@ -75,18 +49,29 @@ func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.
 	return nil, errors.ErrBoardsNotFound
 }
 
-func (boardUseCase *BoardUseCase) GetAll(uid uint) ([]models.Board, []models.Board, error) {
-	user, err := boardUseCase.userRepo.GetByID(uid)
-	if err != nil {
-		logger.Error(err)
-		return nil, nil, err
-	}
-
-	adminsBoard, membersBoard, repoErr := boardUseCase.boardRepo.GetAll(user)
+func (boardUseCase *BoardUseCase) GetColumnsByID(bid uint) ([]models.Column, error) {
+	cols, repoErr := boardUseCase.boardRepo.GetColumnsByID(bid)
 	if repoErr != nil {
 		logger.Error(repoErr)
-		return nil, nil, repoErr
+		return nil, repoErr
 	}
+	return cols, nil
+}
 
-	return adminsBoard, membersBoard, nil
+func (boardUseCase *BoardUseCase) Update(newBoard *models.Board) error {
+	err := boardUseCase.boardRepo.Update(newBoard)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (boardUseCase *BoardUseCase) Delete(bid uint) error {
+	err := boardUseCase.boardRepo.Delete(bid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }

@@ -17,3 +17,7 @@ func GetBody(bodyData ...Pair) (string, error) {
 	bodyJSON, err := json.Marshal(bodyMap)
 	return string(bodyJSON), err
 }
+
+type ResponseError struct {
+	Message string `json:"message"`
+}

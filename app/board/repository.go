@@ -7,7 +7,7 @@ import (
 type Repository interface {
 	Create(board *models.Board) error
 	Get(bid uint) (*models.Board, error)
-	GetAll(user *models.User) ([]models.Board, []models.Board, error)
+	GetColumnsByID(bid uint) ([]models.Column, error)
 	Update(board *models.Board) error
 	Delete(bid uint) error
 }
