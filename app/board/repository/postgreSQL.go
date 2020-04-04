@@ -5,7 +5,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )

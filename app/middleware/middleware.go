@@ -21,7 +21,7 @@ type GoMiddleware struct {
 	bUsecase board.UseCase
 }
 
-func InitMiddleware(sRepo_ session.Repository) *GoMiddleware {
+func InitMiddleware(sRepo_ session.Repository, bUsecase_ board.UseCase) *GoMiddleware {
 	return &GoMiddleware{
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
@@ -30,7 +30,8 @@ func InitMiddleware(sRepo_ session.Repository) *GoMiddleware {
 
 		serverMode: viper.GetString("server.mode"),
 
-		sRepo: sRepo_,
+		sRepo:    sRepo_,
+		bUsecase: bUsecase_,
 	}
 }
 
@@ -52,7 +53,6 @@ func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 				fmt.Println("Panic statement: ", err)
 				return ctx.NoContent(http.StatusInternalServerError)
 			}
-
 			return nil
 		}()
 		return next(ctx)
@@ -65,13 +65,11 @@ func (mw *GoMiddleware) AuthByCookie(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return ctx.NoContent(http.StatusForbidden)
 		}
-
 		sid := cookie.Value
 		userID, exist := mw.sRepo.Get(sid)
 		if exist != true {
-			return ctx.NoContent(http.StatusUnauthorized)
+			return ctx.NoContent(http.StatusNotFound)
 		}
-
 		ctx.Set("userID", userID)
 		ctx.Set("sessionID", sid)
 		return next(ctx)
@@ -86,9 +84,7 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 		if err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-
 		uid := ctx.Get("userID").(uint)
-
 		if _, err := mw.bUsecase.Get(uid, bid, false); err != nil {
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
@@ -103,7 +99,6 @@ func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.Ha
 		if err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-
 		uid := ctx.Get("userID").(uint)
 
 		if _, err := mw.bUsecase.Get(uid, bid, true); err != nil {

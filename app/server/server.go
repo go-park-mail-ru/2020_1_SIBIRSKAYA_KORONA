@@ -80,11 +80,6 @@ func (server *Server) Run() {
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
 
-	mw := drelloMiddleware.InitMiddleware(sesRepo)
-	router := echo.New()
-	router.Use(mw.CORS)
-	router.Use(mw.ProcessPanic)
-
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
@@ -92,8 +87,14 @@ func (server *Server) Run() {
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
 
 	// delivery
+	mw := drelloMiddleware.InitMiddleware(sesRepo, bUseCase)
+	router := echo.New()
+	router.Use(mw.CORS)
+	router.Use(mw.ProcessPanic)
+
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
+	router.Use(mw.AuthByCookie)
 	boardHandler.CreateHandler(router, bUseCase, mw)
 	colsHandler.CreateHandler(router, cUseCase, mw)
 

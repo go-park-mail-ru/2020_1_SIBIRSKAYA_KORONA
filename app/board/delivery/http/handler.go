@@ -28,11 +28,12 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	router.OPTIONS("/boards/:bid", func(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusOK)
 	})
-	router.POST("/boards", handler.Create, mw.AuthByCookie)
-	router.GET("/boards/:bid", handler.Get, mw.AuthByCookie)
-	router.GET("/boards/:bid/columns", handler.GetColumns, mw.AuthByCookie, mw.CheckBoardMemberPermission)
-	router.PUT("/boards/:bid", handler.Update, mw.AuthByCookie, mw.CheckBoardAdminPermission)
-	router.DELETE("/boards/:bid", handler.Delete, mw.AuthByCookie, mw.CheckBoardAdminPermission)
+
+	router.POST("/boards", handler.Create)
+	router.GET("/boards/:bid", handler.Get)
+	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckBoardMemberPermission)
+	router.PUT("/boards/:bid", handler.Update, mw.CheckBoardAdminPermission)
+	router.DELETE("/boards/:bid", handler.Delete, mw.CheckBoardAdminPermission)
 	//router.GET("/boards/:bid/labels", handler.throwError)
 	//router.POST("/boards/:bid/labels", handler.throwError)
 	//router.GET("/boards/:bid/labels/:lid", handler.throwError)
