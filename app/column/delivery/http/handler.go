@@ -2,13 +2,15 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
+
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type ColumnHandler struct {
@@ -21,8 +23,10 @@ func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoM
 	router.GET("/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns/:cid/tasks", handler.GetTasks,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	//router.PUT("/boards/:bid/columns/:cid", handler.throwError, mw.CheckBoardAdminPermission)
-	//router.DELETE("/boards/:bid/columns/:cid", handler.throwError, mw.CheckBoardAdminPermission)
+	router.PUT("/boards/:bid/columns/:cid", handler.Update,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+	router.DELETE("/boards/:bid/columns/:cid", handler.Delete,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
@@ -77,4 +81,12 @@ func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, body)
+}
+
+func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
+	return ctx.NoContent(http.StatusOK)
 }

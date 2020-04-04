@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"net/http"
@@ -23,9 +24,10 @@ type GoMiddleware struct {
 	sUseCase session.UseCase
 	bUseCase board.UseCase
 	cUseCase column.UseCase
+	tUseCase task.UseCase
 }
 
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase) *GoMiddleware {
+func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
 	return &GoMiddleware{
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
@@ -37,6 +39,7 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 		sUseCase: sUseCase_,
 		bUseCase: bUseCase_,
 		cUseCase: cUseCase_,
+		tUseCase: tUseCase_,
 	}
 }
 
@@ -55,13 +58,12 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		defer func() error {
+		defer func() {
 			if err := recover(); err != nil {
 				fmt.Println("ProcessPanic up on ", ctx.Request().Method, ctx.Request().URL.Path)
 				fmt.Println("Panic statement: ", err)
-				return ctx.NoContent(http.StatusInternalServerError)
+				ctx.NoContent(http.StatusInternalServerError)
 			}
-			return nil
 		}()
 		return next(ctx)
 	}
@@ -125,6 +127,22 @@ func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc 
 			return ctx.NoContent(http.StatusBadRequest)
 		}
 		if _, useErr := mw.cUseCase.Get(bid, cid); useErr != nil {
+			return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+		}
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var cid, tid uint
+		if _, err := fmt.Sscan(ctx.Param("cid"), &cid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := fmt.Sscan(ctx.Param("tid"), &tid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, useErr := mw.tUseCase.Get(cid, tid); useErr != nil {
 			return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
 		}
 		return next(ctx)

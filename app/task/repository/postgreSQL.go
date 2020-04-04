@@ -26,3 +26,12 @@ func (taskStore *TaskStore) Create(tsk *models.Task) error {
 	}
 	return nil
 }
+
+func (taskStore *TaskStore) Get(tid uint) (*models.Task, error) {
+	tsk := new(models.Task)
+	if err := taskStore.DB.First(tsk, tid).Error; err != nil {
+		logger.Error(err)
+		return nil, errors.ErrDbBadOperation
+	}
+	return tsk, nil
+}
