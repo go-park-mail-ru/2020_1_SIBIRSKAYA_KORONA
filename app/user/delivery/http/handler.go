@@ -24,15 +24,12 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	handler := &UserHandler{
 		useCase: useCase,
 	}
-	router.OPTIONS("/settings", func(ctx echo.Context) error {
-		return ctx.NoContent(http.StatusOK)
-	})
-	router.POST("/settings", handler.Create, mw.DebugMiddle)
+	router.POST("/settings", handler.Create)
 	router.GET("/profile/:id_or_nickname", handler.Get)
-	router.GET("/settings", handler.GetAll, mw.AuthByCookie) // получ все настройки
-	router.GET("/boards", handler.GetBoards, mw.AuthByCookie)
-	router.PUT("/settings", handler.Update, mw.AuthByCookie)
-	router.DELETE("/settings", handler.Delete, mw.AuthByCookie)
+	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
+	router.GET("/boards", handler.GetBoards, mw.CheckAuth)
+	router.PUT("/settings", handler.Update, mw.CheckAuth)
+	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {

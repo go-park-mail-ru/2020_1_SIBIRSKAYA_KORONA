@@ -27,7 +27,7 @@ func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
 		logger.Error(err)
 		return err
 	}
-	board.Admins = []*models.User{usr}
+	board.Admins = []models.User{*usr}
 	return boardUseCase.boardRepo.Create(board)
 }
 

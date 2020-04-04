@@ -87,14 +87,12 @@ func (server *Server) Run() {
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
 
 	// delivery
-	mw := drelloMiddleware.InitMiddleware(sesRepo, bUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sesRepo, bUseCase)
 	router := echo.New()
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
-
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
-	router.Use(mw.AuthByCookie)
 	boardHandler.CreateHandler(router, bUseCase, mw)
 	colsHandler.CreateHandler(router, cUseCase, mw)
 

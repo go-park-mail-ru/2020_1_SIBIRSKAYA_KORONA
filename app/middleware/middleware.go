@@ -21,7 +21,7 @@ type GoMiddleware struct {
 	bUsecase board.UseCase
 }
 
-func InitMiddleware(sRepo_ session.Repository, bUsecase_ board.UseCase) *GoMiddleware {
+func CreateMiddleware(sRepo_ session.Repository, bUsecase_ board.UseCase) *GoMiddleware {
 	return &GoMiddleware{
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
@@ -41,6 +41,9 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
 		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if ctx.Request().Method == "OPTIONS" {
+			return ctx.NoContent(http.StatusOK)
+		}
 		return next(ctx)
 	}
 }
@@ -59,7 +62,7 @@ func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) AuthByCookie(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("session_id")
 		if err != nil {

@@ -11,8 +11,8 @@ type Board struct {
 	ID      uint     `json:"id" gorm:"primary_key"`
 	Name    string   `json:"name"`
 	Columns []Column `json:"columns,omitempty" gorm:"foreignkey:bid"`
-	Admins  []*User  `json:"admins,omitempty" gorm:"many2many:board_admins;"`
-	Members []*User  `json:"members,omitempty" gorm:"many2many:board_members;"`
+	Admins  []User   `json:"admins,omitempty" gorm:"many2many:board_admins;"`
+	Members []User   `json:"members,omitempty" gorm:"many2many:board_members;"`
 }
 
 func (b *Board) TableName() string {

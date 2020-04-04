@@ -20,12 +20,9 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Go
 	handler := &SessionHandler{
 		useCase: useCase,
 	}
-	router.OPTIONS("/session", func(ctx echo.Context) error {
-		return ctx.NoContent(http.StatusOK)
-	})
 	router.POST("/session", handler.LogIn)
-	router.GET("/session", handler.IsAuth, mw.AuthByCookie)
-	router.DELETE("/session", handler.LogOut, mw.AuthByCookie)
+	router.GET("/session", handler.IsAuth, mw.CheckAuth)
+	router.DELETE("/session", handler.LogOut, mw.CheckAuth)
 }
 
 func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
