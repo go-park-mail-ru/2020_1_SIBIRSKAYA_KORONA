@@ -12,10 +12,10 @@ type TaskHandler struct {
 func CreateHandler(router *echo.Echo, useCase task.UseCase) {
 	handler := &TaskHandler{useCase: useCase}
 
-	router.GET("boards/:bid/columns/:cid/tasks", handler.throwError)
-	router.POST("boards/:bid/columns/:cid/tasks", handler.throwError)
+	// router.GET("boards/:bid/columns/:cid/tasks", handler.throwError)
+	router.POST("boards/:bid/columns/:cid/tasks", handler.Create)
 
-	router.GET("boards/:bid/tasks/:tid", handler.throwError)
+	/*router.GET("boards/:bid/tasks/:tid", handler.throwError)
 	router.PUT("boards/:bid/tasks/:tid", handler.throwError)
 	router.DELETE("boards/:bid/tasks/:tid", handler.throwError)
 
@@ -25,10 +25,10 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase) {
 
 	router.GET("/boards/:bid/tasks/:tid/members", handler.throwError)
 	router.POST("/boards/:bid/tasks/:tid/members", handler.throwError)
-	router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)
+	router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)*/
 }
 
 // TODO(Alexandr): remove after debug
-func (columnHandler *TaskHandler) throwError(ctx echo.Context) error {
+func (columnHandler *TaskHandler) Create(ctx echo.Context) error {
 	panic("handler not implemented")
 }

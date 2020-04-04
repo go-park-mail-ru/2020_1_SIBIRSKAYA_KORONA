@@ -17,6 +17,10 @@ type ColumnHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
 	handler := &ColumnHandler{useCase: useCase}
+	// CORS
+	router.OPTIONS("/boards/:bid/colums", func(ctx echo.Context) error {
+		return ctx.NoContent(http.StatusOK)
+	})
 	router.POST("/boards/:bid/columns", handler.Create, mw.AuthByCookie, mw.CheckBoardAdminPermission)
 	router.GET("/boards/:bid/columns/:cid", handler.throwError)
 	router.PUT("/boards/:bid/columns/:cid", handler.throwError)
