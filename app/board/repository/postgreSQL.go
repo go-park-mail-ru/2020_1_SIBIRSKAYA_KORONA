@@ -48,7 +48,7 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 
 func (boardStore *BoardStore) GetColumnsByID(bid uint) ([]models.Column, error) {
 	var cols []models.Column
-	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&cols).Error
+	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&cols, "bid").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
