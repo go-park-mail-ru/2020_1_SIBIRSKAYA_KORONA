@@ -397,9 +397,9 @@ paths:
               schema:
                 - $ref: "../models/column.yaml#/components/schemas/Column"
               example: {
-                "id": "5",
+                "id": 5,
                 "title": "Review",
-                "pos": "0.08266362238478808",      
+                "pos": 0.08266362238478808,      
               }
 
         400:
@@ -416,7 +416,7 @@ paths:
     put:
       tags:
       - "columns"
-      summary: "Обновляем конкретную колонку конкретной доски"
+      summary: "Обновляем конкретную колонку конкретной доски (ЕЩЁ В ПРОЦЕССЕ РЕАЛИЗАЦИИ)"
 
       parameters:
         - in: cookie
@@ -450,7 +450,7 @@ paths:
                 - $ref: "../models/column.yaml#/components/schemas/Column"
               example: {
                 "title": "NewTitle",
-                "pos": "0.08266362238478808",
+                "pos": 0.08266362238478808,
               }
 
       responses:
@@ -553,13 +553,13 @@ paths:
                   - $ref: "../models/task.yaml#/components/schemas/Task"
               example: {
                 tasks: [{
-                    "id": "152",
+                    "id": 152,
                     "title": "Homework",
                     "description": "HW for doing",
-                    "level": "10",
+                    "level": 10,
                     "deadline": "2017-07-21",
                     "pos": "0.08266362238478808",
-                    "cid": "11",        
+                    "cid": 11,        
                 }]
               }   
 
@@ -612,9 +612,9 @@ paths:
             example: {
               "title": "Homework",
               "description": "HW for doing",
-              "level": "10",
+              "level": 10,
               "deadline": "20170721",
-              "pos": "0.08266362238478808",
+              "pos": 0.08266362238478808,
             }   
 
       responses:
@@ -628,9 +628,9 @@ paths:
                 "id": 25,
                 "title": "Homework",
                 "description": "HW for doing",
-                "level": "10",
+                "level": 10,
                 "deadline": "20170721",
-                "pos": "0.08266362238478808",
+                "pos": 0.08266362238478808,
               }
 
         400:
@@ -694,9 +694,9 @@ paths:
                   "id": 152,
                   "title": "Homework",
                   "description": "HW for doing",
-                  "level": "10",
+                  "level": 10,
                   "deadline": "2017-07-21",
-                  "pos": "0.08266362238478808",
+                  "pos": 0.08266362238478808,
                   "cid": 11
                 }
               }
@@ -758,10 +758,10 @@ paths:
               example: {
                 "title": "Homework",
                 "description": "HW for doing",
-                "level": "10",
+                "level": 10,
                 "deadline": "2017-07-21",
-                "pos": "0.08266362238478808",
-                "cid": "11"
+                "pos": 0.0826636223847880,
+                "cid": 11
               }
 
       responses:

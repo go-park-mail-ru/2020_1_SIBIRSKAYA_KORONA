@@ -13,7 +13,7 @@ components:
         description:
           type: "string"
         level:
-          type: "string"
+          type: "integer"
         deadline:
           type: "string"
           format: "date-time"
