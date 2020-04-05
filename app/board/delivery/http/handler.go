@@ -21,14 +21,11 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	handler := &BoardHandler{
 		useCase: useCase,
 	}
-	//admin := router.Group("/boards")
-	//admin.Use()
 	router.POST("/boards", handler.Create, mw.CheckAuth)
 	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
-
-	//router.PUT("/boards/:bid", handler.Update, mw.CheckBoardAdminPermission, mw.CheckAuth)
-	//router.DELETE("/boards/:bid", handler.Delete, mw.CheckBoardAdminPermission, mw.CheckAuth)
+	router.PUT("/boards/:bid", handler.Update, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
 
 	//router.GET("/boards/:bid/labels", handler.throwError)
 	//router.POST("/boards/:bid/labels", handler.throwError)

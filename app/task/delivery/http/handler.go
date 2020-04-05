@@ -19,20 +19,12 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	handler := &TaskHandler{useCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-
-	router.PUT("boards/:bid/tasks/:tid", handler.Update)
-	router.DELETE("boards/:bid/tasks/:tid", handler.Delete)
-
-	/*
-		router.GET("boards/:bid/tasks/:tid", handler.throwError)
-
-		router.GET("/boards/:bid/tasks/:tid/labels", handler.throwError)
-		router.POST("/boards/:bid/tasks/:tid/labels", handler.throwError)
-		router.DELETE("/boards/:bid/tasks/:tid/labels/:lid", handler.throwError)
-
-		router.GET("/boards/:bid/tasks/:tid/members", handler.throwError)
-		router.POST("/boards/:bid/tasks/:tid/members", handler.throwError)
-		router.DELETE("/boards/:bid/tasks/:tid/members/:uid", handler.throwError)*/
+	router.GET("boards/:bid/tasks/:tid", handler.Update,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+	router.PUT("boards/:bid/tasks/:tid", handler.Update,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.DELETE("boards/:bid/tasks/:tid", handler.Delete,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
@@ -54,10 +46,50 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, body)
 }
 
+func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
+	var cid, tid uint
+	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	_, err = fmt.Sscan(ctx.Param("tid"), &tid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	tsk, useErr := taskHandler.useCase.Get(cid, tid)
+	if useErr != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	}
+	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
+}
+
 func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, "body")
+	tsk := models.CreateTask(ctx)
+	if tsk == nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	if _, err := fmt.Sscan(ctx.Param("tid"), &tsk.ID); err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	err := taskHandler.useCase.Update(*tsk)
+	if err != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, "body")
+	var tid uint
+	if _, err := fmt.Sscan(ctx.Param("tid"), &tid); err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	err := taskHandler.useCase.Delete(tid)
+	if err != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	return ctx.NoContent(http.StatusOK)
 }

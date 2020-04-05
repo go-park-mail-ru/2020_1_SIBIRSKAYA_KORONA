@@ -93,7 +93,7 @@ func (server *Server) Run() {
 	tUseCase := taskUseCase.CreateUseCase(tskRepo)
 
 	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase)
 	router := echo.New()
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
