@@ -2,6 +2,8 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task"
@@ -9,7 +11,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type TaskHandler struct {
@@ -20,11 +21,11 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	handler := &TaskHandler{useCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.GET("boards/:bid/tasks/:tid", handler.Get,
+	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.PUT("boards/:bid/tasks/:tid", handler.Update,
+	router.PUT("boards/:bid/columns/:cid/tasks/:tid", handler.Update,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.DELETE("boards/:bid/tasks/:tid", handler.Delete,
+	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 }
 
