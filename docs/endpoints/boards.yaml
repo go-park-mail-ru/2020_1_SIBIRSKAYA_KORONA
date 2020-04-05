@@ -66,7 +66,7 @@ paths:
     get:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Получаем определенную доску"
 
       parameters:
         - in: cookie
@@ -95,7 +95,7 @@ paths:
     put:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Редактируем определенную доску"
 
       parameters:
         - in: cookie
@@ -127,7 +127,7 @@ paths:
     delete:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Удаляем определенную доску"
 
       parameters:
         - in: cookie
@@ -153,7 +153,7 @@ paths:
     get:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Получаем все колонки конкретной доски"
 
       parameters:
         - in: cookie
@@ -177,12 +177,15 @@ paths:
         401:
           description: "В запросе отсутствует кука"
 
+        403:
+          description: "Недостаточно прав для совершения операции"
+
         500:
           description: "Внутренняя ошибка сервера"
     post:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Создаем колонку на выбранной доске"
 
       parameters:
         - in: cookie
@@ -216,7 +219,7 @@ paths:
     get:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Получаем конкретную колонку конкретной доски"
 
       parameters:
         - in: cookie
@@ -256,7 +259,7 @@ paths:
     put:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Обновляем конкретную колонку конкретной доски"
 
       parameters:
         - in: cookie
@@ -296,7 +299,7 @@ paths:
     delete:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Удаляем конкретную колонку конкретной доски"
 
       parameters:
         - in: cookie
@@ -338,7 +341,7 @@ paths:
     get:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Получаем таски определенных доски и колонки"
 
       parameters:
         - in: cookie
@@ -378,7 +381,7 @@ paths:
     post:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Создаем таску на определенной доске и колонке"
 
       parameters:
         - in: cookie
@@ -403,6 +406,23 @@ paths:
           description: Уникальный номер колонки
           example: 3 
 
+      requestBody:
+        description: Данные, необходимые для создания таски
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/task.yaml#/components/schemas/Task"
+            example: {
+              "id": "152",
+              "title": "Homework",
+              "description": "HW for doing",
+              "level": "10",
+              "deadline": "2017-07-21",
+              "pos": "0.08266362238478808",
+              "cid": "11"
+            }   
+
       responses:
         400:
           description: "Неверные параметры запроса"
@@ -420,7 +440,7 @@ paths:
     get:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Получаем определенную таску определенных доски и колонки"
 
       parameters:
         - in: cookie
@@ -468,7 +488,7 @@ paths:
     put:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Обновляем определенную таску определенных доски и колонки"
 
       parameters:
         - in: cookie
@@ -516,7 +536,7 @@ paths:
     delete:
       tags:
       - "boards"
-      summary: "Создаем доску"
+      summary: "Удаляем определенную таску определенных доски и колонки"
 
       parameters:
         - in: cookie

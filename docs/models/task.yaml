@@ -3,22 +3,24 @@ components:
     Task:
       type: "object"
       required:
-        - "name"
-        - "nickname"
-        - "password"
-        - "email"
+        - "id"
+        - "title"
+        - "pos"
+        - "cid"
       properties:
         id:
+          type: "integer"
+        title:
           type: "string"
-        name:
+        description:
           type: "string"
-        surname:
+        level:
           type: "string"
-        nickname:
+        deadline:
           type: "string"
-        email:
-          type: "string"
-        path-to-avatar:
-          type: "string"
-        password:
-          type: "string"
+          format: "date"
+        position:
+          type: "number"
+          format: "double"
+        cid:
+          type: "integer"

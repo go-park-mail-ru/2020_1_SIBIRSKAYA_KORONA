@@ -8,6 +8,7 @@ services:
       - "8080:8080"
 
     volumes:
+      # Отображение для сохранения картинки из под докера в папку фронтенда
       - /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public:/app/public
 
     depends_on:
@@ -30,8 +31,6 @@ services:
       POSTGRES_USER: drello_user
       POSTGRES_PASSWORD: drello1234
       PGDATA: /data/postgres
-    volumes:
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     healthcheck:

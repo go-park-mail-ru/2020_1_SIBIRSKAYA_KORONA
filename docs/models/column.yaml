@@ -3,22 +3,19 @@ components:
     Column:
       type: "object"
       required:
-        - "name"
-        - "nickname"
-        - "password"
-        - "email"
+        - "id"
+        - "title"
       properties:
         id:
+          type: "integer"
+        title:
           type: "string"
-        name:
-          type: "string"
-        surname:
-          type: "string"
-        nickname:
-          type: "string"
-        email:
-          type: "string"
-        path-to-avatar:
-          type: "string"
-        password:
-          type: "string"
+        position:
+          type: "number"
+          format: "double"  
+        tasks:
+          type: "array"
+          items:
+            $ref: "task.yaml#/components/schemas/Task"
+        bid:
+          type: "integer"
