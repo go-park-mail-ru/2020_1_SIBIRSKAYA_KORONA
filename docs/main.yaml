@@ -47,6 +47,16 @@ paths:
     $ref: "endpoints/profile.yaml#/paths/~1profile~1{nickname}"
   /boards:
     $ref: "endpoints/boards.yaml#/paths/~1boards"
+  /boards/{bid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}"
+  /boards/{bid}/columns:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns"
+  /boards/{bid}/columns/{cid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}"
+  /boards/{bid}/columns/{cid}/tasks:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
+  /boards/{bid}/tasks/{tid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1tasks~1{tid}"
 
 components:
   schemas:

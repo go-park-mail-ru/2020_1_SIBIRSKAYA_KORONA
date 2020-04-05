@@ -17,9 +17,9 @@ paths:
           description: "Успешно создали доску"
 
         400:
-          description: "Невалидное тело"      
+          description: "Невалидные параметры запроса"      
 
-        403:
+        401:
           description: "В запросе отсутствует кука"
 
         500:
@@ -37,13 +37,488 @@ paths:
             type: string
           required: true
 
-      # вставить хедера для ответа
       responses:
         200:
           description: "Успешно получили список досок (пустой список в том числе)"
 
-        403:
+        401:
           description: "В запросе отсутствует кука"
 
         500:
           description: "Внутренняя ошибка сервера"
+
+  /boards/{bid}:
+    get:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+      
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    put:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    delete:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"         
+
+  /boards/{bid}/columns:
+    get:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    post:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+
+  /boards/{bid}/columns/{cid}:
+    get:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    put:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    delete:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции" 
+
+        500:
+          description: "Внутренняя ошибка сервера"
+
+  /boards/{bid}/columns/{cid}/tasks:
+    get:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    post:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+          
+  /boards/{bid}/tasks/{tid}:
+    get:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    put:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"
+    delete:
+      tags:
+      - "boards"
+      summary: "Создаем доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8 
+
+      responses:
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"  
+
+        500:
+          description: "Внутренняя ошибка сервера"             
