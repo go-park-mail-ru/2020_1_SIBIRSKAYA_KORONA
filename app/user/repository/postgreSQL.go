@@ -35,7 +35,7 @@ func CreateRepository(db *gorm.DB) user.Repository {
 func (userStore *UserStore) Create(user *models.User) error {
 	if err := userStore.DB.Create(user).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrUserBadNickname
+		return errors.ErrConflict
 	}
 	return nil
 }
@@ -44,7 +44,7 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 	userData := new(models.User)
 	if err := userStore.DB.First(&userData, id).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrUserNotExist
+		return nil, errors.ErrUserNotFound
 	}
 	return userData, nil
 }
@@ -53,7 +53,7 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 	userData := new(models.User)
 	if err := userStore.DB.Where("nickname = ?", nickname).First(&userData).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrUserNotExist
+		return nil, errors.ErrUserNotFound
 	}
 	return userData, nil
 }
@@ -64,9 +64,9 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 	err := userStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").Error
 	if err != nil {
 		logger.Error(err)
-		return nil, nil, errors.ErrDbBadOperation
+		return nil, nil, errors.ErrUserNotFound
 	}
-	// TODO:
+	// TODO: циклы
 	for i, _ := range adminsBoards {
 		for j, _ := range adminsBoards[i].Admins {
 			adminsBoards[i].Admins[j].Password = ""
@@ -79,7 +79,7 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 	err = userStore.DB.Model(usr).Preload("Members").Related(&membersBoards, "Member").Error
 	if err != nil {
 		logger.Error(err)
-		return nil, nil, errors.ErrDbBadOperation
+		return nil, nil, errors.ErrBoardNotFound
 	}
 	for i, _ := range membersBoards {
 		for j, _ := range membersBoards[i].Admins {
@@ -96,14 +96,11 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 	if newUser == nil {
 		return errors.ErrInternal
 	}
-
 	oldUser := new(models.User)
-
 	if err := userStore.DB.First(&oldUser, newUser.ID).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrUserNotFound
 	}
-
 	if oldPass != "" && newUser.Password != "" {
 		if oldUser.Password != oldPass {
 			return errors.ErrWrongPassword
@@ -143,7 +140,7 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 func (userStore *UserStore) Delete(id uint) error {
 	if err := userStore.DB.Where("id = ?", id).Delete(models.User{}).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrUserNotExist
+		return errors.ErrUserNotFound
 	}
 	return nil
 }
@@ -161,7 +158,6 @@ func uploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, nic
 		logger.Error(err)
 		return "", err
 	}
-
 	avatarFileName := fmt.Sprintf("%s.%s", nickname, format)
 	avatarPath := fmt.Sprintf("%s/%s", viper.GetString("frontend.public_dir")+viper.GetString("frontend.avatar_dir"), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
@@ -170,20 +166,17 @@ func uploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, nic
 		return "", err
 	}
 	defer avatarDst.Close()
-
 	avatarFile.Seek(0, io.SeekStart)
 	_, err = io.Copy(avatarDst, avatarFile)
 	if err != nil {
 		logger.Error(err)
 		return "", err
 	}
-
 	frontStorage := fmt.Sprintf("%s://%s:%s%s",
 		viper.GetString("frontend.protocol"),
 		viper.GetString("frontend.ip"),
 		viper.GetString("frontend.port"),
 		viper.GetString("frontend.avatar_dir"))
-
 	avatarStaticUrl := fmt.Sprintf("%s/%s", frontStorage, avatarFileName)
 	return avatarStaticUrl, nil
 }

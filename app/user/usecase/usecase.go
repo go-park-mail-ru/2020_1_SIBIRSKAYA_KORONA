@@ -63,22 +63,22 @@ func (userUseCase *UserUseCase) GetByNickname(nickname string) (*models.User, er
 }
 
 func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
-	adminsBoard, membersBoard, repoErr := userUseCase.userRepo.GetBoardsByID(uid)
-	if repoErr != nil {
-		logger.Error(repoErr)
-		return nil, nil, repoErr
+	adminsBoard, membersBoard, err := userUseCase.userRepo.GetBoardsByID(uid)
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, err
 	}
 	return adminsBoard, membersBoard, nil
 }
 
 func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
-		return errors.ErrUserBadMarshall
+		return errors.ErrInternal
 	}
-	repoErr := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
-	if repoErr != nil {
-		logger.Error(repoErr)
-		return repoErr
+	err := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
+	if err != nil {
+		logger.Error(err)
+		return err
 	}
 	return nil
 }
@@ -86,6 +86,7 @@ func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, ava
 func (userUseCase *UserUseCase) Delete(uid uint, sid string) error {
 	err := userUseCase.sessionRepo.Delete(sid)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 	return userUseCase.userRepo.Delete(uid)

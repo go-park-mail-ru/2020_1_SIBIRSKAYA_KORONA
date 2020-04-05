@@ -26,16 +26,16 @@ func (columnUseCase *ColumnUseCase) Get(bid uint, cid uint) (*models.Column, err
 		return nil, err
 	}
 	if col.Bid != bid {
-		return nil, errors.ErrBoardsNotFound // TODO: ColsNotFound
+		return nil, errors.ErrNoPermission
 	}
 	return col, nil
 }
 
 func (columnUseCase *ColumnUseCase) GetTasksByID(cid uint) ([]models.Task, error) {
-	tsks, repoErr := columnUseCase.columnRepo.GetTasksByID(cid)
-	if repoErr != nil {
-		logger.Error(repoErr)
-		return nil, repoErr
+	tsks, err := columnUseCase.columnRepo.GetTasksByID(cid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
 	}
 	return tsks, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
@@ -40,11 +41,14 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	if brd == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if boardHandler.useCase.Create(userID, brd) != nil {
-		return ctx.NoContent(http.StatusInternalServerError) // TODO: пока хз
+	err := boardHandler.useCase.Create(userID, brd)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
+		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, body)
@@ -55,14 +59,17 @@ func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
+		logger.Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	brd, useErr := boardHandler.useCase.Get(userID, bid, false)
-	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	brd, err := boardHandler.useCase.Get(userID, bid, false)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
+		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, body)
@@ -71,12 +78,14 @@ func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 func (boardHandler *BoardHandler) GetColumns(ctx echo.Context) error {
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
-	cols, useErr := boardHandler.useCase.GetColumnsByID(bid)
-	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	cols, err := boardHandler.useCase.GetColumnsByID(bid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "columns", Data: cols})
 	if err != nil {
+		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, body)

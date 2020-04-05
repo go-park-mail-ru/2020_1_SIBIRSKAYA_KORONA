@@ -87,9 +87,10 @@ func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 
 func (userHandler *UserHandler) GetBoards(ctx echo.Context) error {
 	userID := ctx.Get("userID").(uint)
-	bAdmin, bMember, useErr := userHandler.useCase.GetBoardsByID(userID)
-	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	bAdmin, bMember, err := userHandler.useCase.GetBoardsByID(userID)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
 	if err != nil {

@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
@@ -39,6 +40,7 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 	}
 	err := columnHandler.useCase.Create(col)
 	if err != nil {
+		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
@@ -58,9 +60,10 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	col, useErr := columnHandler.useCase.Get(bid, cid)
-	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	col, err := columnHandler.useCase.Get(bid, cid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
 	if err != nil {
@@ -72,9 +75,10 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
 	var cid uint
 	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
-	tsks, useErr := columnHandler.useCase.GetTasksByID(cid)
-	if useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	tsks, err := columnHandler.useCase.GetTasksByID(cid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "tasks", Data: tsks})
 	if err != nil {

@@ -26,7 +26,7 @@ func (taskUseCase *TaskUseCase) Get(cid uint, tid uint) (*models.Task, error) {
 		return nil, err
 	}
 	if tsk.Cid != cid {
-		return nil, errors.ErrBoardsNotFound // TODO: TaskNotFound
+		return nil, errors.ErrNoPermission
 	}
 	return tsk, nil
 }

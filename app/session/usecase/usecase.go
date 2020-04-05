@@ -25,13 +25,13 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 
 func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
 	if user == nil {
-		return "", errors.ErrUserNotExist
+		return "", errors.ErrInternal
 	}
 
 	realUser, err := sessionUseCase.userRepo.GetByNickname(user.Nickname)
 	if err != nil {
 		logger.Error(err)
-		return "", errors.ErrUserNotExist
+		return "", errors.ErrUserNotFound
 	}
 
 	if realUser != nil && realUser.Password == user.Password {

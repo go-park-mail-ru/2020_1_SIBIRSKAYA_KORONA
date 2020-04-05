@@ -22,7 +22,7 @@ func (columnStore *ColumnStore) Create(column *models.Column) error {
 	err := columnStore.DB.Create(column).Error
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrConflict
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (columnStore *ColumnStore) Get(cid uint) (*models.Column, error) {
 	col := new(models.Column)
 	if err := columnStore.DB.First(col, cid).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrDbBadOperation
+		return nil, errors.ErrColNotFound
 	}
 	return col, nil
 }
@@ -41,7 +41,7 @@ func (columnStore *ColumnStore) GetTasksByID(cid uint) ([]models.Task, error) {
 	err := columnStore.DB.Model(&models.Column{ID: cid}).Related(&tsks, "cid").Error
 	if err != nil {
 		logger.Error(err)
-		return nil, errors.ErrDbBadOperation
+		return nil, errors.ErrColNotFound
 	}
 	return tsks, nil
 }

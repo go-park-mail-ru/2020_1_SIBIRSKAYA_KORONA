@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -19,7 +20,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	handler := &TaskHandler{useCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.GET("boards/:bid/tasks/:tid", handler.Update,
+	router.GET("boards/:bid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.PUT("boards/:bid/tasks/:tid", handler.Update,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
@@ -37,6 +38,7 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	}
 	err := taskHandler.useCase.Create(tsk)
 	if err != nil {
+		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
@@ -58,6 +60,7 @@ func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
 	}
 	tsk, useErr := taskHandler.useCase.Get(cid, tid)
 	if useErr != nil {
+		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
@@ -77,6 +80,7 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 	}
 	err := taskHandler.useCase.Update(*tsk)
 	if err != nil {
+		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	return ctx.NoContent(http.StatusOK)
@@ -89,6 +93,7 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 	}
 	err := taskHandler.useCase.Delete(tid)
 	if err != nil {
+		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	return ctx.NoContent(http.StatusOK)

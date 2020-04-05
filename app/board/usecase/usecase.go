@@ -46,7 +46,7 @@ func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.
 			return brd, nil
 		}
 	}
-	return nil, errors.ErrBoardsNotFound
+	return nil, errors.ErrNoPermission
 }
 
 func (boardUseCase *BoardUseCase) GetColumnsByID(bid uint) ([]models.Column, error) {

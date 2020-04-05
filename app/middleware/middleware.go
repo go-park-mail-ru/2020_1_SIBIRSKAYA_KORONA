@@ -75,15 +75,15 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("session_id")
 		if err != nil {
-			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrNoCookie.Error()})
+			return ctx.JSON(http.StatusUnauthorized, message.ResponseError{Message: errors.ErrNoCookie.Error()})
 		}
 		sid := cookie.Value
 		userID, exist := mw.sUseCase.Get(sid)
-		if exist != true {
+		if !exist {
 			// Пришла невалидная кука, стираем её из браузера
 			newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
 			ctx.SetCookie(&newCookie)
-			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrNoCookie.Error()})
+			return ctx.JSON(http.StatusUnauthorized, message.ResponseError{Message: errors.ErrNoCookie.Error()})
 		}
 		ctx.Set("userID", userID)
 		ctx.Set("sessionID", sid)
@@ -101,7 +101,8 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 		}
 		uid := ctx.Get("userID").(uint)
 		if _, err := mw.bUseCase.Get(uid, bid, false); err != nil {
-			return ctx.NoContent(http.StatusUnauthorized)
+			logger.Error(err)
+			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 		}
 		return next(ctx)
 	}
@@ -116,7 +117,8 @@ func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.Ha
 		}
 		uid := ctx.Get("userID").(uint)
 		if _, err := mw.bUseCase.Get(uid, bid, true); err != nil {
-			return ctx.NoContent(http.StatusUnauthorized)
+			logger.Error(err)
+			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 		}
 		return next(ctx)
 	}
@@ -131,8 +133,9 @@ func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc 
 		if _, err := fmt.Sscan(ctx.Param("cid"), &cid); err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-		if _, useErr := mw.cUseCase.Get(bid, cid); useErr != nil {
-			return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+		if _, err := mw.cUseCase.Get(bid, cid); err != nil {
+			logger.Error(err)
+			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 		}
 		return next(ctx)
 	}
@@ -147,8 +150,9 @@ func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 		if _, err := fmt.Sscan(ctx.Param("tid"), &tid); err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-		if _, useErr := mw.tUseCase.Get(cid, tid); useErr != nil {
-			return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+		if _, err := mw.tUseCase.Get(cid, tid); err != nil {
+			logger.Error(err)
+			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 		}
 		return next(ctx)
 	}

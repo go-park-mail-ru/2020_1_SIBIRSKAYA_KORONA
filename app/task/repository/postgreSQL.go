@@ -22,7 +22,7 @@ func (taskStore *TaskStore) Create(tsk *models.Task) error {
 	err := taskStore.DB.Create(tsk).Error
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrConflict
 	}
 	return nil
 }
@@ -31,16 +31,16 @@ func (taskStore *TaskStore) Get(tid uint) (*models.Task, error) {
 	tsk := new(models.Task)
 	if err := taskStore.DB.First(tsk, tid).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrDbBadOperation
+		return nil, errors.ErrTaskNotFound
 	}
 	return tsk, nil
 }
 
 func (taskStore *TaskStore) Update(newTask models.Task) error {
-	oldTask := new(models.Task)
-	if err := taskStore.DB.First(&oldTask, newTask.ID).Error; err != nil {
+	oldTask, err := taskStore.Get(newTask.ID)
+	if err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return err
 	}
 	if newTask.Name != "" {
 		oldTask.Name = newTask.Name
@@ -62,7 +62,7 @@ func (taskStore *TaskStore) Update(newTask models.Task) error {
 	}
 	if err := taskStore.DB.Save(oldTask).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrConflict
 	}
 	return nil
 }
@@ -70,7 +70,7 @@ func (taskStore *TaskStore) Update(newTask models.Task) error {
 func (taskStore *TaskStore) Delete(tid uint) error {
 	if err := taskStore.DB.Where("id = ?", tid).Delete(models.Task{}).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrTaskNotFound
 	}
 	return nil
 }
