@@ -7,15 +7,15 @@ import (
 )
 
 type Task struct {
-	ID       uint   `json:"id" gorm:"primary_key"`
-	Name     string `json:"name"`
-	About    string `json:"about"`
-	Level    uint   `json:"level,omitempty"`
-	Deadline string `json:"deadline,omitempty"`
+	ID       uint    `json:"id" gorm:"primary_key"`
+	Name     string  `json:"title"`
+	About    string  `json:"description"`
+	Level    uint    `json:"level,omitempty"`
+	Deadline string  `json:"deadline,omitempty"`
+	Pos      float32 `json:"position"`
+	Cid      uint    `json:"cid"`
 	// Members     []User   `json:"members,omitempty" gorm:"many2many:task_members"`
-	Pos float32 `json:"position"`
-	Cid uint    `json:"cid"`
-	//Labels []*Label
+	// Labels []*Label
 }
 
 func (tsk *Task) TablaName() string {
