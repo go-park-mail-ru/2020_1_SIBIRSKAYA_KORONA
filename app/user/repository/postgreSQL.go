@@ -35,7 +35,7 @@ func CreateRepository(db *gorm.DB) user.Repository {
 func (userStore *UserStore) Create(user *models.User) error {
 	if err := userStore.DB.Create(user).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrUserBadNickname
 	}
 	return nil
 }

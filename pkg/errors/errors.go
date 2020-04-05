@@ -15,9 +15,11 @@ var (
 	ErrUserNotExist    = errors.New("User not exist")
 	ErrWrongPassword   = errors.New("Wrong password")
 	ErrUserBadMarshall = errors.New("Invalid data for user update")
+	ErrUserBadNickname = errors.New("Nickname is already in use")
 
 	// ошибки, связанные с сессией
-	ErrSessionNotExist = errors.New("Session not exist")
+	ErrNoCookie        = errors.New("Not found cookie header")
+	ErrSessionNotExist = errors.New("Cookie invalid, session not exist")
 
 	// ошибки, связанные с досками
 	ErrBoardsNotFound = errors.New("Boards not found for this user")
@@ -32,10 +34,12 @@ var errorToCodeMap = map[error]int{
 	ErrInternal: http.StatusInternalServerError,
 
 	ErrUserNotExist:    http.StatusNotFound,
+	ErrUserBadNickname: http.StatusConflict,
 	ErrWrongPassword:   http.StatusUnauthorized,
 	ErrUserBadMarshall: http.StatusBadRequest,
 
-	ErrSessionNotExist: http.StatusUnauthorized,
+	ErrNoCookie:        http.StatusForbidden,
+	ErrSessionNotExist: http.StatusNotFound,
 
 	ErrBoardsNotFound: http.StatusNotFound,
 	ErrNoPermission:   http.StatusUnauthorized,

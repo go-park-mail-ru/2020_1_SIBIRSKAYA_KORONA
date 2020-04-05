@@ -31,7 +31,7 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 	realUser, err := sessionUseCase.userRepo.GetByNickname(user.Nickname)
 	if err != nil {
 		logger.Error(err)
-		return "", err
+		return "", errors.ErrUserNotExist
 	}
 
 	if realUser != nil && realUser.Password == user.Password {

@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httputil"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
-	"net/http"
-	"net/http/httputil"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
@@ -71,12 +72,12 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("session_id")
 		if err != nil {
-			return ctx.NoContent(http.StatusForbidden)
+			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrNoCookie.Error()})
 		}
 		sid := cookie.Value
 		userID, exist := mw.sUseCase.Get(sid)
 		if exist != true {
-			return ctx.NoContent(http.StatusNotFound)
+			return ctx.JSON(http.StatusNotFound, message.ResponseError{Message: errors.ErrSessionNotExist.Error()})
 		}
 		ctx.Set("userID", userID)
 		ctx.Set("sessionID", sid)
