@@ -28,20 +28,23 @@ func (boardStore *BoardStore) Create(board *models.Board) error {
 
 func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 	brd := new(models.Board)
-	brd.ID = bid
-	err := boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Error
+	err := boardStore.DB.First(brd, bid).Error
 	if err != nil {
 		return nil, errors.ErrDbBadOperation
 	}
-	for _, admins := range brd.Admins {
-		admins.Password = ""
+	err = boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Error
+	if err != nil {
+		return nil, errors.ErrDbBadOperation
+	}
+	for idx, _ := range brd.Admins {
+		brd.Admins[idx].Password = ""
 	}
 	err = boardStore.DB.Model(brd).Related(&brd.Members, "Members").Error
 	if err != nil {
 		return nil, errors.ErrDbBadOperation
 	}
-	for _, members := range brd.Members {
-		members.Password = ""
+	for idx, _ := range brd.Members {
+		brd.Members[idx].Password = ""
 	}
 	return brd, nil
 }

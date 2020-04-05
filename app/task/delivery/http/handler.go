@@ -22,7 +22,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	router.GET("boards/:bid/tasks/:tid", handler.Update,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.PUT("boards/:bid/tasks/:tid", handler.Update,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol) // TODO: задача в колонке?
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.DELETE("boards/:bid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 }
@@ -68,28 +68,28 @@ func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
 }
 
 func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
-	/*tsk := models.CreateTask(ctx)
+	tsk := models.CreateTask(ctx)
 	if tsk == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	if _, err := fmt.Sscan(ctx.Param("tid"), &tsk.ID); err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	err := taskHandler.useCase.Update(tsk)
+	err := taskHandler.useCase.Update(*tsk)
 	if err != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
-	}*/
+	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
-	/*var tid uint
+	var tid uint
 	if _, err := fmt.Sscan(ctx.Param("tid"), &tid); err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	err := taskHandler.useCase.Delete(tid)
 	if err != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
-	}*/
+	}
 	return ctx.NoContent(http.StatusOK)
 }

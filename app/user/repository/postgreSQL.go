@@ -59,13 +59,35 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 }
 
 func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
-	var adminsBoards, membersBoards []models.Board
+	var adminsBoards []models.Board
 	usr := &models.User{ID: uid}
-	err := userStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").
-		Preload("Members").Related(&membersBoards, "Member").Error
+	err := userStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, nil, errors.ErrDbBadOperation
+	}
+	// TODO:
+	for i, _ := range adminsBoards {
+		for j, _ := range adminsBoards[i].Admins {
+			adminsBoards[i].Admins[j].Password = ""
+		}
+		for j, _ := range adminsBoards[i].Members {
+			adminsBoards[i].Members[j].Password = ""
+		}
+	}
+	var membersBoards []models.Board
+	err = userStore.DB.Model(usr).Preload("Members").Related(&membersBoards, "Member").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, errors.ErrDbBadOperation
+	}
+	for i, _ := range membersBoards {
+		for j, _ := range membersBoards[i].Admins {
+			membersBoards[i].Admins[j].Password = ""
+		}
+		for j, _ := range membersBoards[i].Members {
+			membersBoards[i].Members[j].Password = ""
+		}
 	}
 	return adminsBoards, membersBoards, nil
 }
@@ -119,11 +141,10 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 }
 
 func (userStore *UserStore) Delete(id uint) error {
-	if err := userStore.DB.Delete(models.User{}, " = ?", id).Error; err != nil {
+	if err := userStore.DB.Where("id = ?", id).Delete(models.User{}).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }
 

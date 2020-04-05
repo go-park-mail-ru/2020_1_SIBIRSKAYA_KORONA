@@ -30,3 +30,21 @@ func (taskUseCase *TaskUseCase) Get(cid uint, tid uint) (*models.Task, error) {
 	}
 	return tsk, nil
 }
+
+func (taskUseCase *TaskUseCase) Update(newTask models.Task) error {
+	err := taskUseCase.taskRepo.Update(newTask)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (taskUseCase *TaskUseCase) Delete(tid uint) error {
+	err := taskUseCase.taskRepo.Delete(tid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}

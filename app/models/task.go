@@ -14,7 +14,7 @@ type Task struct {
 	Deadline string `json:"deadline,omitempty"`
 	// Members     []User   `json:"members,omitempty" gorm:"many2many:task_members"`
 	Pos float32 `json:"position"`
-	Cid uint    `json:"-"`
+	Cid uint    `json:"cid"`
 	//Labels []*Label
 }
 
