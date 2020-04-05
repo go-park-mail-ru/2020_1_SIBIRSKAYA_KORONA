@@ -44,7 +44,7 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 	userData := new(models.User)
 	if err := userStore.DB.First(&userData, id).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrDbBadOperation
+		return nil, errors.ErrUserNotExist
 	}
 	return userData, nil
 }
@@ -53,7 +53,7 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 	userData := new(models.User)
 	if err := userStore.DB.Where("nickname = ?", nickname).First(&userData).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrDbBadOperation
+		return nil, errors.ErrUserNotExist
 	}
 	return userData, nil
 }
@@ -143,7 +143,7 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 func (userStore *UserStore) Delete(id uint) error {
 	if err := userStore.DB.Where("id = ?", id).Delete(models.User{}).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrUserNotExist
 	}
 	return nil
 }

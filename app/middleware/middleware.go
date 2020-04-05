@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task"
@@ -79,7 +80,10 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		sid := cookie.Value
 		userID, exist := mw.sUseCase.Get(sid)
 		if exist != true {
-			return ctx.JSON(http.StatusNotFound, message.ResponseError{Message: errors.ErrSessionNotExist.Error()})
+			// Пришла невалидная кука, стираем её из браузера
+			newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
+			ctx.SetCookie(&newCookie)
+			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrNoCookie.Error()})
 		}
 		ctx.Set("userID", userID)
 		ctx.Set("sessionID", sid)
