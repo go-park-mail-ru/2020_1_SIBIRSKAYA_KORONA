@@ -91,6 +91,16 @@ func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusOK)
 }
 
+// TODO: проверить удаление колонки, если в ней есть таски
 func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
+	var cid uint
+	if _, err := fmt.Sscan(ctx.Param("сid"), &cid); err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	err := columnHandler.useCase.Delete(cid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
 	return ctx.NoContent(http.StatusOK)
 }

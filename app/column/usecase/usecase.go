@@ -39,3 +39,12 @@ func (columnUseCase *ColumnUseCase) GetTasksByID(cid uint) ([]models.Task, error
 	}
 	return tsks, nil
 }
+
+func (columnUseCase *ColumnUseCase) Delete(cid uint) error {
+	err := columnUseCase.columnRepo.Delete(cid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}

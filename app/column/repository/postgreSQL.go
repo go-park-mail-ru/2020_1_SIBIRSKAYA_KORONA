@@ -45,3 +45,11 @@ func (columnStore *ColumnStore) GetTasksByID(cid uint) ([]models.Task, error) {
 	}
 	return tsks, nil
 }
+
+func (columnStore *ColumnStore) Delete(cid uint) error {
+	if err := columnStore.DB.Where("id = ?", cid).Delete(models.Column{}).Error; err != nil {
+		logger.Error(err)
+		return errors.ErrTaskNotFound
+	}
+	return nil
+}

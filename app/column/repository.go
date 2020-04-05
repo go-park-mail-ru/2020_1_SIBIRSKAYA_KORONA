@@ -6,4 +6,5 @@ type Repository interface {
 	Create(column *models.Column) error
 	Get(cid uint) (*models.Column, error)
 	GetTasksByID(cid uint) ([]models.Task, error)
+	Delete(cid uint) error
 }
