@@ -1,0 +1,24 @@
+components:
+  schemas:
+    Task:
+      type: "object"
+      required:
+        - "name"
+        - "nickname"
+        - "password"
+        - "email"
+      properties:
+        id:
+          type: "string"
+        name:
+          type: "string"
+        surname:
+          type: "string"
+        nickname:
+          type: "string"
+        email:
+          type: "string"
+        path-to-avatar:
+          type: "string"
+        password:
+          type: "string"

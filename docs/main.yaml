@@ -55,14 +55,23 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}"
   /boards/{bid}/columns/{cid}/tasks:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
-  /boards/{bid}/tasks/{tid}:
-    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
 
 components:
   schemas:
 
     User:
       $ref: "models/user.yaml#/components/schemas/User"
+
+    Board:
+      $ref: "models/board.yaml#/components/schemas/Board"
+
+    Column:
+      $ref: "models/column.yaml#/components/schemas/Column"
+
+    Task:
+      $ref: "models/task.yaml#/components/schemas/Task"  
 
     ApiResponse:
       $ref: "models/user.yaml#/components/schemas/ApiResponse"

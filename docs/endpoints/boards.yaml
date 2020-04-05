@@ -11,6 +11,21 @@ paths:
           schema:
             type: string
           required: true
+
+      requestBody:
+        description: Данные, необходимые для создания доски
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/board.yaml#/components/schemas/Board"
+            example: {
+              "name": "Vasya",
+              "surname": "Pupkin",
+              "nickname": "Legolas1",
+              "email": "VasyaPupkin@gmail.com",
+              "password": "qwerty1234",
+            } 
           
       responses:
         200:
@@ -401,7 +416,7 @@ paths:
         500:
           description: "Внутренняя ошибка сервера"
           
-  /boards/{bid}/tasks/{tid}:
+  /boards/{bid}/columns/{cid}/tasks/{tid}:
     get:
       tags:
       - "boards"
@@ -421,6 +436,14 @@ paths:
             type: integer
           description: Уникальный номер доски
           example: 10
+
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3   
 
         - in: path
           name: tid
@@ -463,6 +486,14 @@ paths:
           example: 10
 
         - in: path
+          name: cid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
+
+        - in: path
           name: tid
           required: true
           schema:
@@ -501,6 +532,14 @@ paths:
             type: integer
           description: Уникальный номер доски
           example: 10
+
+        - in: path
+          name: cid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3 
 
         - in: path
           name: tid

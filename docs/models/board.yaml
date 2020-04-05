@@ -1,0 +1,25 @@
+components:
+  schemas:
+    Board:
+      type: "object"
+      required:
+        - "id"
+        - "title"
+      properties:
+        id:
+          type: "integer"
+        title:
+          type: "string"
+        
+
+
+
+
+
+type Board struct {
+	ID      uint     `json:"id" gorm:"primary_key"`
+	Name    string   `json:"title"`
+	Columns []Column `json:"columns,omitempty" gorm:"foreignkey:bid"`
+	Admins  []User   `json:"admins,omitempty" gorm:"many2many:board_admins;"`
+	Members []User   `json:"members,omitempty" gorm:"many2many:board_members;"`
+}          
