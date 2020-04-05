@@ -109,7 +109,7 @@ paths:
                   format: binary
       responses:
         200:
-          description: "Успешная регистрация"
+          description: "Успешно обновили"
         400:
           description: "Невалидное тело запроса с информацией для обновления"
         401:
@@ -132,7 +132,7 @@ paths:
 
       responses:
         200:
-          description: "Успешная регистрация"
+          description: "Успешное удаление"
         401:
           description: "В запросе отсутствует кука"
         500:

@@ -3,10 +3,8 @@ components:
     Task:
       type: "object"
       required:
-        - "id"
         - "title"
-        - "pos"
-        - "cid"
+        - "position"
       properties:
         id:
           type: "integer"
@@ -18,7 +16,7 @@ components:
           type: "string"
         deadline:
           type: "string"
-          format: "date"
+          format: "date-time"
         position:
           type: "number"
           format: "double"

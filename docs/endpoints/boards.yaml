@@ -20,16 +20,28 @@ paths:
             schema:
               $ref: "../models/board.yaml#/components/schemas/Board"
             example: {
-              "name": "Vasya",
-              "surname": "Pupkin",
-              "nickname": "Legolas1",
-              "email": "VasyaPupkin@gmail.com",
-              "password": "qwerty1234",
+              "title": "MyFirstBoard"
             } 
           
       responses:
         200:
-          description: "Успешно создали доску"
+          description: "Успешно получили данные по доске"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/board.yaml#/components/schemas/Board"
+            example: {
+              "id": 10,
+              "title": "SuperBoard",
+              "admins": [{
+                "id": 110,
+                "name": "Sasha",
+                "surname": "Upkin",
+                "nickname": "Vova1",
+                "email": "SashaUpkin@gmail.com",
+                "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+              }]
+            }
 
         400:
           description: "Невалидные параметры запроса"      
@@ -55,6 +67,53 @@ paths:
       responses:
         200:
           description: "Успешно получили список досок (пустой список в том числе)"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/board.yaml#/components/schemas/Board"
+              example: {
+                member: [{
+                  "id": 14,
+                  "title": "MemberBoard",
+                  "members": [{
+                    "id": 110323,
+                    "name": "Vasya",
+                    "surname": "Pupkin",
+                    "nickname": "Legolas1",
+                    "email": "VasyaPupkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Legolas1.png",
+                  }],
+                  "admins": [{
+                    "id": 110,
+                    "name": "Sasha",
+                    "surname": "Upkin",
+                    "nickname": "Vova1",
+                    "email": "SashaUpkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+                  }]
+                }],
+
+                admin: [{
+                  "id": 35,
+                  "title": "AdminBoard",
+                  "members": [{
+                    "id": 110323,
+                    "name": "Sasha",
+                    "surname": "Upkin",
+                    "nickname": "Vova1",
+                    "email": "VasyaPupkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+                  }],
+                  "admins": [{
+                    "id": 110,
+                    "name": "Vasya",
+                    "surname": "Ppkin",
+                    "nickname": "Legolas1",
+                    "email": "SashaUpkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Legolas1.png",
+                  }]
+                }]
+              }
 
         401:
           description: "В запросе отсутствует кука"
@@ -84,6 +143,33 @@ paths:
           example: 10
       
       responses:
+        200:
+          description: "Успешно получили данные по доске"
+          content:
+            application/json:
+              schema:
+                $ref: "../models/board.yaml#/components/schemas/Board"
+              example: {
+                "id": 10,
+                "title": "SuperBoard",
+                "members": [{
+                  "id": 110323,
+                  "name": "Vasya",
+                  "surname": "Pupkin",
+                  "nickname": "Legolas1",
+                  "email": "VasyaPupkin@gmail.com",
+                  "avatar": "http://localhost:5757/img/avatar/Legolas1.png",
+                }],
+                "admins": [{
+                  "id": 110,
+                  "name": "Sasha",
+                  "surname": "Upkin",
+                  "nickname": "Vova1",
+                  "email": "SashaUpkin@gmail.com",
+                  "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+                }]
+              }
+
         400:
           description: "Неверные параметры запроса"
 
@@ -95,7 +181,7 @@ paths:
     put:
       tags:
       - "boards"
-      summary: "Редактируем определенную доску"
+      summary: "Редактируем определенную доску (ЕЩЁ В ПРОЦЕССЕ РЕАЛИЗАЦИИ)"
 
       parameters:
         - in: cookie
@@ -112,7 +198,21 @@ paths:
           description: Уникальный номер доски
           example: 10
 
+      requestBody:
+        description: Данные, необходимые для обновления доски
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/board.yaml#/components/schemas/Board"
+            example: {
+              "title": "NewTitle",
+            }   
+      
       responses:
+        200:
+          description: "Успешно обновили доску"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -137,6 +237,9 @@ paths:
           required: true
 
       responses:
+        200:
+          description: "Успешно удалили доску"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -171,6 +274,23 @@ paths:
           example: 10
 
       responses:
+        200:
+          description: "Успешно получили колонки"
+
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  - $ref: "../models/column.yaml#/components/schemas/Column"
+              example: {
+                columns: [{
+                    "id": 152,
+                    "title": "Homework",
+                    "pos": "0.08266362238478808",       
+                }]
+              }   
+
         400:
           description: "Неверные параметры запроса"
 
@@ -202,7 +322,22 @@ paths:
           description: Уникальный номер доски
           example: 10
 
+      requestBody:
+        description: Данные, необходимые для создания колонки
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/column.yaml#/components/schemas/Column"
+            example: {
+              "title": "TitleForColumn",
+              "pos": "0.08266362238478808",
+            }
+
       responses:
+        200:
+            description: "Успешно создали колонку"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -245,6 +380,18 @@ paths:
           example: 3 
 
       responses:
+        200:
+          description: "Успешно получили колонку"
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/column.yaml#/components/schemas/Column"
+              example: {
+                "id": "5",
+                "title": "Review",
+                "pos": "0.08266362238478808",      
+              }
+
         400:
           description: "Неверные параметры запроса"
 
@@ -284,7 +431,22 @@ paths:
           description: Уникальный номер колонки
           example: 3 
 
+      requestBody:
+        description: Данные, необходимые для обновления колонки
+        required: true
+        content:
+            application/json:
+              schema:
+                - $ref: "../models/column.yaml#/components/schemas/Column"
+              example: {
+                "title": "NewTitle",
+                "pos": "0.08266362238478808",
+              }
+
       responses:
+        200:
+          description: "Успешно обновили колонку"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -325,6 +487,9 @@ paths:
           example: 3 
 
       responses:
+        200:
+          description: "Успешно удалили доску"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -364,9 +529,30 @@ paths:
           schema:
             type: integer
           description: Уникальный номер колонки
-          example: 3 
+          example: 3
 
       responses:
+        200:
+          description: "Успешно получили таски"
+
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  - $ref: "../models/task.yaml#/components/schemas/Task"
+              example: {
+                tasks: [{
+                    "id": "152",
+                    "title": "Homework",
+                    "description": "HW for doing",
+                    "level": "10",
+                    "deadline": "2017-07-21",
+                    "pos": "0.08266362238478808",
+                    "cid": "11",        
+                }]
+              }   
+
         400:
           description: "Неверные параметры запроса"
 
@@ -414,16 +600,17 @@ paths:
             schema:
               $ref: "../models/task.yaml#/components/schemas/Task"
             example: {
-              "id": "152",
               "title": "Homework",
               "description": "HW for doing",
               "level": "10",
               "deadline": "2017-07-21",
               "pos": "0.08266362238478808",
-              "cid": "11"
             }   
 
       responses:
+        200:
+          description: "Успешно создали таску"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -474,6 +661,24 @@ paths:
           example: 8 
 
       responses:
+        200:
+          description: "Успешно получили таску"
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/task.yaml#/components/schemas/Task"
+              example: {
+                task: {
+                  "id": "152",
+                  "title": "Homework",
+                  "description": "HW for doing",
+                  "level": "10",
+                  "deadline": "2017-07-21",
+                  "pos": "0.08266362238478808",
+                  "cid": "11"
+                }
+              }
+
         400:
           description: "Неверные параметры запроса"
 
@@ -521,7 +726,26 @@ paths:
           description: Уникальный номер таски
           example: 8 
 
+      requestBody:
+        description: Данные, необходимые для обновления таски
+        required: true
+        content:
+            application/json:
+              schema:
+                - $ref: "../models/task.yaml#/components/schemas/Task"
+              example: {
+                "title": "Homework",
+                "description": "HW for doing",
+                "level": "10",
+                "deadline": "2017-07-21",
+                "pos": "0.08266362238478808",
+                "cid": "11"
+              }
+
       responses:
+        200:
+          description: "Успешно обновили таску"
+
         400:
           description: "Неверные параметры запроса"
 
@@ -570,6 +794,9 @@ paths:
           example: 8 
 
       responses:
+        200:
+          description: "Успешно удалили таску"
+
         400:
           description: "Неверные параметры запроса"
 

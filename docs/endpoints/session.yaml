@@ -12,7 +12,6 @@ paths:
         content:
           application/json:
             schema:
-              # составить модели для логина
               $ref: "../models/user.yaml#/components/schemas/User"
             example: {
               "nickname": "Legolas1",
