@@ -30,18 +30,18 @@ paths:
             application/json:
               schema:
                 $ref: "../models/board.yaml#/components/schemas/Board"
-            example: {
-              "id": 10,
-              "title": "SuperBoard",
-              "admins": [{
-                "id": 110,
-                "name": "Sasha",
-                "surname": "Upkin",
-                "nickname": "Vova1",
-                "email": "SashaUpkin@gmail.com",
-                "avatar": "http://localhost:5757/img/avatar/Vova1.png",
-              }]
-            }
+              example: {
+                "id": 10,
+                "title": "SuperBoard",
+                "admins": [{
+                  "id": 110,
+                  "name": "Sasha",
+                  "surname": "Upkin",
+                  "nickname": "Vova1",
+                  "email": "SashaUpkin@gmail.com",
+                  "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+                }]
+              }
 
         400:
           description: "Невалидные параметры запроса"      
@@ -227,7 +227,7 @@ paths:
     delete:
       tags:
       - "boards"
-      summary: "Удаляем определенную доску"
+      summary: "Удаляем определенную доску (ЕЩЁ В ПРОЦЕССЕ РЕАЛИЗАЦИИ)"
 
       parameters:
         - in: cookie
@@ -255,7 +255,7 @@ paths:
   /boards/{bid}/columns:
     get:
       tags:
-      - "boards"
+      - "columns"
       summary: "Получаем все колонки конкретной доски"
 
       parameters:
@@ -304,7 +304,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     post:
       tags:
-      - "boards"
+      - "columns"
       summary: "Создаем колонку на выбранной доске"
 
       parameters:
@@ -336,7 +336,17 @@ paths:
 
       responses:
         200:
-            description: "Успешно создали колонку"
+          description: "Успешно создали колонку"
+
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/task.yaml#/components/schemas/Task"
+              example: {
+                "id": 110,
+                "title": "TitleForColumn",
+                "pos": "0.08266362238478808",
+              }
 
         400:
           description: "Неверные параметры запроса"
@@ -353,7 +363,7 @@ paths:
   /boards/{bid}/columns/{cid}:
     get:
       tags:
-      - "boards"
+      - "columns"
       summary: "Получаем конкретную колонку конкретной доски"
 
       parameters:
@@ -405,7 +415,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     put:
       tags:
-      - "boards"
+      - "columns"
       summary: "Обновляем конкретную колонку конкретной доски"
 
       parameters:
@@ -460,7 +470,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     delete:
       tags:
-      - "boards"
+      - "columns"
       summary: "Удаляем конкретную колонку конкретной доски"
 
       parameters:
@@ -505,7 +515,7 @@ paths:
   /boards/{bid}/columns/{cid}/tasks:
     get:
       tags:
-      - "boards"
+      - "tasks"
       summary: "Получаем таски определенных доски и колонки"
 
       parameters:
@@ -566,7 +576,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     post:
       tags:
-      - "boards"
+      - "tasks"
       summary: "Создаем таску на определенной доске и колонке"
 
       parameters:
@@ -603,13 +613,25 @@ paths:
               "title": "Homework",
               "description": "HW for doing",
               "level": "10",
-              "deadline": "2017-07-21",
+              "deadline": "20170721",
               "pos": "0.08266362238478808",
             }   
 
       responses:
         200:
           description: "Успешно создали таску"
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/task.yaml#/components/schemas/Task"
+              example: {
+                "id": 25,
+                "title": "Homework",
+                "description": "HW for doing",
+                "level": "10",
+                "deadline": "20170721",
+                "pos": "0.08266362238478808",
+              }
 
         400:
           description: "Неверные параметры запроса"
@@ -626,7 +648,7 @@ paths:
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     get:
       tags:
-      - "boards"
+      - "tasks"
       summary: "Получаем определенную таску определенных доски и колонки"
 
       parameters:
@@ -669,13 +691,13 @@ paths:
                 - $ref: "../models/task.yaml#/components/schemas/Task"
               example: {
                 task: {
-                  "id": "152",
+                  "id": 152,
                   "title": "Homework",
                   "description": "HW for doing",
                   "level": "10",
                   "deadline": "2017-07-21",
                   "pos": "0.08266362238478808",
-                  "cid": "11"
+                  "cid": 11
                 }
               }
 
@@ -692,7 +714,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     put:
       tags:
-      - "boards"
+      - "tasks"
       summary: "Обновляем определенную таску определенных доски и колонки"
 
       parameters:
@@ -759,7 +781,7 @@ paths:
           description: "Внутренняя ошибка сервера"
     delete:
       tags:
-      - "boards"
+      - "tasks"
       summary: "Удаляем определенную таску определенных доски и колонки"
 
       parameters:
