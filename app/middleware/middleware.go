@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -85,8 +86,26 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			ctx.SetCookie(&newCookie)
 			return ctx.JSON(http.StatusUnauthorized, message.ResponseError{Message: errors.ErrNoCookie.Error()})
 		}
+
 		ctx.Set("userID", userID)
 		ctx.Set("sessionID", sid)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		token := ctx.Request().Header.Get(csrf.CSRFheader)
+		if token == "" {
+			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
+		}
+
+		sid := ctx.Get("sessionID").(string)
+
+		if !csrf.ValidateToken(token, sid) {
+			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
+		}
+
 		return next(ctx)
 	}
 }

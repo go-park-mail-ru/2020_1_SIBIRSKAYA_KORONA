@@ -1,13 +1,15 @@
 package http
 
 import (
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/labstack/echo/v4"
 )
@@ -21,6 +23,7 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Go
 		useCase: useCase,
 	}
 	router.POST("/session", handler.LogIn)
+	router.GET("/token", handler.Token, mw.CheckAuth)
 	router.DELETE("/session", handler.LogOut, mw.CheckAuth)
 }
 
@@ -44,6 +47,13 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 		ctx.SetCookie(cookie)
 		return ctx.NoContent(http.StatusOK)
 	}
+}
+
+func (sessionHandler *SessionHandler) Token(ctx echo.Context) error {
+	sid := ctx.Get("sessionID").(string)
+	token := csrf.MakeToken(sid)
+	ctx.Response().Header().Set(csrf.CSRFheader, token)
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {

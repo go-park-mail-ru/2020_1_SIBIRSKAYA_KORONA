@@ -20,6 +20,7 @@ var (
 	// ошибки, связанные с сессией
 	ErrNoCookie        = errors.New("Not found cookie header")
 	ErrSessionNotFound = errors.New("Cookie invalid, session not exist")
+	ErrDetectedCSRF    = errors.New("CSRF is confirmed") // В целях дебага
 
 	// ошибки, связанные с досками
 	ErrBoardNotFound = errors.New("Boards not found")
