@@ -35,9 +35,7 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 	if col == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if _, err := fmt.Sscan(ctx.Param("bid"), &col.Bid); err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	col.Bid = ctx.Get("bid").(uint)
 	err := columnHandler.useCase.Create(col)
 	if err != nil {
 		logger.Error(err)
@@ -51,12 +49,9 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 }
 
 func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
-	var bid, cid uint
-	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	_, err = fmt.Sscan(ctx.Param("cid"), &cid)
+	bid := ctx.Get("bid").(uint)
+	var cid uint
+	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
@@ -73,8 +68,7 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 }
 
 func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
-	var cid uint
-	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
+	cid := ctx.Get("cid").(uint)
 	tsks, err := columnHandler.useCase.GetTasksByID(cid)
 	if err != nil {
 		logger.Error(err)
@@ -93,10 +87,7 @@ func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
 
 // TODO: проверить удаление колонки, если в ней есть таски
 func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
-	var cid uint
-	if _, err := fmt.Sscan(ctx.Param("сid"), &cid); err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	cid := ctx.Get("cid").(uint)
 	err := columnHandler.useCase.Delete(cid)
 	if err != nil {
 		logger.Error(err)

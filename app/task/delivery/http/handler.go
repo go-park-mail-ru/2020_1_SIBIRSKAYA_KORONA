@@ -34,9 +34,7 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	if tsk == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if _, err := fmt.Sscan(ctx.Param("cid"), &tsk.Cid); err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	tsk.Cid = ctx.Get("cid").(uint)
 	err := taskHandler.useCase.Create(tsk)
 	if err != nil {
 		logger.Error(err)
@@ -50,19 +48,16 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 }
 
 func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
-	var cid, tid uint
-	_, err := fmt.Sscan(ctx.Param("cid"), &cid)
+	cid := ctx.Get("cid").(uint)
+	var tid uint
+	_, err := fmt.Sscan(ctx.Param("tid"), &tid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	_, err = fmt.Sscan(ctx.Param("tid"), &tid)
+	tsk, err := taskHandler.useCase.Get(cid, tid)
 	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	tsk, useErr := taskHandler.useCase.Get(cid, tid)
-	if useErr != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
 	if err != nil {
@@ -76,9 +71,8 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 	if tsk == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	if _, err := fmt.Sscan(ctx.Param("tid"), &tsk.ID); err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	// tsk.Cid = ctx.Get("cid").(uint)
+	tsk.ID = ctx.Get("tid").(uint)
 	err := taskHandler.useCase.Update(*tsk)
 	if err != nil {
 		logger.Error(err)
@@ -88,10 +82,7 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 }
 
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
-	var tid uint
-	if _, err := fmt.Sscan(ctx.Param("tid"), &tid); err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	tid := ctx.Get("tid").(uint)
 	err := taskHandler.useCase.Delete(tid)
 	if err != nil {
 		logger.Error(err)

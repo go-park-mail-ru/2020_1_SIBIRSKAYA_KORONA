@@ -31,8 +31,8 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 	}
 	defer ctx.Request().Body.Close()
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	if sid, useErr := sessionHandler.useCase.Create(usr, sessionExpires); useErr != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	if sid, err := sessionHandler.useCase.Create(usr, sessionExpires); err != nil {
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	} else {
 		cookie := &http.Cookie{
 			Name:    "session_id",
@@ -47,7 +47,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 }
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {
-	cookie := ctx.Get("sessionID").(string)
+	cookie := ctx.Get("sid").(string)
 	if sessionHandler.useCase.Delete(cookie) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}

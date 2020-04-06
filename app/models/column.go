@@ -8,10 +8,10 @@ import (
 
 type Column struct {
 	ID    uint    `json:"id" gorm:"primary_key"`
-	Name  string  `json:"title"`
-	Pos   float64 `json:"position"`
+	Name  string  `json:"title" gorm:"not null"`
+	Pos   float64 `json:"position" gorm:"not null"`
 	Tasks []Task  `json:"tasks,omitempty" gorm:"foreignkey:cid"`
-	Bid   uint    `json:"-"`
+	Bid   uint    `json:"-" gorm:"not null"`
 }
 
 func (col *Column) TableName() string {

@@ -8,12 +8,12 @@ import (
 
 type Task struct {
 	ID       uint    `json:"id" gorm:"primary_key"`
-	Name     string  `json:"title"`
+	Name     string  `json:"title" gorm:"not null"`
 	About    string  `json:"description"`
 	Level    uint    `json:"level,omitempty"`
 	Deadline string  `json:"deadline,omitempty"`
-	Pos      float32 `json:"position"`
-	Cid      uint    `json:"cid"`
+	Pos      float64 `json:"position" gorm:"not null"`
+	Cid      uint    `json:"cid" gorm:"not null"`
 	// Members     []User   `json:"members,omitempty" gorm:"many2many:task_members"`
 	// Labels []*Label
 }
