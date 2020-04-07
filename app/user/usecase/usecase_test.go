@@ -34,12 +34,17 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func createRepoMocks(controller *gomock.Controller) (*userMocks.MockRepository, *sessionMocks.MockRepository) {
+	userRepoMock := userMocks.NewMockRepository(controller)
+	sessionRepoMock := sessionMocks.NewMockRepository(controller)
+	return userRepoMock, sessionRepoMock
+}
+
 func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	userRepoMock := userMocks.NewMockRepository(ctrl)
-	sessionRepoMock := sessionMocks.NewMockRepository(ctrl)
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
 
 	userRepoMock.EXPECT().
 		Create(gomock.Any()).
@@ -62,4 +67,54 @@ func TestCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, sid, "cookie_value")
+}
+
+func TestGetByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
+
+	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	ID := testUser.ID
+
+	userRepoMock.EXPECT().
+		GetByID(ID).
+		Return(&testUser, nil)
+
+	user, err := uUsecase.GetByID(ID)
+	assert.NoError(t, err)
+	assert.Equal(t, &testUser, user)
+
+}
+
+func TestGetByNickname(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
+
+	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	nickname := testUser.Nickname
+
+	userRepoMock.EXPECT().
+		GetByNickname(nickname).
+		Return(&testUser, nil)
+
+	user, err := uUsecase.GetByNickname(nickname)
+	assert.NoError(t, err)
+	assert.Equal(t, &testUser, user)
+
 }
