@@ -1,10 +1,13 @@
 BINARY=drello_binary
 API_DOC_TARGET=api.yaml
+TEST_COVER_TARGET=coverage_report.out
 PROJECT_DIR := ${CURDIR}
 DOCUMENTATION_CONTAINER_NAME=documentation
+
 TEST_FLAGS = \
 	-covermode=atomic ./... \
-	--test-config="$(PROJECT_DIR)/config.yaml"
+	--test-config="$(PROJECT_DIR)/config.yaml" \
+	-coverprofile ${TEST_COVER_TARGET} \
 
 # тесты
 generate-mocks:
@@ -13,6 +16,8 @@ test-cover:
 	go test -v -cover $(TEST_FLAGS)
 test-coverpkg:
 	go test -v -coverpkg=./... $(TEST_FLAGS)
+check-report:
+	go tool cover -html=${TEST_COVER_TARGET}
 
 # docker
 build-binary:
