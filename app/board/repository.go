@@ -4,6 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 )
 
+//go:generate mockgen -source=repository.go -package=mocks -destination=./mocks/board_repo_mock.go
 type Repository interface {
 	Create(board *models.Board) error
 	Get(bid uint) (*models.Board, error)

@@ -13,7 +13,7 @@ type User struct {
 	Name     string  `json:"name" gorm:"not null" faker:"name"`
 	Surname  string  `json:"surname" gorm:"not null" faker:"last_name"`
 	Nickname string  `json:"nickname" gorm:"unique;not null" faker:"username"`
-	Email    string  `json:"email" faker:"unique;email" faker:"email"`
+	Email    string  `json:"email" faker:"email"`
 	Avatar   string  `json:"avatar" faker:"url"`
 	Password string  `json:"password,omitempty" gorm:"not null" faker:"password"`
 	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`

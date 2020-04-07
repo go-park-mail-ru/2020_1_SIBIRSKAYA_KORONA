@@ -78,6 +78,22 @@ func (mr *MockRepositoryMockRecorder) GetByNickname(nickname interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNickname", reflect.TypeOf((*MockRepository)(nil).GetByNickname), nickname)
 }
 
+// GetBoardsByID mocks base method
+func (m *MockRepository) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBoardsByID", uid)
+	ret0, _ := ret[0].([]models.Board)
+	ret1, _ := ret[1].([]models.Board)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetBoardsByID indicates an expected call of GetBoardsByID
+func (mr *MockRepositoryMockRecorder) GetBoardsByID(uid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBoardsByID", reflect.TypeOf((*MockRepository)(nil).GetBoardsByID), uid)
+}
+
 // Update mocks base method
 func (m *MockRepository) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	m.ctrl.T.Helper()
