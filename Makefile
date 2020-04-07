@@ -7,6 +7,8 @@ TEST_FLAGS = \
 	--test-config="$(PROJECT_DIR)/config.yaml"
 
 # тесты
+generate-mocks:
+	go generate ./...
 test-cover:
 	go test -v -cover $(TEST_FLAGS)
 test-coverpkg:

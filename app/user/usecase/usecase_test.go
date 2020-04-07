@@ -11,6 +11,7 @@ import (
 	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/mocks"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +42,9 @@ func createRepoMocks(controller *gomock.Controller) (*userMocks.MockRepository, 
 }
 
 func TestCreate(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -70,6 +74,8 @@ func TestCreate(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -95,6 +101,8 @@ func TestGetByID(t *testing.T) {
 }
 
 func TestGetByNickname(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -116,5 +124,38 @@ func TestGetByNickname(t *testing.T) {
 	user, err := uUsecase.GetByNickname(nickname)
 	assert.NoError(t, err)
 	assert.Equal(t, &testUser, user)
+}
+
+func TestUpdate(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
+
+	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	oldPass := "oldPass"
+
+	// передать nil в качестве *multipart.FileHeader приемлемо, это самый частый кейс
+	// работу с картинкой будем гонять на тестах юзерского репозитория
+	userRepoMock.EXPECT().
+		Update("oldPass", &testUser, nil).
+		Return(nil)
+
+	updateErr := uUsecase.Update(oldPass, &testUser, nil)
+
+	assert.NoError(t, updateErr)
+
+	// второго вызова к юзерской репе произойти не должно
+	updateErr = uUsecase.Update("no", nil, nil)
+
+	assert.Equal(t, updateErr, errors.ErrInternal)
 
 }
