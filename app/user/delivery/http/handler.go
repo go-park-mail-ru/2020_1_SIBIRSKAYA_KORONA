@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
@@ -59,12 +60,19 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
-	userData, err := userHandler.useCase.GetByNickname(ctx.Param("id_or_nickname"))
+	usrKey := ctx.Param("id_or_nickname")
+	usr := new(models.User)
+	var err error
+	if uid, er := strconv.Atoi(usrKey); er != nil {
+		usr, err = userHandler.useCase.GetByID(uint(uid))
+	} else {
+		usr, err = userHandler.useCase.GetByNickname(usrKey)
+	}
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
-	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
+	body, err := message.GetBody(message.Pair{Name: "user", Data: *usr})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
@@ -72,8 +80,8 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
-	userData, err := userHandler.useCase.GetByID(userID)
+	uid := ctx.Get("uid").(uint)
+	userData, err := userHandler.useCase.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
@@ -86,8 +94,8 @@ func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) GetBoards(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
-	bAdmin, bMember, err := userHandler.useCase.GetBoardsByID(userID)
+	uid := ctx.Get("uid").(uint)
+	bAdmin, bMember, err := userHandler.useCase.GetBoardsByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
@@ -100,33 +108,33 @@ func (userHandler *UserHandler) GetBoards(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Update(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
 	newUser := new(models.User)
+	newUser.ID = ctx.Get("uid").(uint)
 	newUser.Name = ctx.FormValue("newName")
 	newUser.Surname = ctx.FormValue("newSurname")
 	newUser.Nickname = ctx.FormValue("newNickname")
 	newUser.Email = ctx.FormValue("newEmail")
 	newUser.Password = ctx.FormValue("newPassword")
-	newUser.ID = userID
+
 	oldPass := ctx.FormValue("oldPassword")
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
 		logger.Error(err)
 	}
-	if useErr := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); useErr != nil {
-		logger.Error(useErr)
-		return ctx.JSON(errors.ResolveErrorToCode(useErr), message.ResponseError{Message: useErr.Error()})
+	if err := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (userHandler *UserHandler) Delete(ctx echo.Context) error {
-	sessionID := ctx.Get("sessionID").(string)
-	userID := ctx.Get("userID").(uint)
-	if userHandler.useCase.Delete(userID, sessionID) != nil {
+	sid := ctx.Get("sid").(string)
+	uid := ctx.Get("uid").(uint)
+	if userHandler.useCase.Delete(uid, sid) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	newCookie := http.Cookie{Name: "session_id", Value: sessionID, Expires: time.Now().AddDate(-1, 0, 0)}
+	newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
 	ctx.SetCookie(&newCookie)
 	return ctx.NoContent(http.StatusOK)
 }

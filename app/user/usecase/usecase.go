@@ -44,8 +44,8 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 	return sid, nil
 }
 
-func (userUseCase *UserUseCase) GetByID(userID uint) (*models.User, error) {
-	usr, err := userUseCase.userRepo.GetByID(userID)
+func (userUseCase *UserUseCase) GetByID(uid uint) (*models.User, error) {
+	usr, err := userUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
