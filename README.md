@@ -5,7 +5,7 @@
 
 ### [Репозиторий фронтенда](https://github.com/frontend-park-mail-ru/2020_1_SIBIRSKAYA_KORONA "frontend repo")
 
-### [Документация](https://lolkek "doc")
+### [Документация](http://89.208.197.150:80 "doc")
 
 ### Команда
 
