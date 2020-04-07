@@ -63,7 +63,7 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 	usrKey := ctx.Param("id_or_nickname")
 	usr := new(models.User)
 	var err error
-	if uid, er := strconv.Atoi(usrKey); er != nil {
+	if uid, er := strconv.Atoi(usrKey); er == nil {
 		usr, err = userHandler.useCase.GetByID(uint(uid))
 	} else {
 		usr, err = userHandler.useCase.GetByNickname(usrKey)
