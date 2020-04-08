@@ -39,7 +39,7 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 		return nil, errors.ErrDbBadOperation
 	}
 	for idx, _ := range brd.Admins {
-		brd.Admins[idx].Password = ""
+		brd.Admins[idx].Password = nil
 	}
 	err = boardStore.DB.Model(brd).Related(&brd.Members, "Members").Error
 	if err != nil {
@@ -47,7 +47,7 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 		return nil, errors.ErrDbBadOperation
 	}
 	for idx, _ := range brd.Members {
-		brd.Members[idx].Password = ""
+		brd.Members[idx].Password = nil
 	}
 	return brd, nil
 }

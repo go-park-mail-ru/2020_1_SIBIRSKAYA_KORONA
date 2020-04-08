@@ -71,7 +71,7 @@ func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []model
 	return adminsBoard, membersBoard, nil
 }
 
-func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (userUseCase *UserUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal
 	}
