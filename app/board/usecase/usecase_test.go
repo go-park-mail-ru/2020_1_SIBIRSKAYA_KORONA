@@ -142,13 +142,32 @@ func TestUpdate(t *testing.T) {
 	//t.Logf("%+v", testBoard)
 
 	boardRepoMock.EXPECT().
-		Update(gomock.Any).
+		Update(&testBoard).
 		Return(nil)
 
-	err = bUsecase.Update(testBoard)
+	err = bUsecase.Update(&testBoard)
 	assert.NoError(t, err)
 }
 
 func TestDelete(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
 
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, boardRepoMock := createRepoMocks(ctrl)
+	bUsecase := boardUseCase.CreateUseCase(userRepoMock, boardRepoMock)
+
+	var testBoard models.Board
+	err := faker.FakeData(&testBoard)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+
+	boardRepoMock.EXPECT().
+		Delete(testBoard.ID).
+		Return(nil)
+
+	err = bUsecase.Delete(testBoard.ID)
+	assert.NoError(t, err)
 }

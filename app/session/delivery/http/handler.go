@@ -53,6 +53,7 @@ func (sessionHandler *SessionHandler) Token(ctx echo.Context) error {
 	sid := ctx.Get("sid").(string)
 	token := csrf.MakeToken(sid)
 	ctx.Response().Header().Set(csrf.CSRFheader, token)
+	ctx.Response().Header().Set("Access-Control-Expose-Headers", "X-Csrf-Token")
 	return ctx.NoContent(http.StatusOK)
 }
 
