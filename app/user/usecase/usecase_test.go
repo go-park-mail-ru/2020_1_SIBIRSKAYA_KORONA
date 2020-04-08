@@ -159,3 +159,56 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, updateErr, errors.ErrInternal)
 
 }
+
+func TestGetBoardsByID(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
+
+	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	userRepoMock.EXPECT().
+		GetBoardsByID(testUser.ID).
+		Return(nil, nil, nil)
+
+	admins, members, err := uUsecase.GetBoardsByID(testUser.ID)
+	assert.Nil(t, admins)
+	assert.Nil(t, members)
+	assert.NoError(t, err)
+}
+
+func TestDelete(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
+	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	sid := "test_sid"
+	sessionRepoMock.EXPECT().
+		Delete("test_sid").
+		Return(nil)
+	userRepoMock.EXPECT().
+		Delete(testUser.ID).
+		Return(nil)
+
+	deleteErr := uUsecase.Delete(testUser.ID, sid)
+
+	assert.NoError(t, deleteErr)
+
+}

@@ -80,4 +80,34 @@ paths:
           description: "В запросе куки нет"
            
         500:
-          description: "На сервере ошибка удаления куки из хранилища"     
+          description: "На сервере ошибка удаления куки из хранилища"
+
+  /token:
+    get:
+      tags:
+      - "token"
+      summary: "Получаем уникальный для сессии CSRF-токен"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+          example:  725122a5-b364-472e-92bc-00a74efd11b1
+          
+      responses:
+        200:
+          description: "Корректный запрос, отдали токен в хэдере"
+
+          headers:
+            X-CSRF-TOKEN:
+              schema:
+                type: string
+              description: CSFR токен (уникальный для сессии), пример:bk6G611PmsKCy4c9lCpaDzPQQ1JE95oYb7/22VwMb58
+              example: bk6G611PmsKCy4c9lCpaDzPQQ1JE95oYb7/22VwMb58
+        401:
+          description: "В запросе нет куки, либо она невалидная"
+
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"             
