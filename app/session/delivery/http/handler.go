@@ -50,7 +50,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 }
 
 func (sessionHandler *SessionHandler) Token(ctx echo.Context) error {
-	sid := ctx.Get("sessionID").(string)
+	sid := ctx.Get("sid").(string)
 	token := csrf.MakeToken(sid)
 	ctx.Response().Header().Set(csrf.CSRFheader, token)
 	return ctx.NoContent(http.StatusOK)

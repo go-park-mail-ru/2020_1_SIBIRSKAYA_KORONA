@@ -18,6 +18,8 @@ test-coverpkg:
 	go test -v -coverpkg=./... $(TEST_FLAGS)
 check-report:
 	go tool cover -html=${TEST_COVER_TARGET}
+check-summary:
+	go tool cover -func=${TEST_COVER_TARGET}
 
 # docker
 build-binary:

@@ -9,10 +9,10 @@ import (
 
 type Board struct {
 	ID      uint     `json:"id" gorm:"primary_key"`
-	Name    string   `json:"title" gorm:"not null"`
-	Columns []Column `json:"columns,omitempty" gorm:"foreignkey:bid"`
-	Admins  []User   `json:"admins,omitempty" gorm:"many2many:board_admins;"`
-	Members []User   `json:"members,omitempty" gorm:"many2many:board_members;"`
+	Name    string   `json:"title" gorm:"not null" faker:"word"`
+	Columns []Column `json:"columns,omitempty" gorm:"foreignkey:bid" faker:"-"`
+	Admins  []User   `json:"admins,omitempty" gorm:"many2many:board_admins;" faker:"-"`
+	Members []User   `json:"members,omitempty" gorm:"many2many:board_members;" faker:"-"`
 }
 
 func (b *Board) TableName() string {
