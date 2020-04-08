@@ -2,13 +2,14 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
 	"io/ioutil"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Column struct {
 	ID    uint    `json:"id" gorm:"primary_key"`
-	Name  string  `json:"title" gorm:"not null"`
+	Name  string  `json:"title" gorm:"not null" faker:"word"`
 	Pos   float64 `json:"position" gorm:"not null"`
 	Tasks []Task  `json:"tasks,omitempty" gorm:"foreignkey:cid"`
 	Bid   uint    `json:"-" gorm:"not null"`
