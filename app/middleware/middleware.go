@@ -99,7 +99,7 @@ func (mw *GoMiddleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
 			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
 		}
 
-		sid := ctx.Get("sessionID").(string)
+		sid := ctx.Get("sid").(string)
 
 		if !csrf.ValidateToken(token, sid) {
 			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
