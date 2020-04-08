@@ -51,7 +51,7 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 		ctx.Response().Header().Set("Access-Control-Allow-Origin", mw.frontendUrl)
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Csrf-Token")
 		if ctx.Request().Method == "OPTIONS" {
 			return ctx.NoContent(http.StatusOK)
 		}
