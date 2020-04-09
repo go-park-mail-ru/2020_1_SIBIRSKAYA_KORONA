@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,8 +26,14 @@ func CreateBoard(ctx echo.Context) *Board {
 		return nil
 	}
 	defer ctx.Request().Body.Close()
+
+	sanBody, err := sanitize.SanitizeJSON(body)
+	if err != nil {
+		return nil
+	}
+
 	board := new(Board)
-	if json.Unmarshal(body, board) != nil {
+	if json.Unmarshal(sanBody, board) != nil {
 		return nil
 	}
 	return board

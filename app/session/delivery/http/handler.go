@@ -18,6 +18,12 @@ type SessionHandler struct {
 	useCase session.UseCase
 }
 
+func CreateHandlerTest(sessionCase session.UseCase) *SessionHandler {
+	return &SessionHandler{
+		useCase: sessionCase,
+	}
+}
+
 func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.GoMiddleware) {
 	handler := &SessionHandler{
 		useCase: useCase,

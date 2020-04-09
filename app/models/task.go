@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,8 +30,14 @@ func CreateTask(ctx echo.Context) *Task {
 		return nil
 	}
 	defer ctx.Request().Body.Close()
+
+	sanBody, err := sanitize.SanitizeJSON(body)
+	if err != nil {
+		return nil
+	}
+
 	task := new(Task)
-	if json.Unmarshal(body, task) != nil {
+	if json.Unmarshal(sanBody, task) != nil {
 		return nil
 	}
 	return task

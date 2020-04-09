@@ -46,6 +46,20 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 	}
 }
 
+func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		start := time.Now()
+		res := next(ctx)
+		logger.Infof("%s %s %d %s",
+			ctx.Request().Method,
+			ctx.Request().RequestURI,
+			ctx.Response().Status,
+			time.Since(start))
+
+		return res
+	}
+}
+
 func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		ctx.Response().Header().Set("Access-Control-Allow-Origin", mw.frontendUrl)
