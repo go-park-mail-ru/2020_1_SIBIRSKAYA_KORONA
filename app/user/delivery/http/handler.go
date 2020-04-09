@@ -21,6 +21,12 @@ type UserHandler struct {
 	useCase user.UseCase
 }
 
+func CreateHandlerTest(useCase user.UseCase) *UserHandler {
+	return &UserHandler{
+		useCase: useCase,
+	}
+}
+
 func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMiddleware) {
 	handler := &UserHandler{
 		useCase: useCase,
