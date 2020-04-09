@@ -20,6 +20,18 @@ type User struct {
 	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
 }
 
+type TestUser struct {
+	ID       uint    `json:"id" gorm:"primary_key"`
+	Name     string  `json:"name" gorm:"not null" faker:"name"`
+	Surname  string  `json:"surname" gorm:"not null" faker:"last_name"`
+	Nickname string  `json:"nickname" gorm:"unique;not null" faker:"username"`
+	Email    string  `json:"email" faker:"email"`
+	Avatar   string  `json:"avatar" faker:"url"`
+	Password string  `json:"password" gorm:"not null" faker:"password"`
+	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
+	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
+}
+
 func (u *User) TableName() string {
 	return "users"
 }
