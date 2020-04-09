@@ -29,7 +29,7 @@ frontend: {
   protocol: http,
   ip: localhost,
   port: 5757,
-  public_dir: /home/timofeyrazumov/TP,
+  public_dir: /home/shroomoffun/Programs/main_program/semestr_2/frontend/2020_1_SIBIRSKAYA_KORONA/public,
   #public_dir: /app/public,
   #relative
   avatar_dir: /img/avatar,
