@@ -1,0 +1,96 @@
+openapi: "3.0.0"
+
+info:
+  description: "Документация к нашему REST чудовищу"
+  version: "1.0.0"
+  title: "Drello backend API"
+externalDocs:
+  description: Репозиторий бэкенда на github
+  url: "https://github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/tree/api"
+
+servers:
+  - url: http://localhost:8080  
+
+security:
+- app_id: []
+
+tags:
+- name: "settings"
+  description: "Основная работа по настройке профиля (в том числе регистрация)"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "session"    
+  description: "Основная работа с сессиями пользователя"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "profile"
+  description: "Основная работа с профилем"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "boards"
+  description: "Основная работа с досками"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "columns"
+  description: "Основная работа с колонками"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "tasks"
+  description: "Основная работа с тасками"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "token"
+  description: "Точка для получения CSRF-токена"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"    
+
+paths:
+  /settings:
+    $ref: "endpoints/settings.yaml#/paths/~1settings"
+  /session:
+    $ref: "endpoints/session.yaml#/paths/~1session"
+  /token:
+    $ref: "endpoints/session.yaml#/paths/~1token"  
+  /profile/{id_or_nickname}:
+    $ref: "endpoints/profile.yaml#/paths/~1profile~1{id_or_nickname}"
+  /boards:
+    $ref: "endpoints/boards.yaml#/paths/~1boards"
+  /boards/{bid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}"
+  /boards/{bid}/columns:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns"
+  /boards/{bid}/columns/{cid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}"
+  /boards/{bid}/columns/{cid}/tasks:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
+  /boards/{bid}/columns/{cid}/tasks/{tid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+
+components:
+  schemas:
+
+    User:
+      $ref: "models/user.yaml#/components/schemas/User"
+
+    Board:
+      $ref: "models/board.yaml#/components/schemas/Board"
+
+    Column:
+      $ref: "models/column.yaml#/components/schemas/Column"
+
+    Task:
+      $ref: "models/task.yaml#/components/schemas/Task"  
+
+    ApiResponse:
+      $ref: "models/user.yaml#/components/schemas/ApiResponse"
+
+  securitySchemes:
+    app_id:
+      $ref: "models/user.yaml#/components/securitySchemes/app_id"

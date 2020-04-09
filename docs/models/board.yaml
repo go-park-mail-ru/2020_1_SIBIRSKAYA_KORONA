@@ -1,0 +1,24 @@
+components:
+  schemas:
+    Board:
+      type: "object"
+      required:
+        - "id"
+        - "title"
+      properties:
+        id:
+          type: "integer"
+        title:
+          type: "string"
+        columns:
+          type: "array"
+          items:
+            $ref: "column.yaml#/components/schemas/Column"
+        admins:
+          type: "array"
+          items:
+            $ref: "user.yaml#/components/schemas/User"
+        members:
+          type: "array"
+          items:
+            $ref: "user.yaml#/components/schemas/User"

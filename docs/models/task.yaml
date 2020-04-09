@@ -1,0 +1,24 @@
+components:
+  schemas:
+    Task:
+      type: "object"
+      required:
+        - "title"
+        - "position"
+      properties:
+        id:
+          type: "integer"
+        title:
+          type: "string"
+        description:
+          type: "string"
+        level:
+          type: "integer"
+        deadline:
+          type: "string"
+          format: "date-time"
+        position:
+          type: "number"
+          format: "double"
+        cid:
+          type: "integer"
