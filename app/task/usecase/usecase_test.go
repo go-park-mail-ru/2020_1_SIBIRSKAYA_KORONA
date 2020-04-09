@@ -80,6 +80,7 @@ func TestGet(t *testing.T) {
 	err = faker.FakeData(&testColumn)
 	assert.NoError(t, err)
 	//t.Logf("%+v", testColumn)
+	testTask.Cid = testColumn.ID + 1
 
 	taskRepoMock.EXPECT().
 		Get(testTask.ID).

@@ -70,25 +70,36 @@ func TestCORS(t *testing.T) {
 	assert.Equal(t, "http://localhost:5757", response.Header().Get("Access-Control-Allow-Origin"))
 }
 
-// func TestPanicProcess(t *testing.T) {
-// 	e := echo.New()
-// 	request := test.NewRequest(echo.GET, "/settings", nil)
-// 	response := test.NewRecorder()
-// 	context := e.NewContext(request, response)
-// 	middle := middleware.InitMiddleware()
+func TestPanicProcess(t *testing.T) {
+	t.Parallel()
 
-// 	panicHandler := echo.HandlerFunc(func(c echo.Context) error {
-// 		if 2+2 == 4 {
-// 			panic("big panic")
-// 		}
-// 		return c.NoContent(http.StatusOK)
-// 	})
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	processedPanicHandler := middle.ProcessPanic(panicHandler)
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	boardUsecaseMock := boardMocks.NewMockUseCase(ctrl)
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
 
-// 	err := processedPanicHandler(context)
-// 	require.NoError(t, err)
-// }
+	middle := middleware.CreateMiddleware(sessionUsecaseMock, boardUsecaseMock, columnUsecaseMock, taskUsecaseMock)
+
+	e := echo.New()
+	request := test.NewRequest(echo.GET, "/settings", nil)
+	response := test.NewRecorder()
+	context := e.NewContext(request, response)
+
+	panicHandler := echo.HandlerFunc(func(c echo.Context) error {
+		if 2+2 == 4 {
+			panic("big panic")
+		}
+		return c.NoContent(http.StatusOK)
+	})
+
+	processedPanicHandler := middle.ProcessPanic(panicHandler)
+
+	err := processedPanicHandler(context)
+	require.NoError(t, err)
+}
 
 // func TestCheckCookieExist(t *testing.T) {
 // 	e := echo.New()
