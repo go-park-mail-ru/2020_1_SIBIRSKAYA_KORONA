@@ -84,6 +84,9 @@ func TestGet(t *testing.T) {
 	var testBoard models.Board
 	err = faker.FakeData(&testBoard)
 	assert.NoError(t, err)
+	if testBoard.ID == testColumn.Bid {
+		testColumn.Bid++
+	}
 	//t.Logf("%+v", testBoard)
 
 	columnRepoMock.EXPECT().

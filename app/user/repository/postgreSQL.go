@@ -72,7 +72,7 @@ func (userStore *UserStore) Create(usr *models.User) error {
 
 func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 	usr := new(models.User)
-	if err := userStore.DB.First(&usr, id).Error; err != nil {
+	if err := userStore.DB.Where("id = ?", id).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
