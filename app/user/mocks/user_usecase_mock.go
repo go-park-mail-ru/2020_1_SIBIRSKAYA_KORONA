@@ -97,7 +97,7 @@ func (mr *MockUseCaseMockRecorder) GetBoardsByID(uid interface{}) *gomock.Call {
 }
 
 // Update mocks base method
-func (m *MockUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (m *MockUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", oldPass, newUser, avatarFileDescriptor)
 	ret0, _ := ret[0].(error)

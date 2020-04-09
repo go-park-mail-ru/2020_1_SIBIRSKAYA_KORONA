@@ -95,7 +95,7 @@ func (mr *MockRepositoryMockRecorder) GetBoardsByID(uid interface{}) *gomock.Cal
 }
 
 // Update mocks base method
-func (m *MockRepository) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (m *MockRepository) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", oldPass, newUser, avatarFileDescriptor)
 	ret0, _ := ret[0].(error)
@@ -120,4 +120,18 @@ func (m *MockRepository) Delete(id uint) error {
 func (mr *MockRepositoryMockRecorder) Delete(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), id)
+}
+
+// CheckPasswordByID mocks base method
+func (m *MockRepository) CheckPasswordByID(uid uint, realHashPass []byte) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckPasswordByID", uid, realHashPass)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// CheckPasswordByID indicates an expected call of CheckPasswordByID
+func (mr *MockRepositoryMockRecorder) CheckPasswordByID(uid, realHashPass interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckPasswordByID", reflect.TypeOf((*MockRepository)(nil).CheckPasswordByID), uid, realHashPass)
 }

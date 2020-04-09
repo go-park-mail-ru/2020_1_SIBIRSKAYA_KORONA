@@ -65,6 +65,10 @@ func TestCreate(t *testing.T) {
 		Create(gomock.Any()).
 		Return("cookie_value", nil)
 
+	userRepoMock.EXPECT().
+		CheckPasswordByID(gomock.Any(), gomock.Any()).
+		Return(true)
+
 	sid, err := sUsecase.Create(&testUser, sessionExpires)
 
 	assert.NoError(t, err)
@@ -111,4 +115,4 @@ func TestDelete(t *testing.T) {
 	err := sUsecase.Delete(testSid)
 
 	assert.NoError(t, err)
-} 
+}

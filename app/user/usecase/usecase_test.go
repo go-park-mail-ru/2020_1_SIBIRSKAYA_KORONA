@@ -141,12 +141,12 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	//t.Logf("%+v", testUser)
 
-	oldPass := "oldPass"
+	oldPass := []byte("oldPass")
 
 	// передать nil в качестве *multipart.FileHeader приемлемо, это самый частый кейс
 	// работу с картинкой будем гонять на тестах юзерского репозитория
 	userRepoMock.EXPECT().
-		Update("oldPass", &testUser, nil).
+		Update([]byte("oldPass"), &testUser, nil).
 		Return(nil)
 
 	updateErr := uUsecase.Update(oldPass, &testUser, nil)
@@ -154,7 +154,7 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, updateErr)
 
 	// второго вызова к юзерской репе произойти не должно
-	updateErr = uUsecase.Update("no", nil, nil)
+	updateErr = uUsecase.Update([]byte("no"), nil, nil)
 
 	assert.Equal(t, updateErr, errors.ErrInternal)
 
