@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -42,6 +43,7 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	usr := models.CreateUser(ctx)
 	if usr == nil {
+		log.Println("bad bad bad")
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
@@ -120,9 +122,9 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	newUser.Surname = ctx.FormValue("newSurname")
 	newUser.Nickname = ctx.FormValue("newNickname")
 	newUser.Email = ctx.FormValue("newEmail")
-	newUser.Password = ctx.FormValue("newPassword")
+	newUser.Password = []byte(ctx.FormValue("newPassword"))
 
-	oldPass := ctx.FormValue("oldPassword")
+	oldPass := []byte(ctx.FormValue("oldPassword"))
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
 		logger.Error(err)

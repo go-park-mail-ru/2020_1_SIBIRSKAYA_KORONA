@@ -34,17 +34,16 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 		return "", errors.ErrUserNotFound
 	}
 
-	if realUser != nil && realUser.Password == user.Password {
+	if realUser != nil && sessionUseCase.userRepo.CheckPasswordByID(realUser.ID, user.Password) {
 		ses := &models.Session{
 			SID:     "",
 			ID:      realUser.ID,
 			Expires: sessionExpires,
 		}
-
-		sid, repoErr := sessionUseCase.sessionRepo.Create(ses)
-		if repoErr != nil {
+		sid, err := sessionUseCase.sessionRepo.Create(ses)
+		if err != nil {
 			logger.Error(err)
-			return "", repoErr
+			return "", err
 		}
 		return sid, nil
 	}
