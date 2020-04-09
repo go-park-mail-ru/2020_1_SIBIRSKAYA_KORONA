@@ -31,9 +31,6 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 		Value:      []byte(fmt.Sprintf("%d", session.ID)),
 		Expiration: int32(session.Expires.Unix()),
 	})
-	//
-	fmt.Println(sessionStore.DB.Get(session.SID))
-	//
 	if err != nil {
 		logger.Error(err)
 		return "", errors.ErrDbBadOperation

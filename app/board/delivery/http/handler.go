@@ -36,12 +36,12 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
+	uid := ctx.Get("uid").(uint)
 	brd := models.CreateBoard(ctx)
 	if brd == nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	err := boardHandler.useCase.Create(userID, brd)
+	err := boardHandler.useCase.Create(uid, brd)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
@@ -55,14 +55,13 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
-	userID := ctx.Get("userID").(uint)
+	uid := ctx.Get("uid").(uint)
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
-		logger.Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	brd, err := boardHandler.useCase.Get(userID, bid, false)
+	brd, err := boardHandler.useCase.Get(uid, bid, false)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
@@ -76,8 +75,7 @@ func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) GetColumns(ctx echo.Context) error {
-	var bid uint
-	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+	bid := ctx.Get("bid").(uint)
 	cols, err := boardHandler.useCase.GetColumnsByID(bid)
 	if err != nil {
 		logger.Error(err)

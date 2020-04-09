@@ -13,9 +13,21 @@ type User struct {
 	Name     string  `json:"name" gorm:"not null" faker:"name"`
 	Surname  string  `json:"surname" gorm:"not null" faker:"last_name"`
 	Nickname string  `json:"nickname" gorm:"unique;not null" faker:"username"`
-	Email    string  `json:"email" faker:"email" faker:"email"`
+	Email    string  `json:"email" faker:"email"`
 	Avatar   string  `json:"avatar" faker:"url"`
-	Password string  `json:"password,omitempty" gorm:"not null" faker:"password"`
+	Password []byte  `json:"-" gorm:"not null" faker:"-"`
+	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
+	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
+}
+
+type TestUser struct {
+	ID       uint    `json:"id" gorm:"primary_key"`
+	Name     string  `json:"name" gorm:"not null" faker:"name"`
+	Surname  string  `json:"surname" gorm:"not null" faker:"last_name"`
+	Nickname string  `json:"nickname" gorm:"unique;not null" faker:"username"`
+	Email    string  `json:"email" faker:"email"`
+	Avatar   string  `json:"avatar" faker:"url"`
+	Password string  `json:"password" gorm:"not null" faker:"password"`
 	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
 	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
 }
@@ -40,5 +52,10 @@ func CreateUser(ctx echo.Context) *User {
 	if json.Unmarshal(sanBody, usr) != nil {
 		return nil
 	}
+	tmp := map[string]string{"password": ""}
+	if json.Unmarshal(sanBody, &tmp) != nil {
+		return nil
+	}
+	usr.Password = []byte(tmp["password"])
 	return usr
 }

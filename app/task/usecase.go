@@ -2,6 +2,7 @@ package task
 
 import "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 
+//go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/task_usecase_mock.go
 type UseCase interface {
 	Create(task *models.Task) error
 	Get(cid uint, tid uint) (*models.Task, error)

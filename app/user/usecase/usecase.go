@@ -44,8 +44,8 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Ti
 	return sid, nil
 }
 
-func (userUseCase *UserUseCase) GetByID(userID uint) (*models.User, error) {
-	usr, err := userUseCase.userRepo.GetByID(userID)
+func (userUseCase *UserUseCase) GetByID(uid uint) (*models.User, error) {
+	usr, err := userUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -71,7 +71,7 @@ func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []model
 	return adminsBoard, membersBoard, nil
 }
 
-func (userUseCase *UserUseCase) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (userUseCase *UserUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal
 	}

@@ -2,16 +2,18 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
 	"io/ioutil"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
+	"github.com/labstack/echo/v4"
 )
 
 type Column struct {
 	ID    uint    `json:"id" gorm:"primary_key"`
-	Name  string  `json:"title"`
-	Pos   float64 `json:"position"`
+	Name  string  `json:"title" gorm:"not null" faker:"word"`
+	Pos   float64 `json:"position" gorm:"not null"`
 	Tasks []Task  `json:"tasks,omitempty" gorm:"foreignkey:cid"`
-	Bid   uint    `json:"-"`
+	Bid   uint    `json:"-" gorm:"not null"`
 }
 
 func (col *Column) TableName() string {
@@ -23,9 +25,16 @@ func CreateColumn(ctx echo.Context) *Column {
 	if err != nil {
 		return nil
 	}
+
 	defer ctx.Request().Body.Close()
+
+	sanBody, err := sanitize.SanitizeJSON(body)
+	if err != nil {
+		return nil
+	}
+
 	column := new(Column)
-	if json.Unmarshal(body, column) != nil {
+	if json.Unmarshal(sanBody, column) != nil {
 		return nil
 	}
 	return column

@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"bytes"
 	"io"
 	"os"
+
+	"golang.org/x/crypto/argon2"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
@@ -13,6 +16,7 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
+	"crypto/rand"
 	"fmt"
 	"mime/multipart"
 
@@ -32,8 +36,35 @@ func CreateRepository(db *gorm.DB) user.Repository {
 	return &UserStore{DB: db}
 }
 
-func (userStore *UserStore) Create(user *models.User) error {
-	if err := userStore.DB.Create(user).Error; err != nil {
+func HashPassword(salt, password []byte) []byte {
+	hashPass := argon2.IDKey(password, salt, 1, 64*1024, 4, 32)
+	return append(salt, hashPass...)
+}
+
+func HashPasswordGenSalt(password []byte) []byte {
+	salt := make([]byte, 8)
+	rand.Read(salt)
+	return HashPassword(salt, password)
+}
+
+func CheckPassword(pass, realHashPass []byte) bool {
+	var salt []byte
+	salt = append(salt, realHashPass[0:8]...)
+	return bytes.Equal(HashPassword(salt, pass), realHashPass)
+}
+
+func (userStore *UserStore) CheckPasswordByID(uid uint, pass []byte) bool {
+	usr := new(models.User)
+	if err := userStore.DB.First(&usr, uid).Error; err != nil {
+		logger.Error(err)
+		return false
+	}
+	return CheckPassword(pass, usr.Password)
+}
+
+func (userStore *UserStore) Create(usr *models.User) error {
+	usr.Password = HashPasswordGenSalt(usr.Password)
+	if err := userStore.DB.Create(usr).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrConflict
 	}
@@ -41,21 +72,21 @@ func (userStore *UserStore) Create(user *models.User) error {
 }
 
 func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
-	userData := new(models.User)
-	if err := userStore.DB.First(&userData, id).Error; err != nil {
+	usr := new(models.User)
+	if err := userStore.DB.Where("id = ?", id).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
-	return userData, nil
+	return usr, nil
 }
 
 func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error) {
-	userData := new(models.User)
-	if err := userStore.DB.Where("nickname = ?", nickname).First(&userData).Error; err != nil {
+	usr := new(models.User)
+	if err := userStore.DB.Where("nickname = ?", nickname).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
-	return userData, nil
+	return usr, nil
 }
 
 func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
@@ -66,46 +97,30 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 		logger.Error(err)
 		return nil, nil, errors.ErrUserNotFound
 	}
-	// TODO: циклы
-	for i, _ := range adminsBoards {
-		for j, _ := range adminsBoards[i].Admins {
-			adminsBoards[i].Admins[j].Password = ""
-		}
-		for j, _ := range adminsBoards[i].Members {
-			adminsBoards[i].Members[j].Password = ""
-		}
-	}
 	var membersBoards []models.Board
 	err = userStore.DB.Model(usr).Preload("Members").Related(&membersBoards, "Member").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, nil, errors.ErrBoardNotFound
 	}
-	for i, _ := range membersBoards {
-		for j, _ := range membersBoards[i].Admins {
-			membersBoards[i].Admins[j].Password = ""
-		}
-		for j, _ := range membersBoards[i].Members {
-			membersBoards[i].Members[j].Password = ""
-		}
-	}
 	return adminsBoards, membersBoards, nil
 }
 
-func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal
 	}
 	oldUser := new(models.User)
-	if err := userStore.DB.First(&oldUser, newUser.ID).Error; err != nil {
+	if err := userStore.DB.Where("id = ?", newUser.ID).First(&oldUser).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrUserNotFound
 	}
-	if oldPass != "" && newUser.Password != "" {
-		if oldUser.Password != oldPass {
+	if len(oldPass) != 0 && len(newUser.Password) != 0 {
+		if !CheckPassword(oldPass, oldUser.Password) {
+			logger.Error(errors.ErrWrongPassword)
 			return errors.ErrWrongPassword
 		}
-		oldUser.Password = newUser.Password
+		oldUser.Password = HashPasswordGenSalt(newUser.Password)
 	}
 	if newUser.Name != "" {
 		oldUser.Name = newUser.Name
@@ -123,6 +138,7 @@ func (userStore *UserStore) Update(oldPass string, newUser *models.User, avatarF
 	if avatarFileDescriptor != nil {
 		urlToSave, err := uploadAvatarToStaticStorage(avatarFileDescriptor, oldUser.Nickname)
 		if err != nil {
+			logger.Error(err)
 			return errors.ErrBadAvatarUpload
 		} else {
 			oldUser.Avatar = urlToSave
