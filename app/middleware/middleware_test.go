@@ -2,10 +2,24 @@ package middleware_test
 
 import (
 	"flag"
+	"net/http"
 	"os"
 	"testing"
 
+	test "net/http/httptest"
+
+	boardMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/mocks"
+	columnMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/mocks"
+	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
+	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/mocks"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
+	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TODO: поднять отдельный пакет, в котором будет общие параметры
@@ -28,21 +42,33 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// func TestCORS(t *testing.T) {
-// 	e := echo.New()
-// 	request := test.NewRequest(echo.GET, "/", nil)
-// 	response := test.NewRecorder()
-// 	context := e.NewContext(request, response)
-// 	middle := middleware.InitMiddleware()
+func TestCORS(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
 
-// 	executableHandler := middle.CORS(echo.HandlerFunc(func(c echo.Context) error {
-// 		return c.NoContent(http.StatusOK)
-// 	}))
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	err := executableHandler(context)
-// 	require.NoError(t, err)
-// 	assert.Equal(t, "http://localhost:5757", response.Header().Get("Access-Control-Allow-Origin"))
-// }
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	boardUsecaseMock := boardMocks.NewMockUseCase(ctrl)
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
+
+	middle := middleware.CreateMiddleware(sessionUsecaseMock, boardUsecaseMock, columnUsecaseMock, taskUsecaseMock)
+
+	e := echo.New()
+	request := test.NewRequest(echo.GET, "/", nil)
+	response := test.NewRecorder()
+	context := e.NewContext(request, response)
+
+	executableHandler := middle.CORS(echo.HandlerFunc(func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	}))
+
+	err := executableHandler(context)
+	require.NoError(t, err)
+	assert.Equal(t, "http://localhost:5757", response.Header().Get("Access-Control-Allow-Origin"))
+}
 
 // func TestPanicProcess(t *testing.T) {
 // 	e := echo.New()
