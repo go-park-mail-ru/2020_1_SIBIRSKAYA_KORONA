@@ -127,7 +127,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	oldPass := []byte(ctx.FormValue("oldPassword"))
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
-		//logger.Error(err)
+		logger.Error(err)
 	}
 	if err := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); err != nil {
 		logger.Error(err)

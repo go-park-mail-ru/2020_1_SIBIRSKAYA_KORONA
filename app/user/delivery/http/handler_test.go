@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 
 	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -44,8 +45,9 @@ func TestMain(m *testing.M) {
 	viper.SetConfigFile(test_opts.configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
-		//panic(err)
+		panic(err)
 	}
+	logger.InitLogger()
 
 	os.Exit(m.Run())
 }

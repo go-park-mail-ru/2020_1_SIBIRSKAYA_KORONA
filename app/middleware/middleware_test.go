@@ -8,11 +8,15 @@ import (
 
 	test "net/http/httptest"
 
+	"github.com/bxcodec/faker"
 	boardMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/board/mocks"
 	columnMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/mocks"
 	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
 	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/mocks"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/golang/mock/gomock"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/middleware"
@@ -36,6 +40,8 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
+
+	logger.InitLogger()
 
 	os.Exit(m.Run())
 }
@@ -147,5 +153,102 @@ func TestCheckAuth(t *testing.T) {
 
 	assert.Equal(t, withCookieContext.Get("uid").(uint), uint(10))
 	assert.Equal(t, withCookieContext.Get("sid").(string), "check_cookie")
+
+}
+
+func TestCSRFmiddle(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	boardUsecaseMock := boardMocks.NewMockUseCase(ctrl)
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
+
+	middle := middleware.CreateMiddleware(sessionUsecaseMock, boardUsecaseMock, columnUsecaseMock, taskUsecaseMock)
+
+	e := echo.New()
+
+	noTokenRequest := test.NewRequest(echo.GET, "/", nil)
+	noTokenResponse := test.NewRecorder()
+	noTokenContext := e.NewContext(noTokenRequest, noTokenResponse)
+
+	withTokenRequest := test.NewRequest(echo.GET, "/", nil)
+	withTokenResponse := test.NewRecorder()
+	withTokenContext := e.NewContext(withTokenRequest, withTokenResponse)
+
+	testHandler := echo.HandlerFunc(func(context echo.Context) error {
+		return context.NoContent(http.StatusOK)
+	})
+
+	executableHandler := middle.CSRFmiddle(testHandler)
+
+	noTokenErr := executableHandler(noTokenContext)
+	require.NoError(t, noTokenErr)
+	assert.Equal(t, noTokenContext.Response().Status, http.StatusForbidden)
+
+	withTokenRequest.Header.Set(csrf.CSRFheader, "invalid")
+	withTokenContext.Set("sid", "test_sid")
+
+	withTokenErr := executableHandler(withTokenContext)
+	require.NoError(t, withTokenErr)
+	assert.Equal(t, withTokenContext.Response().Status, http.StatusForbidden)
+
+}
+
+func TestCheckBoardMemberPermission(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	boardUsecaseMock := boardMocks.NewMockUseCase(ctrl)
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
+
+	middle := middleware.CreateMiddleware(sessionUsecaseMock, boardUsecaseMock, columnUsecaseMock, taskUsecaseMock)
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testUser)
+
+	var testBoard models.Board
+	err = faker.FakeData(&testBoard)
+	testBoard.ID = 10
+	assert.NoError(t, err)
+	t.Logf("%+v", testBoard)
+
+	e := echo.New()
+
+	bidRequest := test.NewRequest(echo.PUT, "/", nil)
+	bidResponse := test.NewRecorder()
+
+	bidContext := e.NewContext(bidRequest, bidResponse)
+	bidContext.SetPath("/boards/:bid")
+	bidContext.SetParamNames("bid")
+	//bidContext.SetParamValues(string(testUser.ID))
+
+	bidContext.Set("uid", testUser.ID)
+
+	// boardUsecaseMock.EXPECT().
+	// 	Get(testUser.ID, testBoard.ID, false).
+	// 	Return(nil, nil)
+
+	testHandler := echo.HandlerFunc(func(context echo.Context) error {
+		return context.NoContent(http.StatusOK)
+	})
+
+	executableHandler := middle.CheckBoardAdminPermission(testHandler)
+
+	bidErr := executableHandler(bidContext)
+	//bidErr := testHandler(c)
+	require.NoError(t, bidErr)
+	assert.Equal(t, bidContext.Response().Status, http.StatusBadRequest)
 
 }
