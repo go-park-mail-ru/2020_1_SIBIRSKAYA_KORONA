@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
 var test_opts struct {
@@ -181,5 +181,60 @@ func TestGetByNickName(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	mock, db := SetupDB()
+	defer db.Close()
+	defer mock.ExpectClose()
+	usr := models.User{
+		ID:       904,
+		Name:     "name",
+		Surname:  "surname",
+		Nickname: "lovelovelove",
+		Email:    "email",
+		Avatar:   "avatar",
+		Password: []byte("lovelove"),
+	}
+	repo := repository.CreateRepository(db)
+
+	mock.ExpectQuery(`SELECT (\*) FROM (.*)"users" WHERE (.*)"users"."id" (.*) LIMIT 1`).WithArgs(
+		usr.ID).WillReturnRows(sqlmock.NewRows(
+		[]string{"id", "name", "surname", "nickname", "email", "avatar", "password"}).AddRow(
+		usr.ID, usr.Name, usr.Surname, usr.Nickname, usr.Email, usr.Avatar, usr.Password))
+
+	usr.Name = "name1"
+	usr.Surname = "name1"
+	usr.Nickname = "name1"
+	usr.Email = "name1"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE (.*)"users" SET (.*) WHERE (.*)"users"`).WithArgs(
+		usr.Name, usr.Surname, usr.Nickname, usr.Email, usr.Avatar, usr.Password, usr.ID).WillReturnResult(
+		sqlmock.NewResult(int64(usr.ID), 1))
+	mock.ExpectCommit()
+
+	if err := repo.Update(nil, &usr, nil); err != nil {
+		t.Fatalf("unexpected error %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	// error
+	usr.ID++
+	mock.ExpectQuery(`SELECT (\*) FROM (.*)"users" WHERE (.*)"users"."id" (.*) LIMIT 1`).WithArgs(
+		usr.ID).WillReturnError(errors.ErrUserNotFound)
+	if err := repo.Update(nil, &usr, nil); err == nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
 	}
 }

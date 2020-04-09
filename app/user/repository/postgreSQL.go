@@ -75,7 +75,6 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
-	usr.Password = nil
 	return usr, nil
 }
 
@@ -85,7 +84,6 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
-	usr.Password = nil
 	return usr, nil
 }
 
@@ -97,28 +95,11 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 		logger.Error(err)
 		return nil, nil, errors.ErrUserNotFound
 	}
-	// TODO: циклы
-	for i, _ := range adminsBoards {
-		for j, _ := range adminsBoards[i].Admins {
-			adminsBoards[i].Admins[j].Password = nil
-		}
-		for j, _ := range adminsBoards[i].Members {
-			adminsBoards[i].Members[j].Password = nil
-		}
-	}
 	var membersBoards []models.Board
 	err = userStore.DB.Model(usr).Preload("Members").Related(&membersBoards, "Member").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, nil, errors.ErrBoardNotFound
-	}
-	for i, _ := range membersBoards {
-		for j, _ := range membersBoards[i].Admins {
-			membersBoards[i].Admins[j].Password = nil
-		}
-		for j, _ := range membersBoards[i].Members {
-			membersBoards[i].Members[j].Password = nil
-		}
 	}
 	return adminsBoards, membersBoards, nil
 }
@@ -128,7 +109,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarF
 		return errors.ErrInternal
 	}
 	oldUser := new(models.User)
-	if err := userStore.DB.First(&oldUser, newUser.ID).Error; err != nil {
+	if err := userStore.DB.Where("id = ?", newUser.ID).First(&oldUser).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrUserNotFound
 	}
