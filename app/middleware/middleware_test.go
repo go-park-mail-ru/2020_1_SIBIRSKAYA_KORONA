@@ -22,12 +22,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO: поднять отдельный пакет, в котором будет общие параметры
 var test_opts struct {
 	configPath string
 }
 
-// должны поднять конфиг для тестов
 func TestMain(m *testing.M) {
 	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
 	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
@@ -71,6 +69,7 @@ func TestCORS(t *testing.T) {
 }
 
 func TestPanicProcess(t *testing.T) {
+	// t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -101,33 +100,52 @@ func TestPanicProcess(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// func TestCheckCookieExist(t *testing.T) {
-// 	e := echo.New()
+func TestCheckAuth(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
 
-// 	middle := middleware.InitMiddleware()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	noCookieRequest := test.NewRequest(echo.GET, "/", nil)
-// 	noCookieResponse := test.NewRecorder()
-// 	noCookieContext := e.NewContext(noCookieRequest, noCookieResponse)
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	boardUsecaseMock := boardMocks.NewMockUseCase(ctrl)
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
 
-// 	withCookieRequest := test.NewRequest(echo.GET, "/", nil)
-// 	withCookieResponse := test.NewRecorder()
-// 	withCookieContext := e.NewContext(withCookieRequest, withCookieResponse)
+	middle := middleware.CreateMiddleware(sessionUsecaseMock, boardUsecaseMock, columnUsecaseMock, taskUsecaseMock)
 
-// 	cookie := http.Cookie{Name: "session_id", Value: "check_only_for_exist"}
-// 	withCookieContext.Request().AddCookie(&cookie)
+	e := echo.New()
 
-// 	testHandler := echo.HandlerFunc(func(context echo.Context) error {
-// 		return context.NoContent(http.StatusOK)
-// 	})
+	noCookieRequest := test.NewRequest(echo.GET, "/", nil)
+	noCookieResponse := test.NewRecorder()
+	noCookieContext := e.NewContext(noCookieRequest, noCookieResponse)
 
-// 	executableHandler := middle.AuthByCookie(testHandler)
+	withCookieRequest := test.NewRequest(echo.GET, "/", nil)
+	withCookieResponse := test.NewRecorder()
+	withCookieContext := e.NewContext(withCookieRequest, withCookieResponse)
 
-// 	noCookieErr := executableHandler(noCookieContext)
-// 	require.NoError(t, noCookieErr)
-// 	assert.Equal(t, noCookieContext.Response().Status, http.StatusForbidden)
+	cookie := http.Cookie{Name: "session_id", Value: "check_cookie"}
+	withCookieContext.Request().AddCookie(&cookie)
 
-// 	withCookieErr := executableHandler(withCookieContext)
-// 	require.NoError(t, withCookieErr)
-// 	assert.Equal(t, withCookieContext.Response().Status, http.StatusOK)
-// }
+	sessionUsecaseMock.EXPECT().
+		Get("check_cookie").
+		Return(uint(10), true)
+
+	testHandler := echo.HandlerFunc(func(context echo.Context) error {
+		return context.NoContent(http.StatusOK)
+	})
+
+	executableHandler := middle.CheckAuth(testHandler)
+
+	noCookieErr := executableHandler(noCookieContext)
+	require.NoError(t, noCookieErr)
+	assert.Equal(t, noCookieContext.Response().Status, http.StatusUnauthorized)
+
+	withCookieErr := executableHandler(withCookieContext)
+	require.NoError(t, withCookieErr)
+	assert.Equal(t, withCookieContext.Response().Status, http.StatusOK)
+
+	assert.Equal(t, withCookieContext.Get("uid").(uint), uint(10))
+	assert.Equal(t, withCookieContext.Get("sid").(string), "check_cookie")
+
+}
