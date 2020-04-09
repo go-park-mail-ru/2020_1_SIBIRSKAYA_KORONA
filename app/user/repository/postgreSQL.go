@@ -71,7 +71,7 @@ func (userStore *UserStore) Create(usr *models.User) error {
 
 func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 	usr := new(models.User)
-	if err := userStore.DB.First(&usr, id).Error; err != nil {
+	if err := userStore.DB.Where("id = ?", id).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
@@ -133,7 +133,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarF
 		return errors.ErrUserNotFound
 	}
 	if oldPass != nil && newUser.Password != nil {
-		if !CheckPassword(oldPass, oldUser.Password)  {
+		if !CheckPassword(oldPass, oldUser.Password) {
 			logger.Error(errors.ErrWrongPassword)
 			return errors.ErrWrongPassword
 		}
