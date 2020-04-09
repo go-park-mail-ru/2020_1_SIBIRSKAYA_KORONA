@@ -1,0 +1,37 @@
+components:
+  schemas:
+    User:
+      type: "object"
+      required:
+        - "name"
+        - "nickname"
+        - "password"
+        - "email"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        surname:
+          type: "string"
+        nickname:
+          type: "string"
+        email:
+          type: "string"
+        path-to-avatar:
+          type: "string"
+        password:
+          type: "string"
+
+    ApiResponse:
+      type: "object"
+      properties:
+        status:
+          type: "integer"
+          format: "int32"
+  securitySchemes:
+    app_id:
+      type: apiKey
+      description: API key to authorize requests. If you don't have an OpenWeatherMap API key, use `fd4698c940c6d1da602a70ac34f0b147`.
+      name: appid
+      in: query        

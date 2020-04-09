@@ -1,0 +1,40 @@
+version: "2.3"
+
+services:
+  web:
+    image: drello-backend
+    container_name: drello-backend-api
+    ports:
+      - "8080:8080"
+
+    volumes:
+      # Отображение для сохранения картинки из под докера в папку фронтенда
+      - /home/ubuntu/frontend/public:/app/public
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      memcached:
+        condition: service_started
+
+  memcached:
+    container_name: memcached_container
+    image: 'bitnami/memcached:latest'
+    ports:
+      - "11211:11211"
+  
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_DB: drello_db
+      POSTGRES_USER: drello_user
+      POSTGRES_PASSWORD: drello1234
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "--dbname", "drello_db", "--host", "postgres", "--port", "5432", "--username", "drello_user"]
+      timeout: 2s
+      retries: 2
+      start_period: 3s

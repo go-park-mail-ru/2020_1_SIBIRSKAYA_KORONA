@@ -1,0 +1,21 @@
+components:
+  schemas:
+    Column:
+      type: "object"
+      required:
+        - "id"
+        - "title"
+      properties:
+        id:
+          type: "integer"
+        title:
+          type: "string"
+        position:
+          type: "number"
+          format: "double"  
+        tasks:
+          type: "array"
+          items:
+            $ref: "task.yaml#/components/schemas/Task"
+        bid:
+          type: "integer"
