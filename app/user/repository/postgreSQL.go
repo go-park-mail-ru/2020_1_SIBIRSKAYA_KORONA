@@ -2,9 +2,10 @@ package repository
 
 import (
 	"bytes"
-	"golang.org/x/crypto/argon2"
 	"io"
 	"os"
+
+	"golang.org/x/crypto/argon2"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user"
@@ -133,7 +134,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarF
 		logger.Error(err)
 		return errors.ErrUserNotFound
 	}
-	if oldPass != nil && newUser.Password != nil {
+	if len(oldPass) != 0 && len(newUser.Password) != 0 {
 		if !CheckPassword(oldPass, oldUser.Password) {
 			logger.Error(errors.ErrWrongPassword)
 			return errors.ErrWrongPassword
