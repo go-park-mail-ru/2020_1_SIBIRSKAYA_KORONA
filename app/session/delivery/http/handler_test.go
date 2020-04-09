@@ -77,6 +77,35 @@ func TestLogIn(t *testing.T) {
 	err = handler.LogIn(context)
 
 	assert.NoError(t, err)
-	
+
 	assert.Equal(t, context.Response().Status, http.StatusBadRequest)
+}
+
+func TestLogOut(t *testing.T) {
+	//t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessionUsecaseMock := sessionMocks.NewMockUseCase(ctrl)
+	handler := sessionHandler.CreateHandlerTest(sessionUsecaseMock)
+
+	router := echo.New()
+
+	request := test.NewRequest(echo.POST, "/session", nil)
+	response := test.NewRecorder()
+
+	context := router.NewContext(request, response)
+	context.Set("sid", "test_cookie")
+
+	sessionUsecaseMock.EXPECT().
+		Delete("test_cookie").
+		Return(nil)
+
+	err := handler.LogOut(context)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, context.Response().Status, http.StatusOK)
 }

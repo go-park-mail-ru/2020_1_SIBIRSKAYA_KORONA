@@ -77,7 +77,6 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
 	}
-	usr.Password = nil
 	return usr, nil
 }
 
