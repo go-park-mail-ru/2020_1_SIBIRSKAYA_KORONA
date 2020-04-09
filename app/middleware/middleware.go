@@ -62,7 +62,7 @@ func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		if ctx.Request().Header.Get("Origin") != mr.frontendUrl {
+		if ctx.Request().Header.Get("Origin") != mw.frontendUrl {
 			return ctx.NoContent(http.StatusForbidden)
 		}
 
