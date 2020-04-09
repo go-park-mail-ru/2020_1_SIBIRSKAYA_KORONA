@@ -47,7 +47,8 @@ func HashPasswordGenSalt(password []byte) []byte {
 }
 
 func CheckPassword(pass, realHashPass []byte) bool {
-	salt := realHashPass[0:8]
+	var salt []byte
+	salt = append(salt, realHashPass[0:8]...)
 	return bytes.Equal(HashPassword(salt, pass), realHashPass)
 }
 
@@ -133,7 +134,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarF
 		return errors.ErrUserNotFound
 	}
 	if oldPass != nil && newUser.Password != nil {
-		if !CheckPassword(oldPass, oldUser.Password)  {
+		if !CheckPassword(oldPass, oldUser.Password) {
 			logger.Error(errors.ErrWrongPassword)
 			return errors.ErrWrongPassword
 		}

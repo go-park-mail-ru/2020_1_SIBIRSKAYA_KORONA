@@ -95,6 +95,7 @@ func (server *Server) Run() {
 	// delivery
 	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase)
 	router := echo.New()
+	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
 	sessionHandler.CreateHandler(router, sUseCase, mw)
