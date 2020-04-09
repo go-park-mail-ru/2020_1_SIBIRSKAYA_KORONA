@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,9 +25,16 @@ func CreateColumn(ctx echo.Context) *Column {
 	if err != nil {
 		return nil
 	}
+
 	defer ctx.Request().Body.Close()
+
+	sanBody, err := sanitize.SanitizeJSON(body)
+	if err != nil {
+		return nil
+	}
+
 	column := new(Column)
-	if json.Unmarshal(body, column) != nil {
+	if json.Unmarshal(sanBody, column) != nil {
 		return nil
 	}
 	return column
