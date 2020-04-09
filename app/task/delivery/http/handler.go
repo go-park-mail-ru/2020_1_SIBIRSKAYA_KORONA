@@ -17,6 +17,12 @@ type TaskHandler struct {
 	useCase task.UseCase
 }
 
+func CreateHandlerTest(taskCase task.UseCase) *TaskHandler {
+	return &TaskHandler{
+		useCase: taskCase,
+	}
+}
+
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMiddleware) {
 	handler := &TaskHandler{useCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
