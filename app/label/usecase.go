@@ -1,7 +1,6 @@
-package user
+package label
 
-import (
-)
+import ()
 
 //go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/user_usecase_mock.go
 type UseCase interface {
