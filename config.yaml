@@ -27,7 +27,7 @@ frontend: {
   protocol: http,
   ip: 89.208.197.150,
   port: 5757,
-  public_dir: /app/public,
+  public_dir: /home/timofeyrazumov/TP/front/2020_1_SIBIRSKAYA_KORONA/public,
   #relative
   avatar_dir: /img/avatar,
   default_avatar: /img/default_avatar.png
