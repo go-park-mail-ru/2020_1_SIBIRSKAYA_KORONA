@@ -28,22 +28,25 @@ memcached: {
 frontend: {
   protocol: http,
   ip: localhost,
-  port: 5757,
+  port: 80,
   #public_dir задается в переменной окружения
-  
+
   #относительно public_dir
   avatar_dir: /img/avatar,
   default_avatar: /img/default_avatar.png
 }
 
 cors: {
-  allowed_origins: [ 
+  allowed_origins: [
     http://89.208.197.150,
     https://89.208.197.150,
+    http://localhost,
     http://localhost:5757,
+    https://localhost,
+    https://localhost:5757,
     http://drello.works,
     https://drello.works,
   ]
-    
+
   #добавить 5757 порт для запросов с доки
 }
