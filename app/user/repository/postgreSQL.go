@@ -175,7 +175,11 @@ func uploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, nic
 		return "", err
 	}
 	avatarFileName := fmt.Sprintf("%s.%s", nickname, format)
-	avatarPath := fmt.Sprintf("%s/%s", viper.GetString("frontend.public_dir")+viper.GetString("frontend.avatar_dir"), avatarFileName)
+	publicDirPath, exists := os.LookupEnv("DRELLO_PUBLIC_DIR")
+	if !exists {
+		logger.Error("DRELLO_PUBLIC_DIR environment variable not exist")
+	}
+	avatarPath := fmt.Sprintf("%s/%s", publicDirPath+viper.GetString("frontend.avatar_dir"), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		logger.Error(err)

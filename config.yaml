@@ -29,9 +29,9 @@ frontend: {
   protocol: http,
   ip: localhost,
   port: 5757,
-  public_dir: /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public,
-  #public_dir: /app/public,
-  #relative
+  #public_dir задается в переменной окружения
+  
+  #относительно public_dir
   avatar_dir: /img/avatar,
   default_avatar: /img/default_avatar.png
 }
