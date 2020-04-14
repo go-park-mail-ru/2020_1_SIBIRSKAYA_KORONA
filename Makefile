@@ -19,7 +19,8 @@ test-coverpkg:
 check-report:
 	go tool cover -html=${TEST_COVER_TARGET}
 check-summary:
-	go tool cover -func=${TEST_COVER_TARGET}
+	grep -v mock ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-2
+	go tool cover -func=${TEST_COVER_TARGET}-2
 
 # docker
 build-binary:
