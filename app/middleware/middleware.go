@@ -21,6 +21,7 @@ import (
 )
 
 type GoMiddleware struct {
+	origins     map[string]struct{}
 	frontendUrl string
 	serverMode  string
 
@@ -31,7 +32,14 @@ type GoMiddleware struct {
 }
 
 func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
+	origins_ := make(map[string]struct{})
+	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
+		origins_[key] = struct{}{}
+	}
+
 	return &GoMiddleware{
+		origins: origins_,
+
 		frontendUrl: fmt.Sprintf("%s://%s:%s",
 			viper.GetString("frontend.protocol"),
 			viper.GetString("frontend.ip"),
@@ -62,7 +70,8 @@ func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		if ctx.Request().Header.Get("Origin") != mw.frontendUrl {
+		origin := ctx.Request().Header.Get("Origin")
+		if _, exist := mw.origins[origin]; !exist {
 			return ctx.NoContent(http.StatusForbidden)
 		}
 

@@ -29,9 +29,21 @@ frontend: {
   protocol: http,
   ip: localhost,
   port: 5757,
-  public_dir: /home/timofeyrazumov/TP/front/2020_1_SIBIRSKAYA_KORONA/public,
+  public_dir: /home/q273/Techno/secondSem/TrelloFrontend/2020_1_SIBIRSKAYA_KORONA/public,
   #public_dir: /app/public,
   #relative
   avatar_dir: /img/avatar,
   default_avatar: /img/default_avatar.png
+}
+
+cors: {
+  allowed_origins: [ 
+    http://89.208.197.150,
+    https://89.208.197.150,
+    http://localhost:5757,
+    http://drello.works,
+    https://drello.works,
+  ]
+    
+  #добавить 5757 порт для запросов с доки
 }
