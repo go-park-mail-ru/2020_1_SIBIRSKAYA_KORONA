@@ -106,6 +106,18 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 	return adminsBoards, membersBoards, nil
 }
 
+func (userStore *UserStore) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
+	var users []models.User
+	// db.Limit(3).Where("nickname LIKE ?",  nickname + "%").Find(&users)
+	err := userStore.DB.Limit(limit).Where("nickname LIKE ?", nicknamePart+"%").Find(&users).Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrUserNotFound
+	}
+
+	return users, nil
+}
+
 func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal

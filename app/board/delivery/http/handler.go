@@ -27,7 +27,10 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.PUT("/boards/:bid", handler.Update, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
+	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
 
+	//POST      /boards/{bid}/members/           // {id: uid}
 	//router.GET("/boards/:bid/labels", handler.throwError)
 	//router.POST("/boards/:bid/labels", handler.throwError)
 	//router.GET("/boards/:bid/labels/:lid", handler.throwError)
@@ -94,5 +97,49 @@ func (boardHandler *BoardHandler) Update(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (BoardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
+	var bid uint
+	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	var uid uint
+	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err = BoardHandler.useCase.InviteMember(bid, uid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (BoardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
+	var bid uint
+	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	var uid uint
+	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err = BoardHandler.useCase.DeleteMember(bid, uid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+
 	return ctx.NoContent(http.StatusOK)
 }

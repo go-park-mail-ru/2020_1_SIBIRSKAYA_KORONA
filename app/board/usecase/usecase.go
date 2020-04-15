@@ -75,3 +75,33 @@ func (boardUseCase *BoardUseCase) Delete(bid uint) error {
 	}
 	return nil
 }
+
+func (boardUseCase *BoardUseCase) InviteMember(bid uint, uid uint) error {
+	usr, err := boardUseCase.userRepo.GetByID(uid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	err = boardUseCase.boardRepo.InviteMember(bid, usr)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (boardUseCase *BoardUseCase) DeleteMember(bid uint, uid uint) error {
+	usr, err := boardUseCase.userRepo.GetByID(uid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	err = boardUseCase.boardRepo.DeleteMember(bid, usr)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
