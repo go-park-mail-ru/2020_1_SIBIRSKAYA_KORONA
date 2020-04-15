@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+
+package proto;
+
+service Session {
+    rpc Create (CreateMess) returns (ErrorMess);
+}
+
+message ErrorMess {
+    string error = 1;
+}
+
+message CreateMess {
+    string sid = 1;
+    uint32 uid = 2;
+    int32 expiration = 3;
+}
+
+message LoginResult {
+    string session = 1;
+    string error = 2;
+}
