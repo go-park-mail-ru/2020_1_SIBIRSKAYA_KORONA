@@ -29,7 +29,12 @@ func main() {
 
 	logger.InitLogger()
 
-	avatarDir := viper.GetString("frontend.public_dir") + viper.GetString("frontend.avatar_dir")
+	publicDirPath, exists := os.LookupEnv("DRELLO_PUBLIC_DIR")
+	if !exists {
+		log.Fatal("DRELLO_PUBLIC_DIR environment variable not exist")
+	}
+
+	avatarDir := publicDirPath + viper.GetString("frontend.avatar_dir")
 
 	_, avatarErr := os.Stat(avatarDir)
 	if os.IsNotExist(avatarErr) {

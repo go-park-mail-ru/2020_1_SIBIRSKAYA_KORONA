@@ -20,8 +20,8 @@ import (
 )
 
 type GoMiddleware struct {
-	frontendUrl string
-	serverMode  string
+	origins    map[string]struct{}
+	serverMode string
 
 	sUseCase session.UseCase
 	bUseCase board.UseCase
@@ -30,18 +30,18 @@ type GoMiddleware struct {
 }
 
 func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
+	origins_ := make(map[string]struct{})
+	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
+		origins_[key] = struct{}{}
+	}
+
 	return &GoMiddleware{
-		frontendUrl: fmt.Sprintf("%s://%s:%s",
-			viper.GetString("frontend.protocol"),
-			viper.GetString("frontend.ip"),
-			viper.GetString("frontend.port")),
-
+		origins:    origins_,
 		serverMode: viper.GetString("server.mode"),
-
-		sUseCase: sUseCase_,
-		bUseCase: bUseCase_,
-		cUseCase: cUseCase_,
-		tUseCase: tUseCase_,
+		sUseCase:   sUseCase_,
+		bUseCase:   bUseCase_,
+		cUseCase:   cUseCase_,
+		tUseCase:   tUseCase_,
 	}
 }
 
@@ -61,11 +61,12 @@ func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		if ctx.Request().Header.Get("Origin") != mw.frontendUrl {
+		origin := ctx.Request().Header.Get("Origin")
+		if _, exist := mw.origins[origin]; !exist {
 			return ctx.NoContent(http.StatusForbidden)
 		}
 
-		ctx.Response().Header().Set("Access-Control-Allow-Origin", mw.frontendUrl)
+		ctx.Response().Header().Set("Access-Control-Allow-Origin", origin)
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
 		ctx.Response().Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Csrf-Token")

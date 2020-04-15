@@ -49,6 +49,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 			Path:    "/",
 			Expires: sessionExpires,
 			// SameSite: http.SameSiteStrictMode,
+			HttpOnly: true,
 		}
 		ctx.SetCookie(cookie)
 		return ctx.NoContent(http.StatusOK)

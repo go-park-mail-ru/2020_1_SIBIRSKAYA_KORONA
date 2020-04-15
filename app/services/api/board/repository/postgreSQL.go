@@ -81,3 +81,37 @@ func (boardStore *BoardStore) Delete(bid uint) error {
 	}
 	return nil
 }
+
+func (boardStore *BoardStore) InviteMember(bid uint, member *models.User) error {
+	brd := new(models.Board)
+	err := boardStore.DB.First(brd, bid).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrBoardNotFound
+	}
+
+	err = boardStore.DB.Model(&brd).Association("Members").Append(member).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrBoardNotFound
+	}
+
+	return nil
+}
+
+func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error {
+	brd := new(models.Board)
+	err := boardStore.DB.First(brd, bid).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrBoardNotFound
+	}
+
+	err = boardStore.DB.Model(&brd).Association("Members").Delete(member).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrBoardNotFound
+	}
+
+	return nil
+}
