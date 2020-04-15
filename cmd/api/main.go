@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/server"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	
 	"github.com/spf13/viper"
 )
 
