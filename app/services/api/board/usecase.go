@@ -11,4 +11,6 @@ type UseCase interface {
 	GetColumnsByID(bid uint) ([]models.Column, error)
 	Update(board *models.Board) error
 	Delete(bid uint) error
+	InviteMember(bid uint, uid uint) error
+	DeleteMember(bid uint, uid uint) error
 }

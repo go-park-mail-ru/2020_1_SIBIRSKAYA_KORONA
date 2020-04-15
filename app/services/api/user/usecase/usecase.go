@@ -70,6 +70,16 @@ func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []model
 	return adminsBoard, membersBoard, nil
 }
 
+func (userUseCase *UserUseCase) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
+	users, err := userUseCase.userRepo.GetUsersByNicknamePart(nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (userUseCase *UserUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal

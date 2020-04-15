@@ -38,6 +38,33 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	router.GET("/boards", handler.GetBoards, mw.CheckAuth)
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
+	//GET       /search/profile?nickname={part_of_nickname}
+	router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
+}
+
+func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
+	nicknamePart := ctx.QueryParam("nickname")
+	if nicknamePart == "" {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	var limit uint
+	_, err := fmt.Sscan(ctx.QueryParam("limit"), &limit)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	usersData, err := userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+
+	body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {

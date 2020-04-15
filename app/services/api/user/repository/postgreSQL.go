@@ -106,6 +106,18 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 	return adminsBoards, membersBoards, nil
 }
 
+func (userStore *UserStore) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
+	var users []models.User
+	// db.Limit(3).Where("nickname LIKE ?",  nickname + "%").Find(&users)
+	err := userStore.DB.Limit(limit).Where("nickname LIKE ?", nicknamePart+"%").Find(&users).Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrUserNotFound
+	}
+
+	return users, nil
+}
+
 func (userStore *UserStore) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	if newUser == nil {
 		return errors.ErrInternal
@@ -175,7 +187,11 @@ func uploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, nic
 		return "", err
 	}
 	avatarFileName := fmt.Sprintf("%s.%s", nickname, format)
-	avatarPath := fmt.Sprintf("%s/%s", viper.GetString("frontend.public_dir")+viper.GetString("frontend.avatar_dir"), avatarFileName)
+	publicDirPath, exists := os.LookupEnv("DRELLO_PUBLIC_DIR")
+	if !exists {
+		logger.Error("DRELLO_PUBLIC_DIR environment variable not exist")
+	}
+	avatarPath := fmt.Sprintf("%s/%s", publicDirPath+viper.GetString("frontend.avatar_dir"), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		logger.Error(err)

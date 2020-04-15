@@ -11,4 +11,6 @@ type Repository interface {
 	GetColumnsByID(bid uint) ([]models.Column, error)
 	Update(board *models.Board) error
 	Delete(bid uint) error
+	InviteMember(bid uint, member *models.User) error
+	DeleteMember(bid uint, member *models.User) error
 }

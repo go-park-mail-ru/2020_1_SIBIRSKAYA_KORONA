@@ -33,4 +33,67 @@ paths:
           description: "Пользователь не найден"
 
         500:
-          description: "Внутренная ошибка при маршалинге найденного пользователя"  
+          description: "Внутренная ошибка при маршалинге найденного пользователя"
+
+  /search/profile?nickname={part_of_nickname}&limit={limit}:
+    get:
+      tags:
+      - "profile"
+      summary: "Поиск пользователей по части никнейма"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Часть никнейма
+          example: Nic
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Максимум пользователей, которые может вернуться в ответ на запрос
+          
+      responses:
+        200:
+          description: "Корректный запрос, возвращаем пользователей"
+
+          content:
+            application/json:
+              schema:
+                - $ref: "../models/user.yaml#/components/schemas/User"
+              example: 
+                user: [
+                  {
+                    "id": 110323,
+                    "name": "Sasha",
+                    "surname": "Upkin",
+                    "nickname": "Nickname1",
+                    "email": "VasyaPupkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Vova1.png",
+                  },
+                  {
+                    "id": 110,
+                    "name": "Vasya",
+                    "surname": "Ppkin",
+                    "nickname": "NickNick",
+                    "email": "SashaUpkin@gmail.com",
+                    "avatar": "http://localhost:5757/img/avatar/Legolas1.png",
+                  }
+                ]
+        400:
+          description: "Неправильно построенный запрос (неверные query-параметры)"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        500:
+          description: "Внутренная ошибка сервера" 

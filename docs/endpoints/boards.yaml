@@ -830,3 +830,100 @@ paths:
 
         500:
           description: "Внутренняя ошибка сервера"             
+
+  /boards/{bid}/members/{uid}:
+    post:
+      tags:
+      - "boards"
+      summary: "Приглашаем пользователя в доску"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер пользователя
+          example: 4
+
+      responses:
+        200:
+          description: "Успешно добавили юзера"
+
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"
+
+        404:
+          description: "Не существует такого пользователя (невалидный uid)" 
+
+        500:
+          description: "Внутренняя ошибка сервера"
+
+    delete:
+      tags:
+      - "boards"
+      summary: "Удаляем пользователя с доски"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер пользователя
+          example: 4
+
+      responses:
+        200:
+          description: "Успешно удалили юзера"
+
+        400:
+          description: "Неверные параметры запроса"
+
+        401:
+          description: "В запросе отсутствует кука"
+
+        403:
+          description: "Недостаточно прав для совершения операции"
+
+        404:
+          description: "Не существует такого пользователя (невалидный uid)" 
+
+        500:
+          description: "Внутренняя ошибка сервера"
+   
+      
