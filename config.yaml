@@ -26,9 +26,9 @@ memcached: {
 }
 
 frontend: {
-  protocol: http,
+  protocol: https,
   ip: localhost,
-  port: 80,
+  port: 443,
   #public_dir задается в переменной окружения
 
   #относительно public_dir
