@@ -6,9 +6,11 @@ import (
 	"net"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/dilivery/grpc"
-
+	sessionRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/repository"
+	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -24,6 +26,14 @@ func (server *Server) GetAddr() string {
 
 // TODO: логгер, конфиг
 func (server *Server) Run() {
+	// repo
+	memCacheClient := memcache.New("127.0.0.1:11211")
+	err := memCacheClient.Ping()
+	defer memCacheClient.DeleteAll()
+	sesRepo := sessionRepo.CreateRepository(memCacheClient)
+	// usecase
+	sesUseCase := sessionUseCase.CreateUseCase(sesRepo)
+	// handler
 	listener, err := net.Listen("tcp", server.GetAddr())
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +43,7 @@ func (server *Server) Run() {
 			MaxConnectionIdle: 5 * time.Minute,
 		},
 	))
-	proto.RegisterSessionServer(grpcSrv, handler.CreateHandler(nil))
+	proto.RegisterSessionServer(grpcSrv, handler.CreateHandler(sesUseCase))
 	log.Println("server start on address:", server.GetAddr())
 	if err := grpcSrv.Serve(listener); err != nil {
 		log.Fatal(err)

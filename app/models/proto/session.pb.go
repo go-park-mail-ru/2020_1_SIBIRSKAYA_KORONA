@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,46 +25,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type ErrorMess struct {
-	Error                string   `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ErrorMess) Reset()         { *m = ErrorMess{} }
-func (m *ErrorMess) String() string { return proto.CompactTextString(m) }
-func (*ErrorMess) ProtoMessage()    {}
-func (*ErrorMess) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3a6be1b361fa6f14, []int{0}
-}
-
-func (m *ErrorMess) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ErrorMess.Unmarshal(m, b)
-}
-func (m *ErrorMess) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ErrorMess.Marshal(b, m, deterministic)
-}
-func (m *ErrorMess) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ErrorMess.Merge(m, src)
-}
-func (m *ErrorMess) XXX_Size() int {
-	return xxx_messageInfo_ErrorMess.Size(m)
-}
-func (m *ErrorMess) XXX_DiscardUnknown() {
-	xxx_messageInfo_ErrorMess.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ErrorMess proto.InternalMessageInfo
-
-func (m *ErrorMess) GetError() string {
-	if m != nil {
-		return m.Error
-	}
-	return ""
-}
-
-type CreateMess struct {
+type CreateReq struct {
 	Sid                  string   `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	Uid                  uint32   `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
 	Expiration           int32    `protobuf:"varint,3,opt,name=expiration,proto3" json:"expiration,omitempty"`
@@ -72,103 +34,174 @@ type CreateMess struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateMess) Reset()         { *m = CreateMess{} }
-func (m *CreateMess) String() string { return proto.CompactTextString(m) }
-func (*CreateMess) ProtoMessage()    {}
-func (*CreateMess) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3a6be1b361fa6f14, []int{1}
+func (m *CreateReq) Reset()         { *m = CreateReq{} }
+func (m *CreateReq) String() string { return proto.CompactTextString(m) }
+func (*CreateReq) ProtoMessage()    {}
+func (*CreateReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3a6be1b361fa6f14, []int{0}
 }
 
-func (m *CreateMess) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateMess.Unmarshal(m, b)
+func (m *CreateReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateReq.Unmarshal(m, b)
 }
-func (m *CreateMess) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateMess.Marshal(b, m, deterministic)
+func (m *CreateReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateReq.Marshal(b, m, deterministic)
 }
-func (m *CreateMess) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateMess.Merge(m, src)
+func (m *CreateReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateReq.Merge(m, src)
 }
-func (m *CreateMess) XXX_Size() int {
-	return xxx_messageInfo_CreateMess.Size(m)
+func (m *CreateReq) XXX_Size() int {
+	return xxx_messageInfo_CreateReq.Size(m)
 }
-func (m *CreateMess) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateMess.DiscardUnknown(m)
+func (m *CreateReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateMess proto.InternalMessageInfo
+var xxx_messageInfo_CreateReq proto.InternalMessageInfo
 
-func (m *CreateMess) GetSid() string {
+func (m *CreateReq) GetSid() string {
 	if m != nil {
 		return m.Sid
 	}
 	return ""
 }
 
-func (m *CreateMess) GetUid() uint32 {
+func (m *CreateReq) GetUid() uint32 {
 	if m != nil {
 		return m.Uid
 	}
 	return 0
 }
 
-func (m *CreateMess) GetExpiration() int32 {
+func (m *CreateReq) GetExpiration() int32 {
 	if m != nil {
 		return m.Expiration
 	}
 	return 0
 }
 
-type LoginResult struct {
-	Session              string   `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
-	Error                string   `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+type GetReq struct {
+	Sid                  string   `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *LoginResult) Reset()         { *m = LoginResult{} }
-func (m *LoginResult) String() string { return proto.CompactTextString(m) }
-func (*LoginResult) ProtoMessage()    {}
-func (*LoginResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3a6be1b361fa6f14, []int{2}
+func (m *GetReq) Reset()         { *m = GetReq{} }
+func (m *GetReq) String() string { return proto.CompactTextString(m) }
+func (*GetReq) ProtoMessage()    {}
+func (*GetReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3a6be1b361fa6f14, []int{1}
 }
 
-func (m *LoginResult) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_LoginResult.Unmarshal(m, b)
+func (m *GetReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetReq.Unmarshal(m, b)
 }
-func (m *LoginResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_LoginResult.Marshal(b, m, deterministic)
+func (m *GetReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetReq.Marshal(b, m, deterministic)
 }
-func (m *LoginResult) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LoginResult.Merge(m, src)
+func (m *GetReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetReq.Merge(m, src)
 }
-func (m *LoginResult) XXX_Size() int {
-	return xxx_messageInfo_LoginResult.Size(m)
+func (m *GetReq) XXX_Size() int {
+	return xxx_messageInfo_GetReq.Size(m)
 }
-func (m *LoginResult) XXX_DiscardUnknown() {
-	xxx_messageInfo_LoginResult.DiscardUnknown(m)
+func (m *GetReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_LoginResult proto.InternalMessageInfo
+var xxx_messageInfo_GetReq proto.InternalMessageInfo
 
-func (m *LoginResult) GetSession() string {
+func (m *GetReq) GetSid() string {
 	if m != nil {
-		return m.Session
+		return m.Sid
 	}
 	return ""
 }
 
-func (m *LoginResult) GetError() string {
+type GetResp struct {
+	Uid                  uint32   `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetResp) Reset()         { *m = GetResp{} }
+func (m *GetResp) String() string { return proto.CompactTextString(m) }
+func (*GetResp) ProtoMessage()    {}
+func (*GetResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3a6be1b361fa6f14, []int{2}
+}
+
+func (m *GetResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetResp.Unmarshal(m, b)
+}
+func (m *GetResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetResp.Marshal(b, m, deterministic)
+}
+func (m *GetResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetResp.Merge(m, src)
+}
+func (m *GetResp) XXX_Size() int {
+	return xxx_messageInfo_GetResp.Size(m)
+}
+func (m *GetResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetResp proto.InternalMessageInfo
+
+func (m *GetResp) GetUid() uint32 {
 	if m != nil {
-		return m.Error
+		return m.Uid
+	}
+	return 0
+}
+
+type DeleteReq struct {
+	Sid                  string   `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteReq) Reset()         { *m = DeleteReq{} }
+func (m *DeleteReq) String() string { return proto.CompactTextString(m) }
+func (*DeleteReq) ProtoMessage()    {}
+func (*DeleteReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3a6be1b361fa6f14, []int{3}
+}
+
+func (m *DeleteReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteReq.Unmarshal(m, b)
+}
+func (m *DeleteReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteReq.Marshal(b, m, deterministic)
+}
+func (m *DeleteReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteReq.Merge(m, src)
+}
+func (m *DeleteReq) XXX_Size() int {
+	return xxx_messageInfo_DeleteReq.Size(m)
+}
+func (m *DeleteReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteReq proto.InternalMessageInfo
+
+func (m *DeleteReq) GetSid() string {
+	if m != nil {
+		return m.Sid
 	}
 	return ""
 }
 
 func init() {
-	proto.RegisterType((*ErrorMess)(nil), "proto.ErrorMess")
-	proto.RegisterType((*CreateMess)(nil), "proto.CreateMess")
-	proto.RegisterType((*LoginResult)(nil), "proto.LoginResult")
+	proto.RegisterType((*CreateReq)(nil), "proto.CreateReq")
+	proto.RegisterType((*GetReq)(nil), "proto.GetReq")
+	proto.RegisterType((*GetResp)(nil), "proto.GetResp")
+	proto.RegisterType((*DeleteReq)(nil), "proto.DeleteReq")
 }
 
 func init() {
@@ -176,19 +209,22 @@ func init() {
 }
 
 var fileDescriptor_3a6be1b361fa6f14 = []byte{
-	// 186 bytes of a gzipped FileDescriptorProto
+	// 228 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x4e, 0x2d, 0x2e,
-	0xce, 0xcc, 0xcf, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x05, 0x53, 0x4a, 0x8a, 0x5c,
-	0x9c, 0xae, 0x45, 0x45, 0xf9, 0x45, 0xbe, 0x40, 0x49, 0x21, 0x11, 0x2e, 0xd6, 0x54, 0x10, 0x47,
-	0x82, 0x51, 0x81, 0x51, 0x83, 0x33, 0x08, 0xc2, 0x51, 0x0a, 0xe0, 0xe2, 0x72, 0x2e, 0x4a, 0x4d,
-	0x2c, 0x49, 0x05, 0xab, 0x11, 0xe0, 0x62, 0x2e, 0xce, 0x4c, 0x81, 0xaa, 0x00, 0x31, 0x41, 0x22,
-	0xa5, 0x40, 0x11, 0x26, 0xa0, 0x08, 0x6f, 0x10, 0x88, 0x29, 0x24, 0xc7, 0xc5, 0x95, 0x5a, 0x51,
-	0x90, 0x59, 0x94, 0x58, 0x02, 0xb4, 0x4f, 0x82, 0x19, 0x28, 0xc1, 0x1a, 0x84, 0x24, 0xa2, 0x64,
-	0xcb, 0xc5, 0xed, 0x93, 0x9f, 0x9e, 0x99, 0x17, 0x94, 0x5a, 0x5c, 0x9a, 0x53, 0x22, 0x24, 0xc1,
-	0xc5, 0x0e, 0x75, 0x1b, 0xd4, 0x58, 0x18, 0x17, 0xe1, 0x20, 0x26, 0x24, 0x07, 0x19, 0x59, 0x70,
-	0xb1, 0x07, 0x43, 0x15, 0xe8, 0x72, 0xb1, 0x41, 0xdc, 0x26, 0x24, 0x08, 0xf1, 0x97, 0x1e, 0xc2,
-	0xa9, 0x52, 0x02, 0x50, 0x21, 0xb8, 0x07, 0x93, 0xd8, 0xc0, 0x02, 0xc6, 0x80, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x7d, 0x91, 0x9e, 0x2f, 0x0c, 0x01, 0x00, 0x00,
+	0xce, 0xcc, 0xcf, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x05, 0x53, 0x52, 0xd2, 0xe9,
+	0xf9, 0xf9, 0xe9, 0x39, 0xa9, 0xfa, 0x60, 0x5e, 0x52, 0x69, 0x9a, 0x7e, 0x6a, 0x6e, 0x41, 0x49,
+	0x25, 0x44, 0x8d, 0x92, 0x3f, 0x17, 0xa7, 0x73, 0x51, 0x6a, 0x62, 0x49, 0x6a, 0x50, 0x6a, 0xa1,
+	0x90, 0x00, 0x17, 0x73, 0x71, 0x66, 0x8a, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0x67, 0x10, 0x88, 0x09,
+	0x12, 0x29, 0x05, 0x8a, 0x30, 0x01, 0x45, 0x78, 0x83, 0x40, 0x4c, 0x21, 0x39, 0x2e, 0xae, 0xd4,
+	0x8a, 0x82, 0xcc, 0xa2, 0xc4, 0x12, 0xa0, 0x45, 0x12, 0xcc, 0x40, 0x09, 0xd6, 0x20, 0x24, 0x11,
+	0x25, 0x29, 0x2e, 0x36, 0xf7, 0xd4, 0x12, 0xac, 0xa6, 0x29, 0x49, 0x73, 0xb1, 0x83, 0xe5, 0x8a,
+	0x0b, 0x60, 0x06, 0x33, 0xc2, 0x0d, 0x56, 0x92, 0xe5, 0xe2, 0x74, 0x49, 0xcd, 0x49, 0xc5, 0xe1,
+	0x12, 0xa3, 0xe9, 0x8c, 0x5c, 0xec, 0xc1, 0x10, 0xef, 0x09, 0x19, 0x71, 0xb1, 0x41, 0x1c, 0x2d,
+	0x24, 0x00, 0xf1, 0x86, 0x1e, 0xdc, 0x0f, 0x52, 0x62, 0x7a, 0x10, 0xef, 0xea, 0xc1, 0xbc, 0xab,
+	0xe7, 0x0a, 0xf2, 0xae, 0x90, 0x0a, 0x17, 0x33, 0xd0, 0x6e, 0x21, 0x5e, 0xa8, 0x06, 0x88, 0x1b,
+	0xa5, 0xf8, 0x90, 0xb9, 0x40, 0x67, 0x01, 0x4d, 0x86, 0x38, 0x02, 0x6e, 0x32, 0xdc, 0x4d, 0xb8,
+	0x4c, 0x4e, 0x62, 0x03, 0xf3, 0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x74, 0x6b, 0x7e, 0xce,
+	0x7e, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -203,7 +239,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SessionClient interface {
-	Create(ctx context.Context, in *CreateMess, opts ...grpc.CallOption) (*ErrorMess, error)
+	Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*empty.Empty, error)
+	Get(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*GetResp, error)
+	Delete(ctx context.Context, in *DeleteReq, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type sessionClient struct {
@@ -214,9 +252,27 @@ func NewSessionClient(cc grpc.ClientConnInterface) SessionClient {
 	return &sessionClient{cc}
 }
 
-func (c *sessionClient) Create(ctx context.Context, in *CreateMess, opts ...grpc.CallOption) (*ErrorMess, error) {
-	out := new(ErrorMess)
+func (c *sessionClient) Create(ctx context.Context, in *CreateReq, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/proto.Session/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionClient) Get(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*GetResp, error) {
+	out := new(GetResp)
+	err := c.cc.Invoke(ctx, "/proto.Session/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sessionClient) Delete(ctx context.Context, in *DeleteReq, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/proto.Session/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,15 +281,23 @@ func (c *sessionClient) Create(ctx context.Context, in *CreateMess, opts ...grpc
 
 // SessionServer is the server API for Session service.
 type SessionServer interface {
-	Create(context.Context, *CreateMess) (*ErrorMess, error)
+	Create(context.Context, *CreateReq) (*empty.Empty, error)
+	Get(context.Context, *GetReq) (*GetResp, error)
+	Delete(context.Context, *DeleteReq) (*empty.Empty, error)
 }
 
 // UnimplementedSessionServer can be embedded to have forward compatible implementations.
 type UnimplementedSessionServer struct {
 }
 
-func (*UnimplementedSessionServer) Create(ctx context.Context, req *CreateMess) (*ErrorMess, error) {
+func (*UnimplementedSessionServer) Create(ctx context.Context, req *CreateReq) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (*UnimplementedSessionServer) Get(ctx context.Context, req *GetReq) (*GetResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (*UnimplementedSessionServer) Delete(ctx context.Context, req *DeleteReq) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 
 func RegisterSessionServer(s *grpc.Server, srv SessionServer) {
@@ -241,7 +305,7 @@ func RegisterSessionServer(s *grpc.Server, srv SessionServer) {
 }
 
 func _Session_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMess)
+	in := new(CreateReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -253,7 +317,43 @@ func _Session_Create_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/proto.Session/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServer).Create(ctx, req.(*CreateMess))
+		return srv.(SessionServer).Create(ctx, req.(*CreateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Session_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Session/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServer).Get(ctx, req.(*GetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Session_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Session/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionServer).Delete(ctx, req.(*DeleteReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -265,6 +365,14 @@ var _Session_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Session_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _Session_Get_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Session_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

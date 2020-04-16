@@ -28,30 +28,31 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 	if session == nil {
 		return "", errors.ErrInternal
 	}
-	// TODO: вынести в сервис авторизации генерацию uuid
 	session.SID = uuid.New().String()
-	params := &proto.CreateMess{
+	params := &proto.CreateReq{
 		Sid:        session.SID,
 		Uid:        uint32(session.ID),
 		Expiration: int32(session.Expires.Unix()),
 	}
-	res, err := sessionStore.clt.Create(sessionStore.ctx, params)
-	// TODO: ошибки
+	_, err := sessionStore.clt.Create(sessionStore.ctx, params)
 	if err != nil {
 		logger.Error(err)
 		return "", err
-	}
-	if res.Error != "" {
-		logger.Error(res.Error)
-		return "", errors.ErrDbBadOperation
 	}
 	return session.SID, nil
 }
 
 func (sessionStore *SessionStore) Get(sid string) (uint, bool) {
-	return 0, sid != ""
+	params := &proto.GetReq{Sid: sid}
+	res, err := sessionStore.clt.Get(sessionStore.ctx, params)
+	if err != nil {
+		return 0, false
+	}
+	return uint(res.Uid), true
 }
 
 func (sessionStore *SessionStore) Delete(sid string) error {
-	return nil
+	params := &proto.DeleteReq{Sid: sid}
+	_, err := sessionStore.clt.Delete(sessionStore.ctx, params)
+	return err
 }

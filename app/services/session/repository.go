@@ -1,12 +1,8 @@
 package session
 
-import (
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-)
-
 //go:generate mockgen -source=repository.go -package=mocks -destination=./mocks/session_repo_mock.go
 type Repository interface {
-	Create(session *models.Session) (string, error)
-	Get(sid string) (uint, bool)
+	Create(sid string, uid uint32, expiration int32) error
+	Get(sid string) (uint, error)
 	Delete(sid string) error
 }

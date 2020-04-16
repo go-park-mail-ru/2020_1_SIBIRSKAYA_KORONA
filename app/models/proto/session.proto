@@ -1,24 +1,30 @@
+// protoc --go_out=plugins=grpc:. *.proto
 syntax = "proto3";
 
-// protoc --go_out=plugins=grpc:. *.proto
+import "google/protobuf/empty.proto";
 
 package proto;
 
 service Session {
-    rpc Create (CreateMess) returns (ErrorMess);
+    rpc Create (CreateReq) returns (google.protobuf.Empty);
+    rpc Get (GetReq) returns (GetResp);
+    rpc Delete (DeleteReq) returns (google.protobuf.Empty);
 }
 
-message ErrorMess {
-    string error = 1;
-}
-
-message CreateMess {
+message CreateReq {
     string sid = 1;
     uint32 uid = 2;
     int32 expiration = 3;
 }
 
-message LoginResult {
-    string session = 1;
-    string error = 2;
+message GetReq {
+    string sid = 1;
+}
+
+message GetResp {
+    uint32 uid = 1;
+}
+
+message DeleteReq {
+    string sid = 1;
 }
