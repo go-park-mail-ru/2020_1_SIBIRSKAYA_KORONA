@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 )
 
 type SessionUseCase struct {
@@ -16,13 +17,26 @@ func CreateUseCase(sessionRepo_ session.Repository) session.UseCase {
 }
 
 func (sessionUseCase *SessionUseCase) Create(ses models.Session) error {
-	return sessionUseCase.sessionRepo.Create(ses)
+	err := sessionUseCase.sessionRepo.Create(ses)
+	if err != nil {
+		logger.Error(err)
+	}
+	return err
 }
 
 func (sessionUseCase *SessionUseCase) Get(sid string) (uint, error) {
-	return sessionUseCase.sessionRepo.Get(sid)
+	id, err := sessionUseCase.sessionRepo.Get(sid)
+	if err != nil {
+		logger.Error(err)
+		return 0, err
+	}
+	return id, nil
 }
 
 func (sessionUseCase *SessionUseCase) Delete(sid string) error {
+	err := sessionUseCase.sessionRepo.Delete(sid)
+	if err != nil {
+		logger.Error(err)
+	}
 	return sessionUseCase.sessionRepo.Delete(sid)
 }

@@ -143,7 +143,7 @@ func (userHandler *UserHandler) GetBoards(ctx echo.Context) error {
 }
 
 func (userHandler *UserHandler) Update(ctx echo.Context) error {
-	newUser := new(models.User)
+	var newUser models.User
 	newUser.ID = ctx.Get("uid").(uint)
 	newUser.Name = ctx.FormValue("newName")
 	newUser.Surname = ctx.FormValue("newSurname")

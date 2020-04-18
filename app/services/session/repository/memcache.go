@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
@@ -19,16 +20,22 @@ func CreateRepository(db *memcache.Client) session.Repository {
 }
 
 func (sessionStore *SessionStore) Create(ses models.Session) error {
-	return sessionStore.DB.Set(&memcache.Item{
+	err := sessionStore.DB.Set(&memcache.Item{
 		Key:        ses.SID,
 		Value:      []byte(fmt.Sprintf("%d", ses.ID)),
 		Expiration: int32(ses.Expires),
 	})
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	return nil
 }
 
 func (sessionStore *SessionStore) Get(sid string) (uint, error) {
 	idByte, err := sessionStore.DB.Get(sid)
 	if err != nil {
+		logger.Error(err)
 		return 0, errors.ErrDbBadOperation
 	}
 	var id uint
@@ -40,5 +47,10 @@ func (sessionStore *SessionStore) Get(sid string) (uint, error) {
 }
 
 func (sessionStore *SessionStore) Delete(sid string) error {
-	return sessionStore.DB.Delete(sid)
+	err := sessionStore.DB.Delete(sid)
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	return nil
 }

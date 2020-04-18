@@ -36,6 +36,7 @@ func (usr *User) ToProto() *proto.UserMess {
 	if err != nil {
 		return nil
 	}
+	res.Password = usr.Password
 	return &res
 }
 
@@ -49,6 +50,7 @@ func CreateUserFromProto(usr proto.UserMess) *User {
 	if err != nil {
 		return nil
 	}
+	res.Password = usr.Password
 	return &res
 }
 

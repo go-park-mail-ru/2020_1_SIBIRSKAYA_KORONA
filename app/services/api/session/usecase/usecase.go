@@ -30,7 +30,7 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires i
 		logger.Error(err)
 		return "", errors.ErrUserNotFound
 	}
-	if realUser != nil && sessionUseCase.userRepo.CheckPasswordByID(realUser.ID, user.Password) {
+	if realUser != nil && sessionUseCase.userRepo.CheckPassword(realUser.ID, user.Password) {
 		ses := &models.Session{
 			SID:     "",
 			ID:      realUser.ID,

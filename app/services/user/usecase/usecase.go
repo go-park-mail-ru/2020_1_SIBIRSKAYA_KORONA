@@ -41,3 +41,34 @@ func (userUseCase *UserUseCase) GetByNickname(nickname string) (*models.User, er
 	}
 	return usr, nil
 }
+
+func (userUseCase *UserUseCase) CheckPassword(uid uint, pass []byte) bool {
+	return userUseCase.userRepo.CheckPassword(uid, pass)
+}
+
+func (userUseCase *UserUseCase) Update(oldPass []byte, newUser models.User) error {
+	err := userUseCase.userRepo.Update(oldPass, newUser)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (userUseCase *UserUseCase) Delete(uid uint) error {
+	err := userUseCase.userRepo.Delete(uid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (userUseCase *UserUseCase) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
+	usrs, err := userUseCase.userRepo.GetUsersByNicknamePart(nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	return usrs, nil
+}

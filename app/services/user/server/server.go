@@ -10,6 +10,7 @@ import (
 	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/delivery/grpc"
 	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/repository"
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -26,8 +27,9 @@ func (server *Server) GetAddr() string {
 	return fmt.Sprintf("%s:%d", server.IP, server.Port)
 }
 
-// TODO: логгер, конфиг
+// TODO: конфиг
 func (server *Server) Run() {
+	logger.InitLogger()
 	// repo
 	postgresClient, err := gorm.Open("postgres",
 		"host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable")

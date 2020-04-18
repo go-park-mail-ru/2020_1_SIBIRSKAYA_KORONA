@@ -17,6 +17,10 @@ message UidMess {
     uint64 uid = 1;
 }
 
+message NicknameMess {
+    string nickname = 1;
+}
+
 message SessionMess {
     string sid = 1;
     uint64 uid = 2;
@@ -25,4 +29,18 @@ message SessionMess {
 
 message SidMess {
     string sid = 1;
+}
+
+message BoolMess {
+    bool ok = 1;
+}
+
+message CheckPassMess {
+    uint64 uid = 1;
+    bytes pass = 2;
+}
+
+message UpdateMess {
+    bytes oldPass = 1;
+    UserMess usr = 2;
 }

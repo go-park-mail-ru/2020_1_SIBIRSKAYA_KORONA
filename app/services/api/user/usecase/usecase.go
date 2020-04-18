@@ -4,7 +4,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"mime/multipart"
 )
@@ -32,11 +31,10 @@ func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires int64) 
 		ID:      user.ID,
 		Expires: sessionExpires,
 	}
-
-	sid, repoErr := userUseCase.sessionRepo.Create(ses)
-	if repoErr != nil {
-		logger.Error(repoErr)
-		return "", repoErr
+	sid, err := userUseCase.sessionRepo.Create(ses)
+	if err != nil {
+		logger.Error(err)
+		return "", err
 	}
 	return sid, nil
 }
@@ -78,10 +76,7 @@ func (userUseCase *UserUseCase) GetUsersByNicknamePart(nicknamePart string, limi
 	return users, nil
 }
 
-func (userUseCase *UserUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
-	if newUser == nil {
-		return errors.ErrInternal
-	}
+func (userUseCase *UserUseCase) Update(oldPass []byte, newUser models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	err := userUseCase.userRepo.Update(oldPass, newUser, avatarFileDescriptor)
 	if err != nil {
 		logger.Error(err)
