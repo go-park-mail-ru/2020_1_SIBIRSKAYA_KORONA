@@ -10,6 +10,7 @@ import (
 	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/dilivery/grpc"
 	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/repository"
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -18,8 +19,9 @@ import (
 )
 
 type Server struct {
-	IP   string
-	Port uint
+	IP     string
+	Port   uint
+	Config *config.SessionConfigController
 }
 
 func (server *Server) GetAddr() string {

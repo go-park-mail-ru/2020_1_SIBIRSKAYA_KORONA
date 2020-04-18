@@ -10,8 +10,8 @@ import (
 	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/delivery/grpc"
 	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/repository"
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"google.golang.org/grpc"
@@ -19,8 +19,9 @@ import (
 )
 
 type Server struct {
-	IP   string
-	Port uint
+	IP     string
+	Port   uint
+	Config *config.UserConfigController
 }
 
 func (server *Server) GetAddr() string {
@@ -31,8 +32,7 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	logger.InitLogger()
 	// repo
-	postgresClient, err := gorm.Open("postgres",
-		"host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable")
+	postgresClient, err := gorm.Open(server.Config.GetDB(), server.Config.GetDBConnection())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -29,17 +29,19 @@ import (
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
-	IP   string
-	Port uint
+	IP         string
+	Port       uint
+	ApiConfig  *config.ApiConfigController
+	UserConfig *config.UserConfigController
 }
 
 func (server *Server) GetAddr() string {
@@ -71,14 +73,7 @@ func (server *Server) Run() {
 	defer grpcUserConn.Close()
 	userGrpcClient := proto.NewUserClient(grpcUserConn)
 	// postgres
-	dbms := viper.GetString("database.dbms")
-	dbHost := viper.GetString("database.host")
-	dbUser := viper.GetString("database.user")
-	dbPass := viper.GetString("database.password")
-	dbName := viper.GetString("database.name")
-	dbMode := viper.GetString("database.sslmode")
-	dbConnection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode)
-	postgresClient, err := gorm.Open(dbms, dbConnection)
+	postgresClient, err := gorm.Open(server.ApiConfig.GetDB(), server.ApiConfig.GetDBConnection())
 	if err != nil {
 		logger.Fatal(err)
 	} else {
@@ -87,7 +82,7 @@ func (server *Server) Run() {
 	defer postgresClient.Close()
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{})
 	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
-	usrRepo := userRepo.CreateRepository(userGrpcClient)
+	usrRepo := userRepo.CreateRepository(userGrpcClient, server.UserConfig)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
 	tskRepo := taskRepo.CreateRepository(postgresClient)

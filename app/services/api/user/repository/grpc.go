@@ -13,22 +13,23 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/password"
-
-	"github.com/spf13/viper"
+	pass "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/password"
 )
 
 type UserStore struct {
-	clt proto.UserClient
-	ctx context.Context
+	clt    proto.UserClient
+	ctx    context.Context
+	Config *config.UserConfigController
 }
 
-func CreateRepository(clt proto.UserClient) user.Repository {
+func CreateRepository(clt proto.UserClient, Config_ *config.UserConfigController) user.Repository {
 	return &UserStore{
-		clt: clt,
-		ctx: context.Background(),
+		clt:    clt,
+		ctx:    context.Background(),
+		Config: Config_,
 	}
 }
 
@@ -84,7 +85,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser models.User, avatarFi
 		return err
 	}
 	if avatarFileDescriptor != nil {
-		urlToSave, err := UploadAvatarToStaticStorage(avatarFileDescriptor, newUser.ID)
+		urlToSave, err := userStore.UploadAvatarToStaticStorage(avatarFileDescriptor, newUser.ID)
 		if err != nil {
 			logger.Error(err)
 			return errors.ErrBadAvatarUpload
@@ -120,7 +121,7 @@ func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Bo
 	return adminsBoards, membersBoards, nil
 }
 
-func UploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, id uint) (string, error) {
+func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, id uint) (string, error) {
 	avatarFile, err := avatarFileDescriptor.Open()
 	if err != nil {
 		logger.Error(err)
@@ -132,12 +133,9 @@ func UploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, id 
 		logger.Error(err)
 		return "", err
 	}
+
 	avatarFileName := fmt.Sprintf("%d.%s", id, format)
-	publicDirPath, exists := os.LookupEnv("DRELLO_PUBLIC_DIR")
-	if !exists {
-		logger.Error("DRELLO_PUBLIC_DIR environment variable not exist")
-	}
-	avatarPath := fmt.Sprintf("%s/%s", publicDirPath+viper.GetString("frontend.avatar_dir"), avatarFileName)
+	avatarPath := fmt.Sprintf("%s/%s", userStore.Config.GetFrontendAvatarDir(), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
 		logger.Error(err)
@@ -150,11 +148,8 @@ func UploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, id 
 		logger.Error(err)
 		return "", err
 	}
-	frontStorage := fmt.Sprintf("%s://%s:%s%s",
-		viper.GetString("frontend.protocol"),
-		viper.GetString("frontend.ip"),
-		viper.GetString("frontend.port"),
-		viper.GetString("frontend.avatar_dir"))
+
+	frontStorage := userStore.Config.GetFrontendStorageURL()
 	avatarStaticUrl := fmt.Sprintf("%s/%s", frontStorage, avatarFileName)
 	return avatarStaticUrl, nil
 }

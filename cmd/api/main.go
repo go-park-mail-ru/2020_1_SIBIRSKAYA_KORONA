@@ -2,13 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
-	"os"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/server"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	
 	"github.com/spf13/viper"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 )
 
 var opts struct {
@@ -25,30 +24,20 @@ func main() {
 	viper.SetConfigFile(opts.configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	logger.InitLogger()
 
-	publicDirPath, exists := os.LookupEnv("DRELLO_PUBLIC_DIR")
-	if !exists {
-		log.Fatal("DRELLO_PUBLIC_DIR environment variable not exist")
-	}
-
-	avatarDir := publicDirPath + viper.GetString("frontend.avatar_dir")
-
-	_, avatarErr := os.Stat(avatarDir)
-	if os.IsNotExist(avatarErr) {
-		errDir := os.MkdirAll(avatarDir, os.ModePerm)
-		if errDir != nil {
-			logger.Fatal(errDir)
-		}
-	}
-	logger.Info("Avatar static storage up!")
+	//TODO: синглтоны
+	ApiConfigControl := config.CreateApiConfigController()
+	UserConfigControl := config.CreateUserConfigController()
 
 	srv := &server.Server{
-		IP:   viper.GetString("server.ip"),
-		Port: uint(viper.GetInt("server.port")),
+		IP:         ApiConfigControl.GetServerIP(),
+		Port:       ApiConfigControl.GetServerPort(),
+		ApiConfig:  ApiConfigControl,
+		UserConfig: UserConfigControl,
 	}
 	srv.Run()
 }
