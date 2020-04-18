@@ -1,14 +1,12 @@
 package usecase
 
 import (
-	"mime/multipart"
-	"time"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"mime/multipart"
 )
 
 type UserUseCase struct {
@@ -23,7 +21,7 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) u
 	}
 }
 
-func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires int64) (string, error) {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
 		logger.Error(err)

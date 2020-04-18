@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"time"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
@@ -23,17 +21,15 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 	}
 }
 
-func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires int64) (string, error) {
 	if user == nil {
 		return "", errors.ErrInternal
 	}
-
 	realUser, err := sessionUseCase.userRepo.GetByNickname(user.Nickname)
 	if err != nil {
 		logger.Error(err)
 		return "", errors.ErrUserNotFound
 	}
-
 	if realUser != nil && sessionUseCase.userRepo.CheckPasswordByID(realUser.ID, user.Password) {
 		ses := &models.Session{
 			SID:     "",
@@ -47,7 +43,6 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires t
 		}
 		return sid, nil
 	}
-
 	return "", errors.ErrWrongPassword
 }
 

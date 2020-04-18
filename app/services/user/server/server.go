@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
-	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/dilivery/grpc"
-	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/repository"
-	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
+	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/delivery/grpc"
+	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/repository"
+	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/usecase"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -28,12 +29,15 @@ func (server *Server) GetAddr() string {
 // TODO: логгер, конфиг
 func (server *Server) Run() {
 	// repo
-	memCacheClient := memcache.New("127.0.0.1:11211")
-	err := memCacheClient.Ping()
-	defer memCacheClient.DeleteAll()
-	sesRepo := repo.CreateRepository(memCacheClient)
+	postgresClient, err := gorm.Open("postgres",
+		"host=localhost user=drello_user password=drello1234 dbname=drello_db sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer postgresClient.Close()
+	usrRepo := repo.CreateRepository(postgresClient)
 	// usecase
-	sesUseCase := useCase.CreateUseCase(sesRepo)
+	usrUseCase := useCase.CreateUseCase(usrRepo)
 	// handler
 	listener, err := net.Listen("tcp", server.GetAddr())
 	if err != nil {
@@ -44,7 +48,7 @@ func (server *Server) Run() {
 			MaxConnectionIdle: 5 * time.Minute,
 		},
 	))
-	proto.RegisterSessionServer(grpcSrv, handler.CreateHandler(sesUseCase))
+	proto.RegisterUserServer(grpcSrv, handler.CreateHandler(usrUseCase))
 	log.Println("server start on address:", server.GetAddr())
 	if err := grpcSrv.Serve(listener); err != nil {
 		log.Fatal(err)

@@ -29,12 +29,11 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 		return "", errors.ErrInternal
 	}
 	session.SID = uuid.New().String()
-	params := &proto.CreateReq{
-		Sid:        session.SID,
-		Uid:        uint32(session.ID),
-		Expiration: int32(session.Expires.Unix()),
+	mess := session.ToProto()
+	if mess == nil {
+		return "", errors.ErrInternal
 	}
-	_, err := sessionStore.clt.Create(sessionStore.ctx, params)
+	_, err := sessionStore.clt.Create(sessionStore.ctx, mess)
 	if err != nil {
 		logger.Error(err)
 		return "", err
@@ -43,16 +42,18 @@ func (sessionStore *SessionStore) Create(session *models.Session) (string, error
 }
 
 func (sessionStore *SessionStore) Get(sid string) (uint, bool) {
-	params := &proto.GetReq{Sid: sid}
-	res, err := sessionStore.clt.Get(sessionStore.ctx, params)
+	res, err := sessionStore.clt.Get(sessionStore.ctx, &proto.SidMess{Sid: sid})
 	if err != nil {
+		logger.Error(err)
 		return 0, false
 	}
 	return uint(res.Uid), true
 }
 
 func (sessionStore *SessionStore) Delete(sid string) error {
-	params := &proto.DeleteReq{Sid: sid}
-	_, err := sessionStore.clt.Delete(sessionStore.ctx, params)
+	_, err := sessionStore.clt.Delete(sessionStore.ctx, &proto.SidMess{Sid: sid})
+	if err != nil {
+		logger.Error(err)
+	}
 	return err
 }

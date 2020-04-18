@@ -40,7 +40,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 	}
 	defer ctx.Request().Body.Close()
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	if sid, err := sessionHandler.useCase.Create(usr, sessionExpires); err != nil {
+	if sid, err := sessionHandler.useCase.Create(usr, sessionExpires.Unix()); err != nil {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	} else {
 		cookie := &http.Cookie{

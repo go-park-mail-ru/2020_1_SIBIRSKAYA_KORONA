@@ -50,16 +50,26 @@ func (server *Server) Run() {
 	// repo
 	// micro-serv
 	// TODO: конфиг
-	grpcConn, err := grpc.Dial(
+	// session
+	grpcSessionConn, err := grpc.Dial(
 		"127.0.0.1:8081",
 		grpc.WithInsecure(),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer grpcConn.Close()
-	sessionClient := proto.NewSessionClient(grpcConn)
-
+	defer grpcSessionConn.Close()
+	sessionGrpcClient := proto.NewSessionClient(grpcSessionConn)
+	// user
+	grpcUserConn, err := grpc.Dial(
+		"127.0.0.1:8082",
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer grpcUserConn.Close()
+	userGrpcClient := proto.NewUserClient(grpcUserConn)
 	// postgres
 	dbms := viper.GetString("database.dbms")
 	dbHost := viper.GetString("database.host")
@@ -75,11 +85,9 @@ func (server *Server) Run() {
 		logger.Info("Postgresql succesfull start")
 	}
 	defer postgresClient.Close()
-
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{})
-
-	sesRepo := sessionRepo.CreateRepository(sessionClient)
-	usrRepo := userRepo.CreateRepository(postgresClient)
+	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
+	usrRepo := userRepo.CreateRepository(userGrpcClient)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
 	tskRepo := taskRepo.CreateRepository(postgresClient)

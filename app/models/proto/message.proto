@@ -1,0 +1,28 @@
+// protoc --go_out=plugins=grpc:. *.proto
+syntax = "proto3";
+
+package proto;
+
+message UserMess {
+    uint64 id = 1;
+    string name = 2;
+    string surname = 3;
+    string nickname = 4;
+    string email = 5;
+    string avatar = 6;
+    bytes password = 7;
+}
+
+message UidMess {
+    uint64 uid = 1;
+}
+
+message SessionMess {
+    string sid = 1;
+    uint64 uid = 2;
+    int64 expires = 3;
+}
+
+message SidMess {
+    string sid = 1;
+}

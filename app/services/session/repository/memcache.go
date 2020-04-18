@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
@@ -17,11 +18,11 @@ func CreateRepository(db *memcache.Client) session.Repository {
 	return &SessionStore{db}
 }
 
-func (sessionStore *SessionStore) Create(sid string, uid uint32, expiration int32) error {
+func (sessionStore *SessionStore) Create(ses models.Session) error {
 	return sessionStore.DB.Set(&memcache.Item{
-		Key:        sid,
-		Value:      []byte(fmt.Sprintf("%d", uid)),
-		Expiration: expiration,
+		Key:        ses.SID,
+		Value:      []byte(fmt.Sprintf("%d", ses.ID)),
+		Expiration: int32(ses.Expires),
 	})
 }
 
