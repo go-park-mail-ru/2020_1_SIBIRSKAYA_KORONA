@@ -79,7 +79,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 		viper.GetString("frontend.port"),
 		viper.GetString("frontend.default_avatar"))
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	sid, err := userHandler.useCase.Create(usr, sessionExpires.Unix())
+	sid, err := userHandler.useCase.Create(usr, int32(sessionExpires.Unix()))
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})

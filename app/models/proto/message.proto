@@ -24,7 +24,7 @@ message NicknameMess {
 message SessionMess {
     string sid = 1;
     uint64 uid = 2;
-    int64 expires = 3;
+    int32 expires = 3;
 }
 
 message SidMess {

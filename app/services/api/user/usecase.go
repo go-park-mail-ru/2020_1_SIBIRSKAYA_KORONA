@@ -6,7 +6,7 @@ import (
 )
 
 type UseCase interface {
-	Create(user *models.User, sessionExpires int64) (string, error)
+	Create(user *models.User, sessionExpires int32) (string, error)
 	GetByID(uid uint) (*models.User, error)
 	GetByNickname(nickname string) (*models.User, error)
 	GetBoardsByID(uid uint) ([]models.Board, []models.Board, error)

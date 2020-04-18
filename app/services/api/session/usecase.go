@@ -6,7 +6,7 @@ import (
 
 //go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/session_usecase_mock.go
 type UseCase interface {
-	Create(user *models.User, sessionExpires int64) (string, error)
+	Create(user *models.User, sessionExpires int32) (string, error)
 	Get(sid string) (uint, bool)
 	Delete(sid string) error
 }

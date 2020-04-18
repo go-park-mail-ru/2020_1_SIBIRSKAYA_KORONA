@@ -3,10 +3,10 @@ package repository
 import (
 	"fmt"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"log"
 
 	"github.com/bradfitz/gomemcache/memcache"
 )
@@ -20,10 +20,11 @@ func CreateRepository(db *memcache.Client) session.Repository {
 }
 
 func (sessionStore *SessionStore) Create(ses models.Session) error {
+	log.Println(ses.Expires)
 	err := sessionStore.DB.Set(&memcache.Item{
 		Key:        ses.SID,
 		Value:      []byte(fmt.Sprintf("%d", ses.ID)),
-		Expiration: int32(ses.Expires),
+		Expiration: ses.Expires,
 	})
 	if err != nil {
 		logger.Error(err)

@@ -20,7 +20,7 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) u
 	}
 }
 
-func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires int64) (string, error) {
+func (userUseCase *UserUseCase) Create(user *models.User, sessionExpires int32) (string, error) {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
 		logger.Error(err)

@@ -7,7 +7,7 @@ import (
 type Session struct {
 	SID     string
 	ID      uint
-	Expires int64
+	Expires int32
 }
 
 func (ses *Session) ToProto() *proto.SessionMess {

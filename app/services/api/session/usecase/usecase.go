@@ -21,7 +21,7 @@ func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) s
 	}
 }
 
-func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires int64) (string, error) {
+func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires int32) (string, error) {
 	if user == nil {
 		return "", errors.ErrInternal
 	}

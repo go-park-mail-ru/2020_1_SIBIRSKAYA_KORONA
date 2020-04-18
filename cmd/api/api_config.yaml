@@ -20,7 +20,7 @@ database: {
 }
 
 frontend: {
-  protocol: http,
+  protocol: https,
   ip: localhost,
   port: 5555,
   #public_dir задается в переменной окружения
@@ -37,6 +37,7 @@ cors: {
     http://localhost,
     http://localhost:5757,
     http://localhost:5555,
+    https://localhost:5555,
     https://localhost,
     https://localhost:5757,
     http://drello.works,

@@ -38,5 +38,5 @@ func (sessionUseCase *SessionUseCase) Delete(sid string) error {
 	if err != nil {
 		logger.Error(err)
 	}
-	return sessionUseCase.sessionRepo.Delete(sid)
+	return nil
 }
