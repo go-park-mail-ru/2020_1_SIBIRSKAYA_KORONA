@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -37,39 +36,12 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
-	//GET       /search/profile?nickname={part_of_nickname}
 	router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
-}
-
-func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
-	nicknamePart := ctx.QueryParam("nickname")
-	if nicknamePart == "" {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	var limit uint
-	_, err := fmt.Sscan(ctx.QueryParam("limit"), &limit)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	usersData, err := userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
-	if err != nil {
-		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
-	}
-
-	body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
-	if err != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	return ctx.String(http.StatusOK, body)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
 	usr := models.CreateUser(ctx)
 	if usr == nil {
-		log.Println("bad bad bad")
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
@@ -135,7 +107,6 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	newUser.Nickname = ctx.FormValue("newNickname")
 	newUser.Email = ctx.FormValue("newEmail")
 	newUser.Password = []byte(ctx.FormValue("newPassword"))
-
 	oldPass := []byte(ctx.FormValue("oldPassword"))
 	avatarFileDescriptor, err := ctx.FormFile("avatar")
 	if err != nil {
@@ -157,4 +128,26 @@ func (userHandler *UserHandler) Delete(ctx echo.Context) error {
 	newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
 	ctx.SetCookie(&newCookie)
 	return ctx.NoContent(http.StatusOK)
+}
+
+func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
+	nicknamePart := ctx.QueryParam("nickname")
+	if nicknamePart == "" {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	var limit uint
+	_, err := fmt.Sscan(ctx.QueryParam("limit"), &limit)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	usersData, err := userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
 }

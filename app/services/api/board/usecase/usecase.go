@@ -26,8 +26,13 @@ func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
 		logger.Error(err)
 		return err
 	}
-	board.Admins = []models.User{*usr}
-	return boardUseCase.boardRepo.Create(board)
+	err = boardUseCase.boardRepo.Create(uid, board)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	board.Admins = append(board.Admins, *usr)
+	return nil
 }
 
 func (boardUseCase *BoardUseCase) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {

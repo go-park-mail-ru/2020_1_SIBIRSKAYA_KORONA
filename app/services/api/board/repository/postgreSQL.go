@@ -5,7 +5,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -18,8 +17,13 @@ func CreateRepository(db *gorm.DB) board.Repository {
 	return &BoardStore{DB: db}
 }
 
-func (boardStore *BoardStore) Create(board *models.Board) error {
+func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
 	err := boardStore.DB.Create(board).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrConflict
+	}
+	err = boardStore.DB.Model(board).Association("Admins").Append(&models.User{ID: uid}).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrConflict
@@ -41,6 +45,28 @@ func (boardStore *BoardStore) GetBoardsByUser(uid uint) ([]models.Board, []model
 		logger.Error(err)
 		return nil, nil, errors.ErrBoardNotFound
 	}
+	// TODO: изменить запрос или ывнести в отдельную функцию
+	for i, _ := range adminsBoards {
+		for j, _ := range adminsBoards[i].Admins {
+			adminsBoards[i].Admins[j].Email = ""
+			adminsBoards[i].Admins[j].Password = nil
+		}
+		for j, _ := range adminsBoards[i].Members {
+			adminsBoards[i].Members[j].Email = ""
+			adminsBoards[i].Members[j].Password = nil
+		}
+	}
+	for i, _ := range membersBoards {
+		for j, _ := range membersBoards[i].Admins {
+			membersBoards[i].Admins[j].Email = ""
+			membersBoards[i].Admins[j].Password = nil
+		}
+		for j, _ := range membersBoards[i].Members {
+			membersBoards[i].Members[j].Email = ""
+			membersBoards[i].Members[j].Password = nil
+		}
+	}
+	//
 	return adminsBoards, membersBoards, nil
 }
 
@@ -51,12 +77,12 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 		logger.Error(err)
 		return nil, errors.ErrBoardNotFound
 	}
-	err = boardStore.DB.Model(brd).Select("id, Name, nickname, avatar").Related(&brd.Admins, "Admins").Error
+	err = boardStore.DB.Model(brd).Select("id, name, surname, nickname, avatar").Related(&brd.Admins, "Admins").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
-	err = boardStore.DB.Model(brd).Select("id, nickname, avatar").Related(&brd.Members, "Members").Error
+	err = boardStore.DB.Model(brd).Select("id, name, surname, nickname, avatar").Related(&brd.Members, "Members").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation

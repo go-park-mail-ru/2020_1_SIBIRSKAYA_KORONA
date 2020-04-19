@@ -2,39 +2,81 @@ package errors
 
 import (
 	"errors"
+	"google.golang.org/grpc/status"
+	"log"
 	"net/http"
 )
 
 // Пакет для определения типичных ошибок, которые потом будут использоваться в кастомных обёртках
 
+const (
+	Internal     = "internal error"
+	Conflict     = "conflict with exists data"
+	NoPermission = "no permission for current operation"
+
+	UserNotFound  = "user not exist"
+	WrongPassword = "wrong password"
+
+	NoCookie        = "not found cookie header"
+	SessionNotFound = "cookie invalid, session not exist"
+	DetectedCSRF    = "CSRF is confirmed"
+
+	BoardNotFound = "boards not found"
+
+	ColNotFound = "column not found"
+
+	TaskNotFound = "task not found"
+
+	DbBadOperation  = "unsuccessful ORM operation"
+	BadAvatarUpload = "unsuccessful avatar upload"
+)
+
 var (
 	// общие
-	ErrInternal     = errors.New("Internal error")
-	ErrConflict     = errors.New("Conflict with exists data")
-	ErrNoPermission = errors.New("No permission for current operation")
+	ErrInternal     = errors.New(Internal)
+	ErrConflict     = errors.New(Conflict)
+	ErrNoPermission = errors.New(NoPermission)
 
 	// ошибки, связанные с юзером
-	ErrUserNotFound  = errors.New("User not exist")
-	ErrWrongPassword = errors.New("Wrong password")
+	ErrUserNotFound  = errors.New(UserNotFound)
+	ErrWrongPassword = errors.New(WrongPassword)
 
 	// ошибки, связанные с сессией
-	ErrNoCookie        = errors.New("Not found cookie header")
-	ErrSessionNotFound = errors.New("Cookie invalid, session not exist")
-	ErrDetectedCSRF    = errors.New("CSRF is confirmed") // В целях дебага
+	ErrNoCookie        = errors.New(NoCookie)
+	ErrSessionNotFound = errors.New(SessionNotFound)
+	ErrDetectedCSRF    = errors.New(DetectedCSRF) // В целях дебага
 
 	// ошибки, связанные с досками
-	ErrBoardNotFound = errors.New("Boards not found")
+	ErrBoardNotFound = errors.New(BoardNotFound)
 
 	// ошибки, связанные с колонками
-	ErrColNotFound = errors.New("Column not found")
+	ErrColNotFound = errors.New(ColNotFound)
 
 	// ошибки, связанные с тасками
-	ErrTaskNotFound = errors.New("Task not found")
+	ErrTaskNotFound = errors.New(TaskNotFound)
 
 	// ошибки, связанные с бд
-	ErrDbBadOperation  = errors.New("Unsuccessful ORM operation")
-	ErrBadAvatarUpload = errors.New("Unsuccessful avatar upload")
+	ErrDbBadOperation  = errors.New(DbBadOperation)
+	ErrBadAvatarUpload = errors.New(BadAvatarUpload)
 )
+
+var messToError = map[string]error{
+	Internal:     ErrInternal,
+	Conflict:     ErrConflict,
+	NoPermission: ErrNoPermission,
+
+	UserNotFound:  ErrUserNotFound,
+	WrongPassword: ErrWrongPassword,
+
+	NoCookie:        ErrNoCookie,
+	SessionNotFound: ErrSessionNotFound,
+
+	BoardNotFound: ErrBoardNotFound,
+
+	ColNotFound: ErrColNotFound,
+
+	TaskNotFound: ErrTaskNotFound,
+}
 
 var errorToCodeMap = map[error]int{
 	// общие
@@ -61,9 +103,18 @@ var errorToCodeMap = map[error]int{
 }
 
 func ResolveErrorToCode(err error) (code int) {
-	code, exist := errorToCodeMap[err]
-	if exist != true {
+	code, has := errorToCodeMap[err]
+	if !has {
 		return http.StatusInternalServerError
 	}
 	return code
+}
+
+func ResolveFromRPC(err error) error {
+	err, has := messToError[status.Convert(err).Message()]
+	if !has {
+		log.Println(err)
+		return ErrInternal
+	}
+	return err
 }

@@ -26,12 +26,10 @@ func CreateBoard(ctx echo.Context) *Board {
 		return nil
 	}
 	defer ctx.Request().Body.Close()
-
 	sanBody, err := sanitize.SanitizeJSON(body)
 	if err != nil {
 		return nil
 	}
-
 	board := new(Board)
 	if json.Unmarshal(sanBody, board) != nil {
 		return nil

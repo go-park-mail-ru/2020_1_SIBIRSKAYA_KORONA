@@ -2,9 +2,9 @@ package models
 
 import (
 	"encoding/json"
-	"io/ioutil"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
+	"io/ioutil"
+	"log"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/labstack/echo/v4"
@@ -15,15 +15,12 @@ type User struct {
 	Name     string  `json:"name" gorm:"not null" faker:"name"`
 	Surname  string  `json:"surname" gorm:"not null" faker:"last_name"`
 	Nickname string  `json:"nickname" gorm:"unique;not null" faker:"username"`
-	Email    string  `json:"email,omitempty" faker:"email"`
 	Avatar   string  `json:"avatar" faker:"url"`
+	Email    string  `json:"email,omitempty" faker:"email"`
 	Password []byte  `json:"password,omitempty" gorm:"not null" faker:"-"`
 	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
 	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
 }
-
-//easyjson:json
-type Users []User
 
 func (usr *User) TableName() string {
 	return "users"
@@ -39,7 +36,6 @@ func (usr *User) ToProto() *proto.UserMess {
 	if err != nil {
 		return nil
 	}
-	res.Password = usr.Password
 	return &res
 }
 
@@ -53,7 +49,6 @@ func CreateUserFromProto(usr proto.UserMess) *User {
 	if err != nil {
 		return nil
 	}
-	res.Password = usr.Password
 	return &res
 }
 
@@ -68,7 +63,9 @@ func CreateUser(ctx echo.Context) *User {
 		return nil
 	}
 	usr := new(User)
-	if json.Unmarshal(sanBody, usr) != nil {
+	err = json.Unmarshal(sanBody, usr)
+	if err != nil {
+		log.Println(err)
 		return nil
 	}
 	return usr

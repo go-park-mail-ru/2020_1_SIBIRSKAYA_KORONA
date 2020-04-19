@@ -45,7 +45,7 @@ func (userStore *UserStore) Create(usr *models.User) error {
 	res, err := userStore.clt.Create(userStore.ctx, mess)
 	if err != nil {
 		logger.Error(err)
-		return err
+		return errors.ResolveFromRPC(err)
 	}
 	usr.ID = uint(res.Uid)
 	return nil
@@ -55,7 +55,7 @@ func (userStore *UserStore) GetByID(id uint) (*models.User, error) {
 	res, err := userStore.clt.GetByID(userStore.ctx, &proto.UidMess{Uid: uint64(id)})
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return nil, errors.ResolveFromRPC(err)
 	}
 	return models.CreateUserFromProto(*res), nil
 }
@@ -64,7 +64,7 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 	res, err := userStore.clt.GetByNickname(userStore.ctx, &proto.NicknameMess{Nickname: nickname})
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return nil, errors.ResolveFromRPC(err)
 	}
 	return models.CreateUserFromProto(*res), nil
 }
@@ -95,7 +95,7 @@ func (userStore *UserStore) Update(oldPass []byte, newUser models.User, avatarFi
 	_, err = userStore.clt.Update(userStore.ctx, &proto.UpdateMess{OldPass: oldPass, Usr: newUser.ToProto()})
 	if err != nil {
 		logger.Error(err)
-		return err
+		return errors.ResolveFromRPC(err)
 	}
 	return nil
 }
@@ -104,7 +104,7 @@ func (userStore *UserStore) Delete(id uint) error {
 	_, err := userStore.clt.Delete(userStore.ctx, &proto.UidMess{Uid: uint64(id)})
 	if err != nil {
 		logger.Error(err)
-		return err
+		return errors.ResolveFromRPC(err)
 	}
 	return nil
 }
