@@ -135,7 +135,7 @@ func (boardStore *BoardStore) InviteMember(bid uint, member *models.User) error 
 	err = boardStore.DB.Model(&brd).Association("Members").Append(member).Error
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrBoardNotFound
+		return errors.ErrDbBadOperation
 	}
 	return nil
 }
@@ -150,7 +150,37 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 	err = boardStore.DB.Model(&brd).Association("Members").Delete(member).Error
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrBoardNotFound
+		return errors.ErrDbBadOperation
 	}
 	return nil
+}
+
+func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+	var users []models.User
+
+	board, err := boardStore.Get(bid)
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrBoardNotFound
+	}
+
+	var boardMembersAndAdminsIDs []uint
+	for _, member := range board.Members {
+		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, member.ID)
+	}
+	for _, admin := range board.Admins {
+		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, admin.ID)
+	}
+
+	err = boardStore.DB.Select("id, name, surname, nickname, avatar").
+		Limit(limit).
+		Where("nickname LIKE ?", nicknamePart+"%").
+		Not("id", boardMembersAndAdminsIDs).
+		Find(&users).Error
+
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrUserNotFound
+	}
+	return users, nil
 }

@@ -60,8 +60,8 @@ paths:
     $ref: "endpoints/session.yaml#/paths/~1token"  
   /profile/{id_or_nickname}:
     $ref: "endpoints/profile.yaml#/paths/~1profile~1{id_or_nickname}"
-  /search/profile?nickname={part_of_nickname}&limit={limit}:
-    $ref: "endpoints/profile.yaml#/paths/~1search~1profile?nickname={part_of_nickname}&limit={limit}"
+  #/search/profile?nickname={part_of_nickname}&limit={limit}:
+    #$ref: "endpoints/profile.yaml#/paths/~1search~1profile?nickname={part_of_nickname}&limit={limit}"
   /boards:
     $ref: "endpoints/boards.yaml#/paths/~1boards"
   /boards/{bid}:
@@ -74,8 +74,13 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/members/{uid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1members~1{uid}"
   /boards/{bid}/members/{uid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1members~1{uid}"
+  /boards/{bid}/search_for_invite?nickname={part_of_nickname}&limit={limit}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1search_for_invite?nickname={part_of_nickname}&limit={limit}"
+
 
 components:
   schemas:

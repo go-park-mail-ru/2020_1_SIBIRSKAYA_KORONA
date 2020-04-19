@@ -8,4 +8,6 @@ type Repository interface {
 	Get(tid uint) (*models.Task, error)
 	Update(newTask models.Task) error
 	Delete(tid uint) error
+	Assign(tid uint, member *models.User) error
+	Unassign(tid uint, member *models.User) error
 }

@@ -14,4 +14,5 @@ type Repository interface {
 	Delete(bid uint) error
 	InviteMember(bid uint, member *models.User) error
 	DeleteMember(bid uint, member *models.User) error
+	GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error)
 }

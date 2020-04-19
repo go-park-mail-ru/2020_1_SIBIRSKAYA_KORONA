@@ -8,7 +8,6 @@ import (
 	models "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
-	time "time"
 )
 
 // MockUseCase is a mock of UseCase interface
@@ -35,7 +34,7 @@ func (m *MockUseCase) EXPECT() *MockUseCaseMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+func (m *MockUseCase) Create(user *models.User, sessionExpires int32) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", user, sessionExpires)
 	ret0, _ := ret[0].(string)

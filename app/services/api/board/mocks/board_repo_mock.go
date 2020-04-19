@@ -104,3 +104,31 @@ func (mr *MockRepositoryMockRecorder) Delete(bid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), bid)
 }
+
+// InviteMember mocks base method
+func (m *MockRepository) InviteMember(bid uint, member *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InviteMember", bid, member)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InviteMember indicates an expected call of InviteMember
+func (mr *MockRepositoryMockRecorder) InviteMember(bid, member interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMember", reflect.TypeOf((*MockRepository)(nil).InviteMember), bid, member)
+}
+
+// DeleteMember mocks base method
+func (m *MockRepository) DeleteMember(bid uint, member *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMember", bid, member)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteMember indicates an expected call of DeleteMember
+func (mr *MockRepositoryMockRecorder) DeleteMember(bid, member interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMember", reflect.TypeOf((*MockRepository)(nil).DeleteMember), bid, member)
+}

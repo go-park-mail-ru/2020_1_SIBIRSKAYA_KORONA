@@ -34,7 +34,16 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.POST("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+
 }
+
+// // GET присылать мемберов вместе с таской
+// POST      /boards/{bid}/columns/{cid}/tasks/{tid}/members                // {id: uid}
+// DELETE    /boards/{bid}/columns/{cid}/tasks/{tid}/members/{uid}
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	tsk := models.CreateTask(ctx)
@@ -91,6 +100,30 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 	err := taskHandler.useCase.Delete(tid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
+	tid := ctx.Get("tid").(uint)
+	assign_uid := ctx.Get("uid_for_assign").(uint)
+
+	err := taskHandler.useCase.Assign(tid, assign_uid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
+	tid := ctx.Get("tid").(uint)
+	assign_uid := ctx.Get("uid_for_assign").(uint)
+
+	err := taskHandler.useCase.Unassign(tid, assign_uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})

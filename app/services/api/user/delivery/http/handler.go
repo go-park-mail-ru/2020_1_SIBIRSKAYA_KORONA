@@ -36,6 +36,7 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
+	//GET /search/profile?nickname={part_of_nickname}
 	router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
 }
 

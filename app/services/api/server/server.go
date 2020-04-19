@@ -92,7 +92,7 @@ func (server *Server) Run() {
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
 	bUseCase := boardUseCase.CreateUseCase(usrRepo, brdRepo)
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
-	tUseCase := taskUseCase.CreateUseCase(tskRepo)
+	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
 
 	// delivery
 	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase)

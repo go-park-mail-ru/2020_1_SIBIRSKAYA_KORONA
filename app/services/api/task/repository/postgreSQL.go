@@ -33,6 +33,11 @@ func (taskStore *TaskStore) Get(tid uint) (*models.Task, error) {
 		logger.Error(err)
 		return nil, errors.ErrTaskNotFound
 	}
+	err := taskStore.DB.Model(tsk).Related(&tsk.Members, "Members").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrDbBadOperation
+	}
 	return tsk, nil
 }
 
@@ -72,5 +77,39 @@ func (taskStore *TaskStore) Delete(tid uint) error {
 		logger.Error(err)
 		return errors.ErrTaskNotFound
 	}
+	return nil
+}
+
+func (taskStore *TaskStore) Assign(tid uint, member *models.User) error {
+	tsk := new(models.Task)
+	err := taskStore.DB.First(tsk, tid).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrTaskNotFound
+	}
+
+	err = taskStore.DB.Model(&tsk).Association("Members").Append(member).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+
+	return nil
+}
+
+func (taskStore *TaskStore) Unassign(tid uint, member *models.User) error {
+	tsk := new(models.Task)
+	err := taskStore.DB.First(tsk, tid).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrTaskNotFound
+	}
+
+	err = taskStore.DB.Model(&tsk).Association("Members").Delete(member).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+
 	return nil
 }

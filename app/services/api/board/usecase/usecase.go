@@ -116,3 +116,13 @@ func (boardUseCase *BoardUseCase) DeleteMember(bid uint, uid uint) error {
 	}
 	return nil
 }
+
+func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+	users, err := boardUseCase.boardRepo.GetUsersForInvite(bid, nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return users, nil
+}

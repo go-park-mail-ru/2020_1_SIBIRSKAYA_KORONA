@@ -145,6 +145,28 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 	}
 }
 
+// вызывается после CheckBoard...Permission
+func (mw *GoMiddleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		bid := ctx.Get("bid").(uint)
+
+		var assign_uid uint
+		_, err := fmt.Sscan(ctx.Param("uid"), &assign_uid)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+
+		if _, err := mw.bUseCase.Get(assign_uid, bid, false); err != nil {
+			logger.Error(err)
+			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		}
+
+		ctx.Set("uid_for_assign", assign_uid)
+		ctx.Set("bid", bid)
+		return next(ctx)
+	}
+}
+
 func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		var bid uint

@@ -43,6 +43,15 @@ func (columnStore *ColumnStore) GetTasksByID(cid uint) ([]models.Task, error) {
 		logger.Error(err)
 		return nil, errors.ErrColNotFound
 	}
+
+	// наполняем таску назначенными пользователями
+	for id := range tsks {
+		err := columnStore.DB.Model(tsks[id]).Related(&tsks[id].Members, "Members").Error
+		if err != nil {
+			logger.Error(err)
+			return nil, errors.ErrDbBadOperation
+		}
+	}
 	return tsks, nil
 }
 

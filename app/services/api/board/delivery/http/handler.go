@@ -30,6 +30,8 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
 	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	//GET /board/{bid}/search_for_invite?nickname={part_of_nickname}
+	router.GET("/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
@@ -109,13 +111,10 @@ func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
-	var bid uint
-	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	bid := ctx.Get("bid").(uint)
+
 	var uid uint
-	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
+	_, err := fmt.Sscan(ctx.Param("uid"), &uid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
@@ -128,13 +127,10 @@ func (boardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
-	var bid uint
-	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	bid := ctx.Get("bid").(uint)
+
 	var uid uint
-	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
+	_, err := fmt.Sscan(ctx.Param("uid"), &uid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
@@ -144,4 +140,31 @@ func (boardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	return ctx.NoContent(http.StatusOK)
+}
+
+func (boardHandler *BoardHandler) GetUsersForInvite(ctx echo.Context) error {
+	nicknamePart := ctx.QueryParam("nickname")
+	if nicknamePart == "" {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	bid := ctx.Get("bid").(uint)
+
+	var limit uint
+	_, err := fmt.Sscan(ctx.QueryParam("limit"), &limit)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	usersData, err := boardHandler.useCase.GetUsersForInvite(bid, nicknamePart, limit)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+
+	body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
 }

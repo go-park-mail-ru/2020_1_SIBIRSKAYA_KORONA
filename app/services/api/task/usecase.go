@@ -8,4 +8,6 @@ type UseCase interface {
 	Get(cid uint, tid uint) (*models.Task, error)
 	Update(newTask models.Task) error
 	Delete(tid uint) error
+	Assign(tid uint, uid uint) error
+	Unassign(tid uint, uid uint) error
 }
