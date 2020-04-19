@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+//go:generate easyjson -all
 type User struct {
 	ID       uint    `json:"id" gorm:"primary_key"`
 	Name     string  `json:"name" gorm:"not null" faker:"name"`

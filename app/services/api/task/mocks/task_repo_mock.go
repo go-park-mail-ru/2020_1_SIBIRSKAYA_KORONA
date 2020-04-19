@@ -89,3 +89,31 @@ func (mr *MockRepositoryMockRecorder) Delete(tid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), tid)
 }
+
+// Assign mocks base method
+func (m *MockRepository) Assign(tid uint, member *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Assign", tid, member)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Assign indicates an expected call of Assign
+func (mr *MockRepositoryMockRecorder) Assign(tid, member interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Assign", reflect.TypeOf((*MockRepository)(nil).Assign), tid, member)
+}
+
+// Unassign mocks base method
+func (m *MockRepository) Unassign(tid uint, member *models.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Unassign", tid, member)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Unassign indicates an expected call of Unassign
+func (mr *MockRepositoryMockRecorder) Unassign(tid, member interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unassign", reflect.TypeOf((*MockRepository)(nil).Unassign), tid, member)
+}

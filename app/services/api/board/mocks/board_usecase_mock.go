@@ -47,6 +47,22 @@ func (mr *MockUseCaseMockRecorder) Create(uid, board interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUseCase)(nil).Create), uid, board)
 }
 
+// GetBoardsByUser mocks base method
+func (m *MockUseCase) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBoardsByUser", uid)
+	ret0, _ := ret[0].([]models.Board)
+	ret1, _ := ret[1].([]models.Board)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetBoardsByUser indicates an expected call of GetBoardsByUser
+func (mr *MockUseCaseMockRecorder) GetBoardsByUser(uid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBoardsByUser", reflect.TypeOf((*MockUseCase)(nil).GetBoardsByUser), uid)
+}
+
 // Get mocks base method
 func (m *MockUseCase) Get(uid, bid uint, isAdmin bool) (*models.Board, error) {
 	m.ctrl.T.Helper()
@@ -131,4 +147,19 @@ func (m *MockUseCase) DeleteMember(bid, uid uint) error {
 func (mr *MockUseCaseMockRecorder) DeleteMember(bid, uid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMember", reflect.TypeOf((*MockUseCase)(nil).DeleteMember), bid, uid)
+}
+
+// GetUsersForInvite mocks base method
+func (m *MockUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersForInvite", bid, nicknamePart, limit)
+	ret0, _ := ret[0].([]models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersForInvite indicates an expected call of GetUsersForInvite
+func (mr *MockUseCaseMockRecorder) GetUsersForInvite(bid, nicknamePart, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersForInvite", reflect.TypeOf((*MockUseCase)(nil).GetUsersForInvite), bid, nicknamePart, limit)
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 )
 
+//go:generate easyjson -all
 type Session struct {
 	SID     string
 	ID      uint

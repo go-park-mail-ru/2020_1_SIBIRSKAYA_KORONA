@@ -34,17 +34,33 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockRepository) Create(board *models.Board) error {
+func (m *MockRepository) Create(uid uint, board *models.Board) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", board)
+	ret := m.ctrl.Call(m, "Create", uid, board)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create
-func (mr *MockRepositoryMockRecorder) Create(board interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Create(uid, board interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), board)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), uid, board)
+}
+
+// GetBoardsByUser mocks base method
+func (m *MockRepository) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBoardsByUser", uid)
+	ret0, _ := ret[0].([]models.Board)
+	ret1, _ := ret[1].([]models.Board)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetBoardsByUser indicates an expected call of GetBoardsByUser
+func (mr *MockRepositoryMockRecorder) GetBoardsByUser(uid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBoardsByUser", reflect.TypeOf((*MockRepository)(nil).GetBoardsByUser), uid)
 }
 
 // Get mocks base method
@@ -131,4 +147,19 @@ func (m *MockRepository) DeleteMember(bid uint, member *models.User) error {
 func (mr *MockRepositoryMockRecorder) DeleteMember(bid, member interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMember", reflect.TypeOf((*MockRepository)(nil).DeleteMember), bid, member)
+}
+
+// GetUsersForInvite mocks base method
+func (m *MockRepository) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersForInvite", bid, nicknamePart, limit)
+	ret0, _ := ret[0].([]models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersForInvite indicates an expected call of GetUsersForInvite
+func (mr *MockRepositoryMockRecorder) GetUsersForInvite(bid, nicknamePart, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersForInvite", reflect.TypeOf((*MockRepository)(nil).GetUsersForInvite), bid, nicknamePart, limit)
 }

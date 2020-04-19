@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+//go:generate easyjson -all
 type Task struct {
 	ID       uint    `json:"id" gorm:"primary_key"`
 	Name     string  `json:"title" gorm:"not null" faker:"word"`
