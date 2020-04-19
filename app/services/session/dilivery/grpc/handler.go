@@ -29,22 +29,25 @@ func (sessionHandler *SessionHandler) Create(ctx context.Context, mess *proto.Se
 	err := sessionHandler.useCase.Create(*ses)
 	if err != nil {
 		logger.Error(err)
+		return &empty.Empty{}, err
 	}
-	return &empty.Empty{}, err
+	return &empty.Empty{}, nil
 }
 
 func (sessionHandler *SessionHandler) Get(ctx context.Context, mess *proto.SidMess) (*proto.UidMess, error) {
 	uid, err := sessionHandler.useCase.Get(mess.Sid)
 	if err != nil {
 		logger.Error(err)
+		return &proto.UidMess{}, err
 	}
-	return &proto.UidMess{Uid: uint64(uid)}, err
+	return &proto.UidMess{Uid: uint64(uid)}, nil
 }
 
 func (sessionHandler *SessionHandler) Delete(ctx context.Context, mess *proto.SidMess) (*empty.Empty, error) {
 	err := sessionHandler.useCase.Delete(mess.Sid)
 	if err != nil {
 		logger.Error(err)
+		return &empty.Empty{}, err
 	}
-	return &empty.Empty{}, err
+	return &empty.Empty{}, nil
 }

@@ -20,8 +20,9 @@ func (sessionUseCase *SessionUseCase) Create(ses models.Session) error {
 	err := sessionUseCase.sessionRepo.Create(ses)
 	if err != nil {
 		logger.Error(err)
+		return err
 	}
-	return err
+	return nil
 }
 
 func (sessionUseCase *SessionUseCase) Get(sid string) (uint, error) {
@@ -37,6 +38,7 @@ func (sessionUseCase *SessionUseCase) Delete(sid string) error {
 	err := sessionUseCase.sessionRepo.Delete(sid)
 	if err != nil {
 		logger.Error(err)
+		return err
 	}
 	return nil
 }

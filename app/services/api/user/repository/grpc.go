@@ -126,7 +126,6 @@ func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *mu
 		logger.Error(err)
 		return "", err
 	}
-
 	avatarFileName := fmt.Sprintf("%d.%s", id, format)
 	avatarPath := fmt.Sprintf("%s/%s", userStore.Config.GetFrontendAvatarDir(), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
@@ -141,7 +140,6 @@ func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *mu
 		logger.Error(err)
 		return "", err
 	}
-
 	frontStorage := userStore.Config.GetFrontendStorageURL()
 	avatarStaticUrl := fmt.Sprintf("%s/%s", frontStorage, avatarFileName)
 	return avatarStaticUrl, nil

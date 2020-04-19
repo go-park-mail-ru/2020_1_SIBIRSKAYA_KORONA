@@ -24,6 +24,7 @@ func CreateHandler(useCase user.UseCase) proto.UserServer {
 func (userHandler *UserHandler) Create(ctx context.Context, mess *proto.UserMess) (*proto.UidMess, error) {
 	usr := models.CreateUserFromProto(*mess)
 	if usr == nil {
+		logger.Error(errors.ErrInternal)
 		return &proto.UidMess{Uid: 0}, errors.ErrInternal
 	}
 	err := userHandler.useCase.Create(usr)
@@ -60,6 +61,7 @@ func (userHandler *UserHandler) CheckPassword(ctx context.Context, mess *proto.C
 func (userHandler *UserHandler) Update(ctx context.Context, mess *proto.UpdateMess) (*empty.Empty, error) {
 	usr := models.CreateUserFromProto(*mess.Usr)
 	if usr == nil {
+		logger.Error(errors.ErrInternal)
 		return &empty.Empty{}, errors.ErrInternal
 	}
 	err := userHandler.useCase.Update(mess.OldPass, *usr)

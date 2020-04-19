@@ -49,12 +49,11 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 
 func (userStore *UserStore) CheckPassword(uid uint, password []byte) bool {
 	var usr models.User
-	if err := userStore.DB.Where("id = ?", uid).First(&usr).Error; err != nil {
+	if err := userStore.DB.Select("password").Where("id = ?", uid).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return false
 	}
-	tmp := pass.CheckPassword(password, usr.Password)
-	return tmp
+	return pass.CheckPassword(password, usr.Password)
 }
 
 func (userStore *UserStore) Update(oldPass []byte, newUser models.User) error {
