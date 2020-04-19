@@ -20,6 +20,7 @@ func (userUseCase *UserUseCase) Create(user *models.User) error {
 	err := userUseCase.userRepo.Create(user)
 	if err != nil {
 		logger.Error(err)
+		return err
 	}
 	return nil
 }
