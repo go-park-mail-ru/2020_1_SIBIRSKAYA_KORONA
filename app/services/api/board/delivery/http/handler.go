@@ -23,19 +23,13 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 		useCase: useCase,
 	}
 	router.POST("/boards", handler.Create, mw.CheckAuth)
+	router.GET("/boards", handler.GetBoardsByUser, mw.CheckAuth)
 	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.PUT("/boards/:bid", handler.Update, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
 	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
-
-	//POST      /boards/{bid}/members/           // {id: uid}
-	//router.GET("/boards/:bid/labels", handler.throwError)
-	//router.POST("/boards/:bid/labels", handler.throwError)
-	//router.GET("/boards/:bid/labels/:lid", handler.throwError)
-	//router.PUT("/boards/:bid/labels/:lid", handler.throwError)
-	//router.DELETE("/boards/:bid/labels/:lid", handler.throwError)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
@@ -52,6 +46,20 @@ func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
 	body, err := message.GetBody(message.Pair{Name: "board", Data: *brd})
 	if err != nil {
 		logger.Error(err)
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, body)
+}
+
+func (boardHandler *BoardHandler) GetBoardsByUser(ctx echo.Context) error {
+	uid := ctx.Get("uid").(uint)
+	bAdmin, bMember, err := boardHandler.useCase.GetBoardsByUser(uid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	}
+	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
+	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, body)
@@ -100,46 +108,40 @@ func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusOK)
 }
 
-func (BoardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
+func (boardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
 	var uid uint
 	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
-	err = BoardHandler.useCase.InviteMember(bid, uid)
+	err = boardHandler.useCase.InviteMember(bid, uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
-
 	return ctx.NoContent(http.StatusOK)
 }
 
-func (BoardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
+func (boardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
 	var bid uint
 	_, err := fmt.Sscan(ctx.Param("bid"), &bid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
 	var uid uint
 	_, err = fmt.Sscan(ctx.Param("uid"), &uid)
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
-	err = BoardHandler.useCase.DeleteMember(bid, uid)
+	err = boardHandler.useCase.DeleteMember(bid, uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
-
 	return ctx.NoContent(http.StatusOK)
 }

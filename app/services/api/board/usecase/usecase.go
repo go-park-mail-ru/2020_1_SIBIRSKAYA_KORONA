@@ -30,6 +30,15 @@ func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
 	return boardUseCase.boardRepo.Create(board)
 }
 
+func (boardUseCase *BoardUseCase) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+	adminsBoard, membersBoard, err := boardUseCase.boardRepo.GetBoardsByUser(uid)
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, err
+	}
+	return adminsBoard, membersBoard, nil
+}
+
 func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.Board, error) {
 	brd, err := boardUseCase.boardRepo.Get(bid)
 	if err != nil {
@@ -81,7 +90,6 @@ func (boardUseCase *BoardUseCase) InviteMember(bid uint, uid uint) error {
 		logger.Error(err)
 		return err
 	}
-
 	err = boardUseCase.boardRepo.InviteMember(bid, usr)
 	if err != nil {
 		logger.Error(err)
@@ -96,7 +104,6 @@ func (boardUseCase *BoardUseCase) DeleteMember(bid uint, uid uint) error {
 		logger.Error(err)
 		return err
 	}
-
 	err = boardUseCase.boardRepo.DeleteMember(bid, usr)
 	if err != nil {
 		logger.Error(err)

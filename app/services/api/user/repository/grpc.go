@@ -114,13 +114,6 @@ func (userStore *UserStore) GetUsersByNicknamePart(nicknamePart string, limit ui
 	return users, nil
 }
 
-// TODO: вынести в доски
-func (userStore *UserStore) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
-	var adminsBoards []models.Board
-	var membersBoards []models.Board
-	return adminsBoards, membersBoards, nil
-}
-
 func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *multipart.FileHeader, id uint) (string, error) {
 	avatarFile, err := avatarFileDescriptor.Open()
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	pass "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/password"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -49,11 +48,12 @@ func (userStore *UserStore) GetByNickname(nickname string) (*models.User, error)
 
 func (userStore *UserStore) CheckPassword(uid uint, password []byte) bool {
 	var usr models.User
-	if err := userStore.DB.Where("id = ?", uid).First(&usr); err != nil {
+	if err := userStore.DB.Where("id = ?", uid).First(&usr).Error; err != nil {
 		logger.Error(err)
 		return false
 	}
-	return pass.CheckPassword(password, usr.Password)
+	tmp := pass.CheckPassword(password, usr.Password)
+	return tmp
 }
 
 func (userStore *UserStore) Update(oldPass []byte, newUser models.User) error {

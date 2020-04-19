@@ -12,6 +12,5 @@ type Repository interface {
 	CheckPassword(uid uint, pass []byte) bool
 	Update(oldPass []byte, newUser models.User, avatarFileDescriptor *multipart.FileHeader) error
 	Delete(id uint) error
-	GetBoardsByID(uid uint) ([]models.Board, []models.Board, error)
 	GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error)
 }

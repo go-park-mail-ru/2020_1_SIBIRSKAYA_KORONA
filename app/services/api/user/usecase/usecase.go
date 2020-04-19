@@ -57,15 +57,6 @@ func (userUseCase *UserUseCase) GetByNickname(nickname string) (*models.User, er
 	return usr, nil
 }
 
-func (userUseCase *UserUseCase) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
-	adminsBoard, membersBoard, err := userUseCase.userRepo.GetBoardsByID(uid)
-	if err != nil {
-		logger.Error(err)
-		return nil, nil, err
-	}
-	return adminsBoard, membersBoard, nil
-}
-
 func (userUseCase *UserUseCase) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
 	users, err := userUseCase.userRepo.GetUsersByNicknamePart(nicknamePart, limit)
 	if err != nil {

@@ -35,7 +35,6 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMid
 	router.POST("/settings", handler.Create)
 	router.GET("/profile/:id_or_nickname", handler.Get)
 	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
-	router.GET("/boards", handler.GetBoards, mw.CheckAuth)
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
 	//GET       /search/profile?nickname={part_of_nickname}
@@ -122,20 +121,6 @@ func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
 	}
 	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
-	if err != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	return ctx.String(http.StatusOK, body)
-}
-
-func (userHandler *UserHandler) GetBoards(ctx echo.Context) error {
-	uid := ctx.Get("uid").(uint)
-	bAdmin, bMember, err := userHandler.useCase.GetBoardsByID(uid)
-	if err != nil {
-		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
-	}
-	body, err := message.GetBody(message.Pair{Name: "admin", Data: bAdmin}, message.Pair{Name: "member", Data: bMember})
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}

@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/server"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/spf13/viper"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
+	"github.com/spf13/viper"
 )
 
 var opts struct {
@@ -24,7 +25,7 @@ func main() {
 	viper.SetConfigFile(opts.configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	logger.InitLogger()

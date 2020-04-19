@@ -7,6 +7,7 @@ import (
 //go:generate mockgen -source=repository.go -package=mocks -destination=./mocks/board_repo_mock.go
 type Repository interface {
 	Create(board *models.Board) error
+	GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error)
 	Get(bid uint) (*models.Board, error)
 	GetColumnsByID(bid uint) ([]models.Column, error)
 	Update(board *models.Board) error

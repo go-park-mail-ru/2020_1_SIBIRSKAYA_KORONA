@@ -6,14 +6,13 @@ import (
 	"net"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/dilivery/grpc"
 	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/repository"
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -28,9 +27,7 @@ func (server *Server) GetAddr() string {
 	return fmt.Sprintf("%s:%d", server.IP, server.Port)
 }
 
-// TODO: конфиг
 func (server *Server) Run() {
-	logger.InitLogger()
 	// repo
 	memCacheClient := memcache.New("127.0.0.1:11211")
 	err := memCacheClient.Ping()

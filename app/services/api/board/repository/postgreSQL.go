@@ -27,6 +27,23 @@ func (boardStore *BoardStore) Create(board *models.Board) error {
 	return nil
 }
 
+func (boardStore *BoardStore) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+	var adminsBoards []models.Board
+	usr := &models.User{ID: uid}
+	err := boardStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, errors.ErrUserNotFound
+	}
+	var membersBoards []models.Board
+	err = boardStore.DB.Model(usr).Preload("Members").Related(&membersBoards, "Member").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, nil, errors.ErrBoardNotFound
+	}
+	return adminsBoards, membersBoards, nil
+}
+
 func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 	brd := new(models.Board)
 	err := boardStore.DB.First(brd, bid).Error
@@ -34,12 +51,12 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 		logger.Error(err)
 		return nil, errors.ErrBoardNotFound
 	}
-	err = boardStore.DB.Model(brd).Related(&brd.Admins, "Admins").Error
+	err = boardStore.DB.Model(brd).Select("id, Name, nickname, avatar").Related(&brd.Admins, "Admins").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
-	err = boardStore.DB.Model(brd).Related(&brd.Members, "Members").Error
+	err = boardStore.DB.Model(brd).Select("id, nickname, avatar").Related(&brd.Members, "Members").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
@@ -89,13 +106,11 @@ func (boardStore *BoardStore) InviteMember(bid uint, member *models.User) error 
 		logger.Error(err)
 		return errors.ErrBoardNotFound
 	}
-
 	err = boardStore.DB.Model(&brd).Association("Members").Append(member).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrBoardNotFound
 	}
-
 	return nil
 }
 
@@ -106,12 +121,10 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 		logger.Error(err)
 		return errors.ErrBoardNotFound
 	}
-
 	err = boardStore.DB.Model(&brd).Association("Members").Delete(member).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrBoardNotFound
 	}
-
 	return nil
 }

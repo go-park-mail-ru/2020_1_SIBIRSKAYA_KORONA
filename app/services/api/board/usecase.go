@@ -7,6 +7,7 @@ import (
 //go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/board_usecase_mock.go
 type UseCase interface {
 	Create(uid uint, board *models.Board) error
+	GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error)
 	Get(uid uint, bid uint, isAdmin bool) (*models.Board, error)
 	GetColumnsByID(bid uint) ([]models.Column, error)
 	Update(board *models.Board) error
