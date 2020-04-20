@@ -5,6 +5,7 @@ SESSION_BINARY=drello_session
 API_DOC_TARGET=api.yaml
 TEST_COVER_TARGET=coverage_report.out
 PROJECT_DIR := ${CURDIR}
+DOCKER_DIR=docker
 DOCUMENTATION_CONTAINER_NAME=documentation
 
 TEST_FLAGS = \
@@ -34,10 +35,10 @@ build-session-service:
 	go build -o ${SESSION_BINARY} cmd/session/main.go
 
 docker-image:
-	docker build -t drello-builder -f builder.Dockerfile .
-	docker build -t drello-api -f api.Dockerfile .
-	docker build -t drello-session -f session.Dockerfile .
-	docker build -t drello-user -f user.Dockerfile .
+	docker build -t drello-builder -f ${DOCKER_DIR}/builder.Dockerfile .
+	docker build -t drello-api -f ${DOCKER_DIR}/api.Dockerfile .
+	docker build -t drello-session -f ${DOCKER_DIR}/session.Dockerfile .
+	docker build -t drello-user -f ${DOCKER_DIR}/user.Dockerfile .
 
 docker-container-clean:
 	./scripts/rm_container.sh
@@ -49,13 +50,13 @@ docker-image-clean:
 	./scripts/clean_images.sh
 
 start:
-	docker-compose up -d
+	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d 
 
 stop:
-	docker-compose stop
+	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml stop
 
 down:
-	docker-compose down
+	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml down
 
 # документация
 doc-prepare:

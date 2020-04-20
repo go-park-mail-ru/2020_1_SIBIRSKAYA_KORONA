@@ -10,4 +10,4 @@ COPY . .
 
 RUN make build-api-service
 RUN make build-user-service
-RUN make build-session-service
+RUN make build-session-service 

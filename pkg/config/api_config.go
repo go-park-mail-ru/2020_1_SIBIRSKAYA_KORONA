@@ -7,11 +7,13 @@ import (
 )
 
 type ApiConfigController struct {
-	origins      []string
-	serverIp     string
-	serverPort   uint
-	db           string
-	dbConnection string
+	origins           []string
+	serverIp          string
+	serverPort        uint
+	db                string
+	dbConnection      string
+	grpcUserClient    string
+	grpcSessionClient string
 }
 
 func CreateApiConfigController() *ApiConfigController {
@@ -22,11 +24,13 @@ func CreateApiConfigController() *ApiConfigController {
 	dbMode := viper.GetString("database.sslmode")
 
 	return &ApiConfigController{
-		origins:      viper.GetStringSlice("cors.allowed_origins"),
-		serverIp:     viper.GetString("server.ip"),
-		serverPort:   viper.GetUint("server.port"),
-		db:           viper.GetString("database.dbms"),
-		dbConnection: fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode),
+		origins:           viper.GetStringSlice("cors.allowed_origins"),
+		serverIp:          viper.GetString("server.ip"),
+		serverPort:        viper.GetUint("server.port"),
+		db:                viper.GetString("database.dbms"),
+		dbConnection:      fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode),
+		grpcUserClient:    viper.GetString("grpc_clients.user"),
+		grpcSessionClient: viper.GetString("grpc_clients.session"),
 	}
 }
 
@@ -48,4 +52,12 @@ func (cc *ApiConfigController) GetDB() string {
 
 func (cc *ApiConfigController) GetDBConnection() string {
 	return cc.dbConnection
+}
+
+func (cc *ApiConfigController) GetUserClient() string {
+	return cc.grpcUserClient
+}
+
+func (cc *ApiConfigController) GetSessionClient() string {
+	return cc.grpcSessionClient
 }

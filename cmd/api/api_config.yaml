@@ -9,6 +9,13 @@ logger: {
   level: debug,
 }
 
+grpc_clients: {
+  #user: 127.0.0.1:8082,
+  user: user:8082,
+  #session: 127.0.0.1:8081,
+  session: session:8081,
+}
+
 database: {
   dbms: postgres,
   host: postgres,

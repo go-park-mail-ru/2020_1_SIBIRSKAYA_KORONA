@@ -29,7 +29,7 @@ func (server *Server) GetAddr() string {
 
 func (server *Server) Run() {
 	// repo
-	memCacheClient := memcache.New("memcached:11211")
+	memCacheClient := memcache.New(server.Config.GetMemcachedConnect())
 	err := memCacheClient.Ping()
 	defer memCacheClient.DeleteAll()
 	sesRepo := repo.CreateRepository(memCacheClient)
