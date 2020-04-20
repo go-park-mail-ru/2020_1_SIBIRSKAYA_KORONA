@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -13,7 +15,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -90,11 +91,27 @@ func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func (mw *GoMiddleware) Sanitize(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		body, err := ioutil.ReadAll(ctx.Request().Body)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		defer ctx.Request().Body.Close()
+		sanBody, err := sanitize.SanitizeJSON(body)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		ctx.Set("body", sanBody)
+		return next(ctx)
+	}
+}
+
 func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("session_id")
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, message.ResponseError{Message: errors.ErrNoCookie.Error()})
+			return ctx.String(http.StatusUnauthorized, errors.NoCookie)
 		}
 		sid := cookie.Value
 		uid, has := mw.sUseCase.Get(sid)
@@ -102,7 +119,7 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			// Пришла невалидная кука, стираем её из браузера
 			newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
 			ctx.SetCookie(&newCookie)
-			return ctx.JSON(http.StatusUnauthorized, message.ResponseError{Message: errors.ErrNoCookie.Error()})
+			return ctx.String(http.StatusUnauthorized, errors.NoCookie)
 		}
 		ctx.Set("uid", uid)
 		ctx.Set("sid", sid)
@@ -114,15 +131,12 @@ func (mw *GoMiddleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		token := ctx.Request().Header.Get(csrf.CSRFheader)
 		if token == "" {
-			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
+			return ctx.String(http.StatusForbidden, errors.DetectedCSRF)
 		}
-
 		sid := ctx.Get("sid").(string)
-
 		if !csrf.ValidateToken(token, sid) {
-			return ctx.JSON(http.StatusForbidden, message.ResponseError{Message: errors.ErrDetectedCSRF.Error()})
+			return ctx.String(http.StatusForbidden, errors.DetectedCSRF)
 		}
-
 		return next(ctx)
 	}
 }
@@ -138,7 +152,7 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 		uid := ctx.Get("uid").(uint)
 		if _, err := mw.bUseCase.Get(uid, bid, false); err != nil {
 			logger.Error(err)
-			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("bid", bid)
 		return next(ctx)
@@ -149,19 +163,16 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 func (mw *GoMiddleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		bid := ctx.Get("bid").(uint)
-
-		var assign_uid uint
-		_, err := fmt.Sscan(ctx.Param("uid"), &assign_uid)
+		var assignUid uint
+		_, err := fmt.Sscan(ctx.Param("uid"), &assignUid)
 		if err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-
-		if _, err := mw.bUseCase.Get(assign_uid, bid, false); err != nil {
+		if _, err := mw.bUseCase.Get(assignUid, bid, false); err != nil {
 			logger.Error(err)
-			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
-
-		ctx.Set("uid_for_assign", assign_uid)
+		ctx.Set("uid_for_assign", assignUid)
 		ctx.Set("bid", bid)
 		return next(ctx)
 	}
@@ -177,7 +188,7 @@ func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.Ha
 		uid := ctx.Get("uid").(uint)
 		if _, err := mw.bUseCase.Get(uid, bid, true); err != nil {
 			logger.Error(err)
-			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("bid", bid)
 		return next(ctx)
@@ -193,7 +204,7 @@ func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc 
 		}
 		if _, err := mw.cUseCase.Get(bid, cid); err != nil {
 			logger.Error(err)
-			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("cid", cid)
 		return next(ctx)
@@ -209,7 +220,7 @@ func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if _, err := mw.tUseCase.Get(cid, tid); err != nil {
 			logger.Error(err)
-			return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("tid", tid)
 		return next(ctx)
@@ -225,7 +236,6 @@ func (mw *GoMiddleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 			logger.Debugf("\nRequest dump begin :--------------\n\n%s\n\nRequest dump end :--------------", dump)
 		}
-
 		return next(ctx)
 	}
 }

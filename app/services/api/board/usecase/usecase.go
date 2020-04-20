@@ -35,7 +35,7 @@ func (boardUseCase *BoardUseCase) Create(uid uint, board *models.Board) error {
 	return nil
 }
 
-func (boardUseCase *BoardUseCase) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+func (boardUseCase *BoardUseCase) GetBoardsByUser(uid uint) (models.Boards, models.Boards, error) {
 	adminsBoard, membersBoard, err := boardUseCase.boardRepo.GetBoardsByUser(uid)
 	if err != nil {
 		logger.Error(err)
@@ -62,7 +62,7 @@ func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.
 	return nil, errors.ErrNoPermission
 }
 
-func (boardUseCase *BoardUseCase) GetColumnsByID(bid uint) ([]models.Column, error) {
+func (boardUseCase *BoardUseCase) GetColumnsByID(bid uint) (models.Columns, error) {
 	cols, repoErr := boardUseCase.boardRepo.GetColumnsByID(bid)
 	if repoErr != nil {
 		logger.Error(repoErr)
@@ -117,7 +117,7 @@ func (boardUseCase *BoardUseCase) DeleteMember(bid uint, uid uint) error {
 	return nil
 }
 
-func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
 	users, err := boardUseCase.boardRepo.GetUsersForInvite(bid, nicknamePart, limit)
 	if err != nil {
 		logger.Error(err)

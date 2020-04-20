@@ -2,12 +2,7 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
-	"io/ioutil"
-	"log"
-
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
-	"github.com/labstack/echo/v4"
 )
 
 //go:generate easyjson -all
@@ -22,6 +17,9 @@ type User struct {
 	Admin    []Board `json:"-" gorm:"many2many:board_admins;" faker:"-"`
 	Member   []Board `json:"-" gorm:"many2many:board_members;" faker:"-"`
 }
+
+//easyjson:json
+type Users []User
 
 func (usr *User) TableName() string {
 	return "users"
@@ -51,23 +49,4 @@ func CreateUserFromProto(usr proto.UserMess) *User {
 		return nil
 	}
 	return &res
-}
-
-func CreateUser(ctx echo.Context) *User {
-	body, err := ioutil.ReadAll(ctx.Request().Body)
-	if err != nil {
-		return nil
-	}
-	defer ctx.Request().Body.Close()
-	sanBody, err := sanitize.SanitizeJSON(body)
-	if err != nil {
-		return nil
-	}
-	usr := new(User)
-	err = json.Unmarshal(sanBody, usr)
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-	return usr
 }

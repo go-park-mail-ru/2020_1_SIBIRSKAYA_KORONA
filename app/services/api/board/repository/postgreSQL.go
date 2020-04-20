@@ -31,7 +31,7 @@ func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
 	return nil
 }
 
-func (boardStore *BoardStore) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+func (boardStore *BoardStore) GetBoardsByUser(uid uint) (models.Boards, models.Boards, error) {
 	var adminsBoards []models.Board
 	usr := &models.User{ID: uid}
 	err := boardStore.DB.Model(usr).Preload("Admins").Related(&adminsBoards, "Admin").Error
@@ -46,22 +46,22 @@ func (boardStore *BoardStore) GetBoardsByUser(uid uint) ([]models.Board, []model
 		return nil, nil, errors.ErrBoardNotFound
 	}
 	// TODO: изменить запрос или ывнести в отдельную функцию
-	for i, _ := range adminsBoards {
-		for j, _ := range adminsBoards[i].Admins {
+	for i := range adminsBoards {
+		for j := range adminsBoards[i].Admins {
 			adminsBoards[i].Admins[j].Email = ""
 			adminsBoards[i].Admins[j].Password = nil
 		}
-		for j, _ := range adminsBoards[i].Members {
+		for j := range adminsBoards[i].Members {
 			adminsBoards[i].Members[j].Email = ""
 			adminsBoards[i].Members[j].Password = nil
 		}
 	}
-	for i, _ := range membersBoards {
-		for j, _ := range membersBoards[i].Admins {
+	for i := range membersBoards {
+		for j := range membersBoards[i].Admins {
 			membersBoards[i].Admins[j].Email = ""
 			membersBoards[i].Admins[j].Password = nil
 		}
-		for j, _ := range membersBoards[i].Members {
+		for j := range membersBoards[i].Members {
 			membersBoards[i].Members[j].Email = ""
 			membersBoards[i].Members[j].Password = nil
 		}
@@ -90,7 +90,7 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 	return brd, nil
 }
 
-func (boardStore *BoardStore) GetColumnsByID(bid uint) ([]models.Column, error) {
+func (boardStore *BoardStore) GetColumnsByID(bid uint) (models.Columns, error) {
 	var cols []models.Column
 	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&cols, "bid").Error
 	if err != nil {
@@ -155,20 +155,20 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 	return nil
 }
 
-func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
 	var users []models.User
 
-	board, err := boardStore.Get(bid)
+	brd, err := boardStore.Get(bid)
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrBoardNotFound
 	}
 
 	var boardMembersAndAdminsIDs []uint
-	for _, member := range board.Members {
+	for _, member := range brd.Members {
 		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, member.ID)
 	}
-	for _, admin := range board.Admins {
+	for _, admin := range brd.Admins {
 		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, admin.ID)
 	}
 

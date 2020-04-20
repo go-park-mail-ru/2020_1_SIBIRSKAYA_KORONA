@@ -31,7 +31,7 @@ func (columnUseCase *ColumnUseCase) Get(bid uint, cid uint) (*models.Column, err
 	return col, nil
 }
 
-func (columnUseCase *ColumnUseCase) GetTasksByID(cid uint) ([]models.Task, error) {
+func (columnUseCase *ColumnUseCase) GetTasksByID(cid uint) (models.Tasks, error) {
 	tsks, err := columnUseCase.columnRepo.GetTasksByID(cid)
 	if err != nil {
 		logger.Error(err)

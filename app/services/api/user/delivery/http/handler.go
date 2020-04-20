@@ -11,7 +11,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -21,40 +20,37 @@ type UserHandler struct {
 	useCase user.UseCase
 }
 
-func CreateHandlerTest(useCase user.UseCase) *UserHandler {
-	return &UserHandler{
-		useCase: useCase,
-	}
-}
-
 func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMiddleware) {
 	handler := &UserHandler{
 		useCase: useCase,
 	}
-	router.POST("/settings", handler.Create)
+	router.POST("/settings", handler.Create, mw.Sanitize)
 	router.GET("/profile/:id_or_nickname", handler.Get)
 	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
-	//GET /search/profile?nickname={part_of_nickname}
 	router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
-	usr := models.CreateUser(ctx)
-	if usr == nil {
-		return ctx.NoContent(http.StatusBadRequest)
+	var usr models.User
+	body := ctx.Get("body").([]byte)
+	err := usr.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
+	// TODO: вайпер
 	usr.Avatar = fmt.Sprintf("%s://%s:%s%s",
 		viper.GetString("frontend.protocol"),
 		viper.GetString("frontend.ip"),
 		viper.GetString("frontend.port"),
 		viper.GetString("frontend.default_avatar"))
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	sid, err := userHandler.useCase.Create(usr, int32(sessionExpires.Unix()))
+	sid, err := userHandler.useCase.Create(&usr, int32(sessionExpires.Unix()))
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	cookie := &http.Cookie{
 		Name:    "session_id",
@@ -77,27 +73,27 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 	}
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "user", Data: *usr})
+	resp, err := usr.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 	uid := ctx.Get("uid").(uint)
-	userData, err := userHandler.useCase.GetByID(uid)
+	usr, err := userHandler.useCase.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "user", Data: *userData})
+	resp, err := usr.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (userHandler *UserHandler) Update(ctx echo.Context) error {
@@ -115,7 +111,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	}
 	if err := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }
@@ -141,14 +137,14 @@ func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	usersData, err := userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
+	_, err = userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
-	if err != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	return ctx.String(http.StatusOK, body)
+	// body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
+	// if err != nil {
+	// 	return ctx.NoContent(http.StatusInternalServerError)
+	// }
+	return ctx.String(http.StatusOK, "мой репозиторий не работает")
 }

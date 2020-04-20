@@ -9,7 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,15 +17,9 @@ type TaskHandler struct {
 	useCase task.UseCase
 }
 
-func CreateHandlerTest(taskCase task.UseCase) *TaskHandler {
-	return &TaskHandler{
-		useCase: taskCase,
-	}
-}
-
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMiddleware) {
 	handler := &TaskHandler{useCase: useCase}
-	router.POST("boards/:bid/columns/:cid/tasks", handler.Create,
+	router.POST("boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
@@ -41,26 +34,25 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 
 }
 
-// // GET присылать мемберов вместе с таской
-// POST      /boards/{bid}/columns/{cid}/tasks/{tid}/members                // {id: uid}
-// DELETE    /boards/{bid}/columns/{cid}/tasks/{tid}/members/{uid}
-
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
-	tsk := models.CreateTask(ctx)
-	if tsk == nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	tsk.Cid = ctx.Get("cid").(uint)
-	err := taskHandler.useCase.Create(tsk)
+	var tsk models.Task
+	body := ctx.Get("body").([]byte)
+	err := tsk.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
+	tsk.Cid = ctx.Get("cid").(uint)
+	err = taskHandler.useCase.Create(&tsk)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := tsk.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
@@ -73,26 +65,28 @@ func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
 	tsk, err := taskHandler.useCase.Get(cid, tid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "task", Data: *tsk})
+	resp, err := tsk.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
-	tsk := models.CreateTask(ctx)
-	if tsk == nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	// tsk.Cid = ctx.Get("cid").(uint)
-	tsk.ID = ctx.Get("tid").(uint)
-	err := taskHandler.useCase.Update(*tsk)
+	var tsk models.Task
+	body := ctx.Get("body").([]byte)
+	err := tsk.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	tsk.ID = ctx.Get("tid").(uint)
+	err = taskHandler.useCase.Update(tsk)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }
@@ -102,31 +96,30 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 	err := taskHandler.useCase.Delete(tid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assign_uid := ctx.Get("uid_for_assign").(uint)
+	assignUid := ctx.Get("uid_for_assign").(uint)
 
-	err := taskHandler.useCase.Assign(tid, assign_uid)
+	err := taskHandler.useCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assign_uid := ctx.Get("uid_for_assign").(uint)
-
-	err := taskHandler.useCase.Unassign(tid, assign_uid)
+	assignUid := ctx.Get("uid_for_assign").(uint)
+	err := taskHandler.useCase.Unassign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }
