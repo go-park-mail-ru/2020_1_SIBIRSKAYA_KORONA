@@ -54,7 +54,8 @@ func (server *Server) Run() {
 	// TODO: конфиг
 	// session
 	grpcSessionConn, err := grpc.Dial(
-		"127.0.0.1:8081",
+		// "127.0.0.1:8081",
+		"session:8081",
 		grpc.WithInsecure(),
 	)
 	if err != nil {
@@ -64,7 +65,8 @@ func (server *Server) Run() {
 	sessionGrpcClient := proto.NewSessionClient(grpcSessionConn)
 	// user
 	grpcUserConn, err := grpc.Dial(
-		"127.0.0.1:8082",
+		// "127.0.0.1:8082",
+		"user:8082",
 		grpc.WithInsecure(),
 	)
 	if err != nil {

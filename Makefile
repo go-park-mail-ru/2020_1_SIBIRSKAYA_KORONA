@@ -1,4 +1,7 @@
-BINARY=drello_binary
+API_BINARY=drello_api
+USER_BINARY=drello_user
+SESSION_BINARY=drello_session
+
 API_DOC_TARGET=api.yaml
 TEST_COVER_TARGET=coverage_report.out
 PROJECT_DIR := ${CURDIR}
@@ -23,11 +26,18 @@ check-summary:
 	go tool cover -func=${TEST_COVER_TARGET}-2
 
 # docker
-build-binary:
-	go build -o ${BINARY} cmd/main.go
+build-api-service:
+	go build -o ${API_BINARY} cmd/api/main.go
+build-user-service:
+	go build -o ${USER_BINARY} cmd/user/main.go
+build-session-service:
+	go build -o ${SESSION_BINARY} cmd/session/main.go
 
 docker-image:
-	docker build -t drello-backend .
+	docker build -t drello-builder -f builder.Dockerfile .
+	docker build -t drello-api -f api.Dockerfile .
+	docker build -t drello-session -f session.Dockerfile .
+	docker build -t drello-user -f user.Dockerfile .
 
 docker-container-clean:
 	./scripts/rm_container.sh
@@ -42,6 +52,9 @@ start:
 	docker-compose up -d
 
 stop:
+	docker-compose stop
+
+down:
 	docker-compose down
 
 # документация
