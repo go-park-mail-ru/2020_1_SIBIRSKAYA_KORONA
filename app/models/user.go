@@ -25,6 +25,8 @@ func (usr *User) TableName() string {
 	return "users"
 }
 
+// TODO: не маршалить
+
 func (usr *User) ToProto() *proto.UserMess {
 	usrJson, err := json.Marshal(usr)
 	if err != nil {
