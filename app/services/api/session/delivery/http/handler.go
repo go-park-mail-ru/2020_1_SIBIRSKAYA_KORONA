@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"net/http"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,30 +18,26 @@ type SessionHandler struct {
 	useCase session.UseCase
 }
 
-func CreateHandlerTest(sessionCase session.UseCase) *SessionHandler {
-	return &SessionHandler{
-		useCase: sessionCase,
-	}
-}
-
 func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.GoMiddleware) {
 	handler := &SessionHandler{
 		useCase: useCase,
 	}
-	router.POST("/session", handler.LogIn)
+	router.POST("/session", handler.LogIn, mw.Sanitize)
 	router.GET("/token", handler.Token, mw.CheckAuth)
 	router.DELETE("/session", handler.LogOut, mw.CheckAuth)
 }
 
 func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
-	usr := models.CreateUser(ctx)
-	if usr == nil {
-		return ctx.NoContent(http.StatusBadRequest)
+	var usr models.User
+	body := ctx.Get("body").([]byte)
+	err := usr.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	defer ctx.Request().Body.Close()
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	if sid, err := sessionHandler.useCase.Create(usr, int32(sessionExpires.Unix())); err != nil {
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+	if sid, err := sessionHandler.useCase.Create(&usr, int32(sessionExpires.Unix())); err != nil {
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	} else {
 		cookie := &http.Cookie{
 			Name:    "session_id",

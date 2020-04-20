@@ -8,6 +8,6 @@ import (
 type UseCase interface {
 	Create(column *models.Column) error
 	Get(bid uint, cid uint) (*models.Column, error)
-	GetTasksByID(cid uint) ([]models.Task, error)
+	GetTasksByID(cid uint) (models.Tasks, error)
 	Delete(cid uint) error
 }

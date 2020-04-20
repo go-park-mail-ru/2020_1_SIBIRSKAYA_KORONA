@@ -9,7 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/message"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,7 +19,7 @@ type ColumnHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
 	handler := &ColumnHandler{useCase: useCase}
-	router.POST("/boards/:bid/columns", handler.Create, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.POST("/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.GET("/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns/:cid/tasks", handler.GetTasks,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
@@ -31,21 +30,24 @@ func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoM
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
-	col := models.CreateColumn(ctx)
-	if col == nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	col.Bid = ctx.Get("bid").(uint)
-	err := columnHandler.useCase.Create(col)
+	var col models.Column
+	body := ctx.Get("body").([]byte)
+	err := col.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
+	col.Bid = ctx.Get("bid").(uint)
+	err = columnHandler.useCase.Create(&col)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := col.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.JSON(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
@@ -58,13 +60,13 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 	col, err := columnHandler.useCase.Get(bid, cid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "column", Data: *col})
+	resp, err := col.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
@@ -72,13 +74,13 @@ func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
 	tsks, err := columnHandler.useCase.GetTasksByID(cid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	body, err := message.GetBody(message.Pair{Name: "tasks", Data: tsks})
+	resp, err := tsks.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-	return ctx.String(http.StatusOK, body)
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
@@ -91,7 +93,7 @@ func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
 	err := columnHandler.useCase.Delete(cid)
 	if err != nil {
 		logger.Error(err)
-		return ctx.JSON(errors.ResolveErrorToCode(err), message.ResponseError{Message: err.Error()})
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	return ctx.NoContent(http.StatusOK)
 }

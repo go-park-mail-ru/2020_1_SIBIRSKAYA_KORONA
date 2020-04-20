@@ -17,7 +17,146 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(in *jlexer.Lexer, out *Board) {
+func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(in *jlexer.Lexer, out *UserBoards) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "admin":
+			(out.Admin).UnmarshalEasyJSON(in)
+		case "member":
+			(out.Member).UnmarshalEasyJSON(in)
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(out *jwriter.Writer, in UserBoards) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"admin\":"
+		out.RawString(prefix[1:])
+		(in.Admin).MarshalEasyJSON(out)
+	}
+	{
+		const prefix string = ",\"member\":"
+		out.RawString(prefix)
+		(in.Member).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v UserBoards) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v UserBoards) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *UserBoards) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *UserBoards) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(l, v)
+}
+func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(in *jlexer.Lexer, out *Boards) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		in.Skip()
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(Boards, 0, 1)
+			} else {
+				*out = Boards{}
+			}
+		} else {
+			*out = (*out)[:0]
+		}
+		for !in.IsDelim(']') {
+			var v1 Board
+			(v1).UnmarshalEasyJSON(in)
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
+	}
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(out *jwriter.Writer, in Boards) {
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			(v3).MarshalEasyJSON(out)
+		}
+		out.RawByte(']')
+	}
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Boards) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Boards) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Boards) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Boards) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
+}
+func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *Board) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -56,9 +195,9 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 					out.Columns = (out.Columns)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 Column
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(in, &v1)
-					out.Columns = append(out.Columns, v1)
+					var v4 Column
+					(v4).UnmarshalEasyJSON(in)
+					out.Columns = append(out.Columns, v4)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -79,9 +218,9 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 					out.Admins = (out.Admins)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v2 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v2)
-					out.Admins = append(out.Admins, v2)
+					var v5 User
+					(v5).UnmarshalEasyJSON(in)
+					out.Admins = append(out.Admins, v5)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -102,9 +241,9 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 					out.Members = (out.Members)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v3 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v3)
-					out.Members = append(out.Members, v3)
+					var v6 User
+					(v6).UnmarshalEasyJSON(in)
+					out.Members = append(out.Members, v6)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -119,7 +258,7 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 		in.Consumed()
 	}
 }
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(out *jwriter.Writer, in Board) {
+func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in Board) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -138,11 +277,11 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v4, v5 := range in.Columns {
-				if v4 > 0 {
+			for v7, v8 := range in.Columns {
+				if v7 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(out, v5)
+				(v8).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -152,11 +291,11 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v6, v7 := range in.Admins {
-				if v6 > 0 {
+			for v9, v10 := range in.Admins {
+				if v9 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v7)
+				(v10).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -166,11 +305,11 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v8, v9 := range in.Members {
-				if v8 > 0 {
+			for v11, v12 := range in.Members {
+				if v11 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v9)
+				(v12).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -181,326 +320,23 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 // MarshalJSON supports json.Marshaler interface
 func (v Board) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&w, v)
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Board) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(w, v)
+	easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Board) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&r, v)
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Board) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(l, v)
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *User) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "name":
-			out.Name = string(in.String())
-		case "surname":
-			out.Surname = string(in.String())
-		case "nickname":
-			out.Nickname = string(in.String())
-		case "avatar":
-			out.Avatar = string(in.String())
-		case "email":
-			out.Email = string(in.String())
-		case "password":
-			if in.IsNull() {
-				in.Skip()
-				out.Password = nil
-			} else {
-				out.Password = in.Bytes()
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in User) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"surname\":"
-		out.RawString(prefix)
-		out.String(string(in.Surname))
-	}
-	{
-		const prefix string = ",\"nickname\":"
-		out.RawString(prefix)
-		out.String(string(in.Nickname))
-	}
-	{
-		const prefix string = ",\"avatar\":"
-		out.RawString(prefix)
-		out.String(string(in.Avatar))
-	}
-	if in.Email != "" {
-		const prefix string = ",\"email\":"
-		out.RawString(prefix)
-		out.String(string(in.Email))
-	}
-	if len(in.Password) != 0 {
-		const prefix string = ",\"password\":"
-		out.RawString(prefix)
-		out.Base64Bytes(in.Password)
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(in *jlexer.Lexer, out *Column) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "title":
-			out.Name = string(in.String())
-		case "position":
-			out.Pos = float64(in.Float64())
-		case "tasks":
-			if in.IsNull() {
-				in.Skip()
-				out.Tasks = nil
-			} else {
-				in.Delim('[')
-				if out.Tasks == nil {
-					if !in.IsDelim(']') {
-						out.Tasks = make([]Task, 0, 1)
-					} else {
-						out.Tasks = []Task{}
-					}
-				} else {
-					out.Tasks = (out.Tasks)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v13 Task
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(in, &v13)
-					out.Tasks = append(out.Tasks, v13)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(out *jwriter.Writer, in Column) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"position\":"
-		out.RawString(prefix)
-		out.Float64(float64(in.Pos))
-	}
-	if len(in.Tasks) != 0 {
-		const prefix string = ",\"tasks\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v14, v15 := range in.Tasks {
-				if v14 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(out, v15)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(in *jlexer.Lexer, out *Task) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "title":
-			out.Name = string(in.String())
-		case "description":
-			out.About = string(in.String())
-		case "level":
-			out.Level = uint(in.Uint())
-		case "deadline":
-			out.Deadline = string(in.String())
-		case "position":
-			out.Pos = float64(in.Float64())
-		case "cid":
-			out.Cid = uint(in.Uint())
-		case "members":
-			if in.IsNull() {
-				in.Skip()
-				out.Members = nil
-			} else {
-				in.Delim('[')
-				if out.Members == nil {
-					if !in.IsDelim(']') {
-						out.Members = make([]User, 0, 1)
-					} else {
-						out.Members = []User{}
-					}
-				} else {
-					out.Members = (out.Members)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v16 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v16)
-					out.Members = append(out.Members, v16)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(out *jwriter.Writer, in Task) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"description\":"
-		out.RawString(prefix)
-		out.String(string(in.About))
-	}
-	if in.Level != 0 {
-		const prefix string = ",\"level\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Level))
-	}
-	if in.Deadline != "" {
-		const prefix string = ",\"deadline\":"
-		out.RawString(prefix)
-		out.String(string(in.Deadline))
-	}
-	{
-		const prefix string = ",\"position\":"
-		out.RawString(prefix)
-		out.Float64(float64(in.Pos))
-	}
-	{
-		const prefix string = ",\"cid\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Cid))
-	}
-	if len(in.Members) != 0 {
-		const prefix string = ",\"members\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v17, v18 := range in.Members {
-				if v17 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v18)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
+	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(l, v)
 }
