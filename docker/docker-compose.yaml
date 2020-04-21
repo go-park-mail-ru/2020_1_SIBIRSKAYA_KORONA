@@ -14,8 +14,13 @@ services:
       - ${DRELLO_PUBLIC_DIR}:/app/public
 
     depends_on:
-      postgres:
-        condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
+      session:
+        condition: service_started
+      user:
+        condition: service_started
+
 
   session:
     image: drello-session
