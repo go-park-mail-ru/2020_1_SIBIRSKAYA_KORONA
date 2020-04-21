@@ -80,3 +80,21 @@ func (taskUseCase *TaskUseCase) Unassign(tid uint, uid uint) error {
 	}
 	return nil
 }
+
+// Comments ------------------------------------------------
+func (taskUseCase *TaskUseCase) CreateComment(cmt *models.Comment) error {
+	return taskUseCase.taskRepo.CreateComment(cmt)
+}
+
+func (taskUseCase *TaskUseCase) GetComments(tid uint) (models.Comments, error) {
+	cmts, err := taskUseCase.taskRepo.GetComments(tid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	// // TODO:
+	// if tsk.Cid != cid {
+	// 	return nil, errors.ErrNoPermission
+	// }
+	return cmts, nil
+}

@@ -113,3 +113,36 @@ func (taskStore *TaskStore) Unassign(tid uint, member *models.User) error {
 
 	return nil
 }
+
+// Comments -----------------------------------------
+
+func (taskStore *TaskStore) CreateComment(cmt *models.Comment) error {
+	err := taskStore.DB.Create(cmt).Error
+	if err != nil {
+		logger.Error(err)
+		//return errors.ErrConflict
+		return errors.ErrDbBadOperation
+	}
+	return nil
+}
+
+func (taskStore *TaskStore) GetComments(tid uint) (models.Comments, error) {
+	var cmts models.Comments
+	err := taskStore.DB.Model(&models.Task{ID: tid}).Related(&cmts, "tid").Error
+	// err := columnStore.DB.Model(&models.Column{ID: cid}).Preload("Members").Related(&tsks, "cid").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrColNotFound
+	}
+	// // TODO: попробовать через preload
+	// // наполняем таску назначенными пользователями
+	// for id := range tsks {
+	// 	err := columnStore.DB.Model(tsks[id]).Related(&tsks[id].Members, "Members").Error
+	// 	if err != nil {
+	// 		logger.Error(err)
+	// 		return nil, errors.ErrDbBadOperation
+	// 	}
+	// }
+
+	return cmts, nil
+}

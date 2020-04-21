@@ -10,4 +10,8 @@ type Repository interface {
 	Delete(tid uint) error
 	Assign(tid uint, member *models.User) error
 	Unassign(tid uint, member *models.User) error
+
+	//Comments -------------------
+	CreateComment(comment *models.Comment) error
+	GetComments(tid uint) (models.Comments, error)
 }
