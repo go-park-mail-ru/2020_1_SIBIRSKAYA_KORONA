@@ -110,6 +110,10 @@ func easyjsonE9abebc9DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 			out.CreatedAt = int64(in.Int64())
 		case "edited":
 			out.IsEdited = bool(in.Bool())
+		case "nickname":
+			out.Nickname = string(in.String())
+		case "avatar":
+			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -143,6 +147,16 @@ func easyjsonE9abebc9EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		const prefix string = ",\"edited\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.IsEdited))
+	}
+	{
+		const prefix string = ",\"nickname\":"
+		out.RawString(prefix)
+		out.String(string(in.Nickname))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
 	}
 	out.RawByte('}')
 }

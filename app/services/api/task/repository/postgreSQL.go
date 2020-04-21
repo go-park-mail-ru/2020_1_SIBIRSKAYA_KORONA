@@ -117,12 +117,25 @@ func (taskStore *TaskStore) Unassign(tid uint, member *models.User) error {
 // Comments -----------------------------------------
 
 func (taskStore *TaskStore) CreateComment(cmt *models.Comment) error {
-	err := taskStore.DB.Create(cmt).Error
+	var user models.User
+	err := taskStore.DB.Select("nickname, avatar").
+		Where("id = ?", cmt.Uid).
+		Find(&user).Error
+
 	if err != nil {
 		logger.Error(err)
-		//return errors.ErrConflict
+		return errors.ErrUserNotFound
+	}
+
+	cmt.Avatar = user.Avatar
+	cmt.Nickname = user.Nickname
+
+	err = taskStore.DB.Create(cmt).Error
+	if err != nil {
+		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
+
 	return nil
 }
 

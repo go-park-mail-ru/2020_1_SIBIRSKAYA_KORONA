@@ -38,7 +38,8 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 	router.GET("boards/:bid/columns/:cid/tasks/:tid/comments", handler.GetComments,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	// router.DELETE("boards/:bid/columns/:cid/tasks/:tid/comments/:comment_id", handler.DeleteComment,
-	// 	mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask)
+	// 	mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	//TODO: mw.CheckCommentInTask ?
 
 }
 
@@ -145,7 +146,6 @@ func (taskHandler *TaskHandler) CreateComment(ctx echo.Context) error {
 
 	cmt.Uid = ctx.Get("uid").(uint)
 	cmt.Tid = ctx.Get("tid").(uint)
-
 	cmt.CreatedAt = time.Now().Unix()
 
 	err = taskHandler.useCase.CreateComment(&cmt)
@@ -180,5 +180,6 @@ func (taskHandler *TaskHandler) GetComments(ctx echo.Context) error {
 }
 
 // func (TaskHandler *TaskHandler) DeleteComment(ctx echo.Context) error {
+
 // 	return nil
 // }

@@ -83,7 +83,15 @@ func (taskUseCase *TaskUseCase) Unassign(tid uint, uid uint) error {
 
 // Comments ------------------------------------------------
 func (taskUseCase *TaskUseCase) CreateComment(cmt *models.Comment) error {
-	return taskUseCase.taskRepo.CreateComment(cmt)
+	//user, err := taskUseCase.userRepo.GetByID(cmt.Uid)
+
+	err := taskUseCase.taskRepo.CreateComment(cmt)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (taskUseCase *TaskUseCase) GetComments(tid uint) (models.Comments, error) {
