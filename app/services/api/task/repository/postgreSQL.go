@@ -129,10 +129,10 @@ func (taskStore *TaskStore) CreateComment(cmt *models.Comment) error {
 
 	cmt.Avatar = user.Avatar
 	cmt.Nickname = user.Nickname
-
 	err = taskStore.DB.Create(cmt).Error
 	if err != nil {
 		logger.Error(err)
+		//return errors.ErrConflict
 		return errors.ErrDbBadOperation
 	}
 
@@ -145,17 +145,22 @@ func (taskStore *TaskStore) GetComments(tid uint) (models.Comments, error) {
 	// err := columnStore.DB.Model(&models.Column{ID: cid}).Preload("Members").Related(&tsks, "cid").Error
 	if err != nil {
 		logger.Error(err)
-		return nil, errors.ErrColNotFound
+		return nil, errors.ErrDbBadOperation
 	}
+
+	var user models.User
 	// // TODO: попробовать через preload
-	// // наполняем таску назначенными пользователями
-	// for id := range tsks {
-	// 	err := columnStore.DB.Model(tsks[id]).Related(&tsks[id].Members, "Members").Error
-	// 	if err != nil {
-	// 		logger.Error(err)
-	// 		return nil, errors.ErrDbBadOperation
-	// 	}
-	// }
+	for id := range cmts {
+		err := taskStore.DB.Select("nickname, avatar").
+			Where("id = ?", cmts[id].Uid).
+			Find(&user).Error
+		if err != nil {
+			logger.Error(err)
+			return nil, errors.ErrUserNotFound
+		}
+		cmts[id].Avatar = user.Avatar
+		cmts[id].Nickname = user.Nickname
+	}
 
 	return cmts, nil
 }
