@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"time"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
@@ -31,6 +33,12 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMid
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+	router.POST("boards/:bid/columns/:cid/tasks/:tid/comments", handler.CreateComment,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.GET("boards/:bid/columns/:cid/tasks/:tid/comments", handler.GetComments,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	// router.DELETE("boards/:bid/columns/:cid/tasks/:tid/comments/:comment_id", handler.DeleteComment,
+	// 	mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask)
 
 }
 
@@ -123,3 +131,54 @@ func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 	}
 	return ctx.NoContent(http.StatusOK)
 }
+
+// Comments ---------------------------------------------------
+
+func (taskHandler *TaskHandler) CreateComment(ctx echo.Context) error {
+	var cmt models.Comment
+	body := ctx.Get("body").([]byte)
+	err := cmt.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+
+	cmt.Uid = ctx.Get("uid").(uint)
+	cmt.Tid = ctx.Get("tid").(uint)
+
+	cmt.CreatedAt = time.Now().Unix()
+
+	err = taskHandler.useCase.CreateComment(&cmt)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := cmt.MarshalJSON()
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
+}
+
+func (taskHandler *TaskHandler) GetComments(ctx echo.Context) error {
+	//cid := ctx.Get("cid").(uint)
+	var tid uint
+	_, err := fmt.Sscan(ctx.Param("tid"), &tid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	cmts, err := taskHandler.useCase.GetComments(tid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := cmts.MarshalJSON()
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
+}
+
+// func (TaskHandler *TaskHandler) DeleteComment(ctx echo.Context) error {
+// 	return nil
+// }
