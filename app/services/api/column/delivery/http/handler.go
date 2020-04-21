@@ -20,7 +20,7 @@ type ColumnHandler struct {
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
 	handler := &ColumnHandler{useCase: useCase}
 	// TODO: обсудить кто может создавать колонки
-	router.POST("/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.POST("/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns/:cid/tasks", handler.GetTasks,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
