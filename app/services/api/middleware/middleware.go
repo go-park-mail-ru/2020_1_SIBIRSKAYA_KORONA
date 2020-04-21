@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -10,11 +9,13 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -27,21 +28,23 @@ type GoMiddleware struct {
 	sUseCase session.UseCase
 	bUseCase board.UseCase
 	cUseCase column.UseCase
+	lUseCase label.UseCase
 	tUseCase task.UseCase
 }
 
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
+func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase,
+	lUseCase_ label.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
 	}
-
 	return &GoMiddleware{
 		origins:    origins_,
 		serverMode: viper.GetString("server.mode"),
 		sUseCase:   sUseCase_,
 		bUseCase:   bUseCase_,
 		cUseCase:   cUseCase_,
+		lUseCase:   lUseCase_,
 		tUseCase:   tUseCase_,
 	}
 }
@@ -66,7 +69,6 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 		if _, exist := mw.origins[origin]; !exist {
 			return ctx.NoContent(http.StatusForbidden)
 		}
-
 		ctx.Response().Header().Set("Access-Control-Allow-Origin", origin)
 		ctx.Response().Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		ctx.Response().Header().Set("Access-Control-Allow-Credentials", "true")
@@ -207,6 +209,22 @@ func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc 
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("cid", cid)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckLabelInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		bid := ctx.Get("bid").(uint)
+		var lid uint
+		if _, err := fmt.Sscan(ctx.Param("lid"), &lid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := mw.cUseCase.Get(bid, lid); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("lid", lid)
 		return next(ctx)
 	}
 }

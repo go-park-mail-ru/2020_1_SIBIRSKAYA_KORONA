@@ -9,6 +9,7 @@ type Repository interface {
 	Create(uid uint, board *models.Board) error
 	GetBoardsByUser(uid uint) (models.Boards, models.Boards, error)
 	Get(bid uint) (*models.Board, error)
+	GetLabelsByID(bid uint) (models.Labels, error)
 	GetColumnsByID(bid uint) (models.Columns, error)
 	Update(board *models.Board) error
 	Delete(bid uint) error

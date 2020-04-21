@@ -16,6 +16,6 @@ type Task struct {
 //easyjson:json
 type Tasks []Task
 
-func (tsk *Task) TablaName() string {
+func (tsk *Task) TableName() string {
 	return "tasks"
 }

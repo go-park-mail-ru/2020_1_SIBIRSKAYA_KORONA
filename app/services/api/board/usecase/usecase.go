@@ -62,6 +62,15 @@ func (boardUseCase *BoardUseCase) Get(id uint, bid uint, isAdmin bool) (*models.
 	return nil, errors.ErrNoPermission
 }
 
+func (boardUseCase *BoardUseCase) GetLabelsByID(bid uint) (models.Labels, error) {
+	lbls, repoErr := boardUseCase.boardRepo.GetLabelsByID(bid)
+	if repoErr != nil {
+		logger.Error(repoErr)
+		return nil, repoErr
+	}
+	return lbls, nil
+}
+
 func (boardUseCase *BoardUseCase) GetColumnsByID(bid uint) (models.Columns, error) {
 	cols, repoErr := boardUseCase.boardRepo.GetColumnsByID(bid)
 	if repoErr != nil {

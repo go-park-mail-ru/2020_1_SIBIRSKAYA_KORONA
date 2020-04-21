@@ -24,6 +24,7 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMi
 	router.POST("/boards", handler.Create, mw.Sanitize, mw.CheckAuth)
 	router.GET("/boards", handler.GetBoardsByUser, mw.CheckAuth)
 	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
+	router.GET("/boards/:bid/labels", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.PUT("/boards/:bid", handler.Update, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
@@ -86,6 +87,21 @@ func (boardHandler *BoardHandler) Get(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.String(http.StatusOK, string(resp))
+}
+
+func (boardHandler *BoardHandler) GetLabels(ctx echo.Context) error {
+	bid := ctx.Get("bid").(uint)
+	lbls, err := boardHandler.useCase.GetLabelsByID(bid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	body, err := lbls.MarshalJSON()
+	if err != nil {
+		logger.Error(err)
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(body))
 }
 
 func (boardHandler *BoardHandler) GetColumns(ctx echo.Context) error {

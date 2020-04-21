@@ -45,7 +45,7 @@ func (boardStore *BoardStore) GetBoardsByUser(uid uint) (models.Boards, models.B
 		logger.Error(err)
 		return nil, nil, errors.ErrBoardNotFound
 	}
-	// TODO: изменить запрос или ывнести в отдельную функцию
+	// TODO: изменить запрос или вынести в отдельную функцию
 	for i := range adminsBoards {
 		for j := range adminsBoards[i].Admins {
 			adminsBoards[i].Admins[j].Email = ""
@@ -88,6 +88,16 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 		return nil, errors.ErrDbBadOperation
 	}
 	return brd, nil
+}
+
+func (boardStore *BoardStore) GetLabelsByID(bid uint) (models.Labels, error) {
+	var lbls []models.Label
+	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&lbls, "bid").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrBoardNotFound
+	}
+	return lbls, nil
 }
 
 func (boardStore *BoardStore) GetColumnsByID(bid uint) (models.Columns, error) {

@@ -25,6 +25,8 @@ const (
 
 	ColNotFound = "column not found"
 
+	LabelNotFound = "label not found"
+
 	TaskNotFound = "task not found"
 
 	DbBadOperation  = "unsuccessful ORM operation"
@@ -52,6 +54,9 @@ var (
 	// ошибки, связанные с колонками
 	ErrColNotFound = errors.New(ColNotFound)
 
+	// ошибки, связанные с лейблом
+	ErrLabelNotFound = errors.New(LabelNotFound)
+
 	// ошибки, связанные с тасками
 	ErrTaskNotFound = errors.New(TaskNotFound)
 
@@ -70,10 +75,13 @@ var messToError = map[string]error{
 
 	NoCookie:        ErrNoCookie,
 	SessionNotFound: ErrSessionNotFound,
+	DetectedCSRF:    ErrDetectedCSRF,
 
 	BoardNotFound: ErrBoardNotFound,
 
 	ColNotFound: ErrColNotFound,
+
+	LabelNotFound: ErrLabelNotFound,
 
 	TaskNotFound: ErrTaskNotFound,
 }
@@ -87,6 +95,7 @@ var errorToCodeMap = map[error]int{
 	// ошибки, связанные с юзером
 	ErrUserNotFound:  http.StatusNotFound,
 	ErrWrongPassword: http.StatusPreconditionFailed,
+	//TODO код csfr?
 
 	// ошибки, связанные с сессией
 	ErrNoCookie:        http.StatusForbidden,
@@ -97,6 +106,9 @@ var errorToCodeMap = map[error]int{
 
 	// ошибки, связанные с колонкой
 	ErrColNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с лейблом
+	ErrLabelNotFound: http.StatusNotFound,
 
 	// ошибки, связанные с таской
 	ErrTaskNotFound: http.StatusNotFound,
