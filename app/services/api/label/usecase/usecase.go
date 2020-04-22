@@ -55,3 +55,21 @@ func (labelUseCase *LabelUseCase) Delete(lid uint) error {
 	}
 	return nil
 }
+
+func (labelUseCase *LabelUseCase) AddLabelOnTask(lid uint, tid uint) error {
+	err := labelUseCase.labelRepo.AddLabelOnTask(lid, tid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (labelUseCase *LabelUseCase) RemoveLabelFromTask(lid uint, tid uint) error {
+	err := labelUseCase.labelRepo.RemoveLabelFromTask(lid, tid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}

@@ -33,7 +33,8 @@ func (taskStore *TaskStore) Get(tid uint) (*models.Task, error) {
 		logger.Error(err)
 		return nil, errors.ErrTaskNotFound
 	}
-	err := taskStore.DB.Model(tsk).Related(&tsk.Members, "Members").Error
+	err := taskStore.DB.Model(tsk).Related(&tsk.Members, "Members").
+		Related(&tsk.Labels, "Labels").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
@@ -87,13 +88,11 @@ func (taskStore *TaskStore) Assign(tid uint, member *models.User) error {
 		logger.Error(err)
 		return errors.ErrTaskNotFound
 	}
-
 	err = taskStore.DB.Model(&tsk).Association("Members").Append(member).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }
 
@@ -104,12 +103,10 @@ func (taskStore *TaskStore) Unassign(tid uint, member *models.User) error {
 		logger.Error(err)
 		return errors.ErrTaskNotFound
 	}
-
 	err = taskStore.DB.Model(&tsk).Association("Members").Delete(member).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }

@@ -10,7 +10,7 @@ type Task struct {
 	Pos      float64 `json:"position" gorm:"not null"`
 	Cid      uint    `json:"cid" gorm:"not null"`
 	Members  []User  `json:"members,omitempty" gorm:"many2many:task_members"`
-	// Labels []*Label
+	Labels   []Label `json:"labels,omitempty" gorm:"many2many:task_labels;"`
 }
 
 //easyjson:json

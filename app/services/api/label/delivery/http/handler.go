@@ -17,10 +17,6 @@ type LabelHandler struct {
 	useCase label.UseCase
 }
 
-/*
-// GET присылать лейблы вместе с таской
-*/
-
 func CreateHandler(router *echo.Echo, useCase label.UseCase, mw *middleware.GoMiddleware) {
 	handler := &LabelHandler{
 		useCase: useCase,
@@ -107,9 +103,23 @@ func (labelHandler *LabelHandler) Delete(ctx echo.Context) error {
 }
 
 func (labelHandler *LabelHandler) AddLabelOnTask(ctx echo.Context) error {
+	lid := ctx.Get("lid").(uint)
+	tid := ctx.Get("tid").(uint)
+	err := labelHandler.useCase.AddLabelOnTask(lid, tid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (labelHandler *LabelHandler) RemoveLabelFromTask(ctx echo.Context) error {
-    return ctx.NoContent(http.StatusOK)
+	lid := ctx.Get("lid").(uint)
+	tid := ctx.Get("tid").(uint)
+	err := labelHandler.useCase.RemoveLabelFromTask(lid, tid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	return ctx.NoContent(http.StatusOK)
 }

@@ -8,4 +8,6 @@ type Repository interface {
 	Get(lid uint) (*models.Label, error)
 	Update(lbl models.Label) error
 	Delete(lid uint) error
+	AddLabelOnTask(lid uint, tid uint) error
+	RemoveLabelFromTask(lid uint, tid uint) error
 }

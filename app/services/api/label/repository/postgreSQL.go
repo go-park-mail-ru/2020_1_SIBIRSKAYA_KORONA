@@ -42,10 +42,10 @@ func (labelStore *LabelStore) Update(newLabel models.Label) error {
 		logger.Error(err)
 		return err
 	}
-	if oldLabel.Name != "" {
+	if newLabel.Name != "" {
 		oldLabel.Name = newLabel.Name
 	}
-	if oldLabel.Color != "" {
+	if newLabel.Color != "" {
 		oldLabel.Color = newLabel.Color
 	}
 	if err := labelStore.DB.Save(oldLabel).Error; err != nil {
@@ -59,6 +59,24 @@ func (labelStore *LabelStore) Delete(lid uint) error {
 	if err := labelStore.DB.Where("id = ?", lid).Delete(models.Label{}).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrLabelNotFound
+	}
+	return nil
+}
+
+func (labelStore *LabelStore) AddLabelOnTask(lid uint, tid uint) error {
+	err := labelStore.DB.Model(&models.Task{ID: tid}).Association("Labels").Append(&models.Label{ID: lid}).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrConflict
+	}
+	return nil
+}
+
+func (labelStore *LabelStore) RemoveLabelFromTask(lid uint, tid uint) error {
+	err := labelStore.DB.Model(&models.Task{ID: tid}).Association("Labels").Delete(&models.Label{ID: lid}).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
 	}
 	return nil
 }
