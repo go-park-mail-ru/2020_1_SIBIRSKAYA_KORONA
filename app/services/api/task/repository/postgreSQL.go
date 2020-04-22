@@ -149,7 +149,7 @@ func (taskStore *TaskStore) GetComments(tid uint) (models.Comments, error) {
 	}
 
 	var user models.User
-	// // TODO: попробовать через preload
+	// TODO: попробовать через preload
 	for id := range cmts {
 		err := taskStore.DB.Select("nickname, avatar").
 			Where("id = ?", cmts[id].Uid).

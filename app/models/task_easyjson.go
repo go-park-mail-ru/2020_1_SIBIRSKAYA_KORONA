@@ -133,8 +133,54 @@ func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 				}
 				for !in.IsDelim(']') {
 					var v4 User
-					easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v4)
+					(v4).UnmarshalEasyJSON(in)
 					out.Members = append(out.Members, v4)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "comments":
+			if in.IsNull() {
+				in.Skip()
+				out.Comments = nil
+			} else {
+				in.Delim('[')
+				if out.Comments == nil {
+					if !in.IsDelim(']') {
+						out.Comments = make([]Comment, 0, 1)
+					} else {
+						out.Comments = []Comment{}
+					}
+				} else {
+					out.Comments = (out.Comments)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v5 Comment
+					(v5).UnmarshalEasyJSON(in)
+					out.Comments = append(out.Comments, v5)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "checklists":
+			if in.IsNull() {
+				in.Skip()
+				out.Checklists = nil
+			} else {
+				in.Delim('[')
+				if out.Checklists == nil {
+					if !in.IsDelim(']') {
+						out.Checklists = make([]Checklist, 0, 1)
+					} else {
+						out.Checklists = []Checklist{}
+					}
+				} else {
+					out.Checklists = (out.Checklists)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v6 Checklist
+					(v6).UnmarshalEasyJSON(in)
+					out.Checklists = append(out.Checklists, v6)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -193,11 +239,39 @@ func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v5, v6 := range in.Members {
-				if v5 > 0 {
+			for v7, v8 := range in.Members {
+				if v7 > 0 {
 					out.RawByte(',')
 				}
-				easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v6)
+				(v8).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if len(in.Comments) != 0 {
+		const prefix string = ",\"comments\":"
+		out.RawString(prefix)
+		{
+			out.RawByte('[')
+			for v9, v10 := range in.Comments {
+				if v9 > 0 {
+					out.RawByte(',')
+				}
+				(v10).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if len(in.Checklists) != 0 {
+		const prefix string = ",\"checklists\":"
+		out.RawString(prefix)
+		{
+			out.RawByte('[')
+			for v11, v12 := range in.Checklists {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				(v12).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -227,93 +301,4 @@ func (v *Task) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Task) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
-}
-func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *User) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "name":
-			out.Name = string(in.String())
-		case "surname":
-			out.Surname = string(in.String())
-		case "nickname":
-			out.Nickname = string(in.String())
-		case "avatar":
-			out.Avatar = string(in.String())
-		case "email":
-			out.Email = string(in.String())
-		case "password":
-			if in.IsNull() {
-				in.Skip()
-				out.Password = nil
-			} else {
-				out.Password = in.Bytes()
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in User) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"surname\":"
-		out.RawString(prefix)
-		out.String(string(in.Surname))
-	}
-	{
-		const prefix string = ",\"nickname\":"
-		out.RawString(prefix)
-		out.String(string(in.Nickname))
-	}
-	{
-		const prefix string = ",\"avatar\":"
-		out.RawString(prefix)
-		out.String(string(in.Avatar))
-	}
-	if in.Email != "" {
-		const prefix string = ",\"email\":"
-		out.RawString(prefix)
-		out.String(string(in.Email))
-	}
-	if len(in.Password) != 0 {
-		const prefix string = ",\"password\":"
-		out.RawString(prefix)
-		out.Base64Bytes(in.Password)
-	}
-	out.RawByte('}')
 }

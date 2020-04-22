@@ -27,6 +27,14 @@ import (
 	taskRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/repository"
 	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/usecase"
 
+	checklistHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/delivery/http"
+	checklistRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/repository"
+	checklistUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/usecase"
+
+	itemHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/delivery/http"
+	itemRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/repository"
+	itemUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/usecase"
+
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
@@ -80,12 +88,15 @@ func (server *Server) Run() {
 		logger.Info("Postgresql succesfull start")
 	}
 	defer postgresClient.Close()
-	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Comment{})
+	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Comment{},
+		&models.Checklist{}, &models.Item{})
 	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
 	usrRepo := userRepo.CreateRepository(userGrpcClient, server.UserConfig)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
 	tskRepo := taskRepo.CreateRepository(postgresClient)
+	chlistRepo := checklistRepo.CreateRepository(postgresClient)
+	itmRepo := itemRepo.CreateRepository(postgresClient)
 
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
@@ -93,6 +104,8 @@ func (server *Server) Run() {
 	bUseCase := boardUseCase.CreateUseCase(usrRepo, brdRepo)
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
 	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
+	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
+	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 
 	// delivery
 	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase)
@@ -105,6 +118,8 @@ func (server *Server) Run() {
 	boardHandler.CreateHandler(router, bUseCase, mw)
 	colsHandler.CreateHandler(router, cUseCase, mw)
 	taskHandler.CreateHandler(router, tUseCase, mw)
+	checklistHandler.CreateHandler(router, chUseCase, mw)
+	itemHandler.CreateHandler(router, itmUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {

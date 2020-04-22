@@ -50,6 +50,7 @@ docker-image-clean:
 	./scripts/clean_images.sh
 
 start:
+	service postgresql stop && service memcached stop
 	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d 
 
 stop:
