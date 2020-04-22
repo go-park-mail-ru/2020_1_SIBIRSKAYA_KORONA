@@ -132,6 +132,5 @@ func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart strin
 		logger.Error(err)
 		return nil, err
 	}
-
 	return users, nil
 }

@@ -167,13 +167,11 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 
 func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
 	var users []models.User
-
 	brd, err := boardStore.Get(bid)
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrBoardNotFound
 	}
-
 	var boardMembersAndAdminsIDs []uint
 	for _, member := range brd.Members {
 		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, member.ID)
@@ -181,13 +179,11 @@ func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, l
 	for _, admin := range brd.Admins {
 		boardMembersAndAdminsIDs = append(boardMembersAndAdminsIDs, admin.ID)
 	}
-
 	err = boardStore.DB.Select("id, name, surname, nickname, avatar").
 		Limit(limit).
 		Where("nickname LIKE ?", nicknamePart+"%").
 		Not("id", boardMembersAndAdminsIDs).
 		Find(&users).Error
-
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrUserNotFound
