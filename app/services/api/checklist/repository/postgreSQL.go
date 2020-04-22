@@ -28,14 +28,14 @@ func (checklistStore *ChecklistStore) Create(chlist *models.Checklist) error {
 
 func (checklistStore *ChecklistStore) Get(tid uint) (models.Checklists, error) {
 	var chlists []models.Checklist
-	err := checklistStore.DB.Model(&models.Task{ID: tid}).Related(&chlists, "tid").Error
+	err := checklistStore.DB.Model(&models.Task{ID: tid}).Order("id").Related(&chlists, "tid").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
 
 	for id := range chlists {
-		err := checklistStore.DB.Model(chlists[id]).Related(&chlists[id].Items, "clid").Error
+		err := checklistStore.DB.Model(chlists[id]).Order("id").Related(&chlists[id].Items, "clid").Error
 		if err != nil {
 			logger.Error(err)
 			return nil, errors.ErrDbBadOperation

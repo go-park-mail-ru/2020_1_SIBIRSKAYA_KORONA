@@ -27,22 +27,26 @@ func (itemStore *ItemStore) Create(item *models.Item) error {
 }
 
 func (itemStore *ItemStore) Update(newItem *models.Item) error {
-	return errors.ErrDbBadOperation
+	var oldItem models.Item
+	if err := itemStore.DB.Where("id = ?", newItem.ID).First(&oldItem).Error; err != nil {
+		logger.Error(err)
+		return errors.ErrUserNotFound // TODO: ошибку добавить
+	}
 
-	// var oldItem models.Item
-	// if err := itemStore.DB.Where("id = ?", newItem.ID).First(&oldItem).Error; err != nil {
-	// 	logger.Error(err)
-	// 	return errors.ErrUserNotFound
-	// }
+	if newItem.Text != "" {
+		oldItem.Text = newItem.Text
+	}
 
-	// oldItem.Text = newItem.Text
-	// oldItem.IsDone = newItem.IsDone
+	if newItem.IsDone != oldItem.IsDone {
+		oldItem.IsDone = newItem.IsDone
+	}
 
-	// if err := userStore.DB.Save(oldUser).Error; err != nil {
-	// 	logger.Error(err)
-	// 	return errors.ErrDbBadOperation
-	// }
+	if err := itemStore.DB.Save(oldItem).Error; err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
 
+	return nil
 }
 
 func (itemStore *ItemStore) Delete(itid uint) error {

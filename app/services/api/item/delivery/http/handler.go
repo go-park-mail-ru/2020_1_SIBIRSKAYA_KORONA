@@ -59,7 +59,38 @@ func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
 }
 
 func (itemHandler *ItemHandler) Update(ctx echo.Context) error {
-	return ctx.NoContent(errors.ResolveErrorToCode(errors.ErrDbBadOperation))
+	var clid uint
+	_, err := fmt.Sscan(ctx.Param("clid"), &clid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	var itid uint
+	_, err = fmt.Sscan(ctx.Param("itid"), &itid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	var item models.Item
+	body := ctx.Get("body").([]byte)
+	err = item.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	item.Clid = clid
+	item.ID = itid
+
+	err = itemHandler.useCase.Update(&item)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := item.MarshalJSON()
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (itemHandler *ItemHandler) Delete(ctx echo.Context) error {

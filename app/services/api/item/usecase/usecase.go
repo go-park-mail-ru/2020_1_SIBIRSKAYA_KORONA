@@ -35,8 +35,13 @@ func (itemUseCase *ItemUseCase) Create(item *models.Item) error {
 // 	return checklists, nil
 // }
 
-func (itemUseCase *ItemUseCase) Update(item *models.Item) error {
-	return errors.ErrDbBadOperation
+func (itemUseCase *ItemUseCase) Update(newItem *models.Item) error {
+	err := itemUseCase.itemRepo.Update(newItem)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (itemUseCase *ItemUseCase) Delete(itid uint) error {
