@@ -7,4 +7,5 @@ type UseCase interface {
 	Get(tid uint) (models.Checklists, error)
 	Update(chlist *models.Checklist) error
 	Delete(clid uint) error
+	GetByID(tid uint, clid uint) (*models.Checklist, error)
 }

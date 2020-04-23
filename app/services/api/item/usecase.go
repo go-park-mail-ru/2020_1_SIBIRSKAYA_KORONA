@@ -6,4 +6,5 @@ type UseCase interface {
 	Create(item *models.Item) error
 	Update(item *models.Item) error
 	Delete(itid uint) error
+	GetByID(clid uint, itid uint) (*models.Item, error)
 }

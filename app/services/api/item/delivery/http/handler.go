@@ -23,11 +23,11 @@ func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.GoMid
 	}
 
 	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items", handler.Create,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
 	router.PUT("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Update,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.CheckItemInChecklist)
 	router.DELETE("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Delete,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.CheckItemInChecklist)
 }
 
 func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
@@ -59,21 +59,13 @@ func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
 }
 
 func (itemHandler *ItemHandler) Update(ctx echo.Context) error {
-	var clid uint
-	_, err := fmt.Sscan(ctx.Param("clid"), &clid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	clid := ctx.Get("clid").(uint)
 
-	var itid uint
-	_, err = fmt.Sscan(ctx.Param("itid"), &itid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
+	itid := ctx.Get("itid").(uint)
 
 	var item models.Item
 	body := ctx.Get("body").([]byte)
-	err = item.UnmarshalJSON(body)
+	err := item.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
@@ -96,5 +88,3 @@ func (itemHandler *ItemHandler) Update(ctx echo.Context) error {
 func (itemHandler *ItemHandler) Delete(ctx echo.Context) error {
 	return ctx.NoContent(errors.ResolveErrorToCode(errors.ErrDbBadOperation))
 }
-
-

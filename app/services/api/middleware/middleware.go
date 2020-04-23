@@ -10,7 +10,9 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
@@ -25,13 +27,16 @@ type GoMiddleware struct {
 	origins    map[string]struct{}
 	serverMode string
 
-	sUseCase session.UseCase
-	bUseCase board.UseCase
-	cUseCase column.UseCase
-	tUseCase task.UseCase
+	sUseCase  session.UseCase
+	bUseCase  board.UseCase
+	cUseCase  column.UseCase
+	tUseCase  task.UseCase
+	chUseCase checklist.UseCase
+	itUseCase item.UseCase
 }
 
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase) *GoMiddleware {
+func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
+	chUseCase_ checklist.UseCase, itUseCase_ item.UseCase) *GoMiddleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
@@ -44,6 +49,8 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 		bUseCase:   bUseCase_,
 		cUseCase:   cUseCase_,
 		tUseCase:   tUseCase_,
+		chUseCase:  chUseCase_,
+		itUseCase:  itUseCase_,
 	}
 }
 
@@ -224,6 +231,39 @@ func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("tid", tid)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckChecklistInTask(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		tid := ctx.Get("tid").(uint)
+		var clid uint
+		if _, err := fmt.Sscan(ctx.Param("clid"), &clid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := mw.chUseCase.GetByID(tid, clid); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("clid", clid)
+		return next(ctx)
+
+	}
+}
+
+func (mw *GoMiddleware) CheckItemInChecklist(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		clid := ctx.Get("clid").(uint)
+		var itid uint
+		if _, err := fmt.Sscan(ctx.Param("itid"), &itid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := mw.itUseCase.GetByID(clid, itid); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("itid", itid)
 		return next(ctx)
 	}
 }

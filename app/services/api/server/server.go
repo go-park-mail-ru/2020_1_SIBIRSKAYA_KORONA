@@ -108,7 +108,7 @@ func (server *Server) Run() {
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 
 	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase)
 	router := echo.New()
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)

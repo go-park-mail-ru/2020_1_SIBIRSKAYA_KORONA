@@ -7,4 +7,5 @@ type Repository interface {
 	Get(tid uint) (models.Checklists, error)
 	Update(chlist *models.Checklist) error
 	Delete(clid uint) error
+	GetByID(clid uint) (*models.Checklist, error)
 }

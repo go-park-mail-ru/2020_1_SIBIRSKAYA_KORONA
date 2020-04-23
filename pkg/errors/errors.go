@@ -2,9 +2,10 @@ package errors
 
 import (
 	"errors"
-	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
+
+	"google.golang.org/grpc/status"
 )
 
 // Пакет для определения типичных ошибок, которые потом будут использоваться в кастомных обёртках
@@ -26,6 +27,10 @@ const (
 	ColNotFound = "column not found"
 
 	TaskNotFound = "task not found"
+
+	ChecklistNotFound = "checklist not found"
+
+	ItemNotFound = "item not found"
 
 	DbBadOperation  = "unsuccessful ORM operation"
 	BadAvatarUpload = "unsuccessful avatar upload"
@@ -55,6 +60,12 @@ var (
 	// ошибки, связанные с тасками
 	ErrTaskNotFound = errors.New(TaskNotFound)
 
+	// ошибки, связанные с чеклистами
+	ErrChecklistNotFound = errors.New(ChecklistNotFound)
+
+	// ошибки, связанные с итемами
+	ErrItemNotFound = errors.New(ChecklistNotFound)
+
 	// ошибки, связанные с бд
 	ErrDbBadOperation  = errors.New(DbBadOperation)
 	ErrBadAvatarUpload = errors.New(BadAvatarUpload)
@@ -76,6 +87,10 @@ var messToError = map[string]error{
 	ColNotFound: ErrColNotFound,
 
 	TaskNotFound: ErrTaskNotFound,
+
+	ChecklistNotFound: ErrChecklistNotFound,
+
+	ItemNotFound: ErrItemNotFound,
 }
 
 var errorToCodeMap = map[error]int{
@@ -100,6 +115,12 @@ var errorToCodeMap = map[error]int{
 
 	// ошибки, связанные с таской
 	ErrTaskNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с чеклистами
+	ErrChecklistNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с итемами
+	ErrItemNotFound: http.StatusNotFound,
 }
 
 func ResolveErrorToCode(err error) (code int) {

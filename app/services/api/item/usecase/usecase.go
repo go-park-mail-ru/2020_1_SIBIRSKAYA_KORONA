@@ -26,14 +26,17 @@ func (itemUseCase *ItemUseCase) Create(item *models.Item) error {
 	return nil
 }
 
-// func (itemUseCase *ItemUseCase) Get(tid uint) (models.Checklists, error) {
-// 	checklists, err := itemUseCase.itemRepo.Get(tid)
-// 	if err != nil {
-// 		logger.Error(err)
-// 		return nil, err
-// 	}
-// 	return checklists, nil
-// }
+func (itemUseCase *ItemUseCase) GetByID(clid uint, itid uint) (*models.Item, error) {
+	item, err := itemUseCase.itemRepo.GetByID(itid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	if item.Clid != clid {
+		return nil, errors.ErrNoPermission
+	}
+	return item, nil
+}
 
 func (itemUseCase *ItemUseCase) Update(newItem *models.Item) error {
 	err := itemUseCase.itemRepo.Update(newItem)

@@ -38,10 +38,27 @@ func (checklistUseCase *ChecklistUseCase) Get(tid uint) (models.Checklists, erro
 	return checklists, nil
 }
 
+func (checklistUseCase *ChecklistUseCase) GetByID(tid uint, clid uint) (*models.Checklist, error) {
+	checklist, err := checklistUseCase.checklistRepo.GetByID(clid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	if checklist.Tid != tid {
+		return nil, errors.ErrNoPermission
+	}
+	return checklist, nil
+}
+
 func (checklistUseCase *ChecklistUseCase) Update(chlis *models.Checklist) error {
 	return errors.ErrDbBadOperation
 }
 
 func (checklistUseCase *ChecklistUseCase) Delete(clid uint) error {
-	return errors.ErrDbBadOperation
+	err := checklistUseCase.checklistRepo.Delete(clid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }

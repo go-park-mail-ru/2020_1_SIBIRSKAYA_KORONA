@@ -6,4 +6,5 @@ type Repository interface {
 	Create(chlist *models.Item) error
 	Update(chlist *models.Item) error
 	Delete(itid uint) error
+	GetByID(itid uint) (*models.Item, error)
 }

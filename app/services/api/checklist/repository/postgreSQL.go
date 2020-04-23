@@ -42,11 +42,39 @@ func (checklistStore *ChecklistStore) Get(tid uint) (models.Checklists, error) {
 		}
 	}
 	return chlists, nil
+}
 
+func (checklistStore *ChecklistStore) GetByID(clid uint) (*models.Checklist, error) {
+	chlist := new(models.Checklist)
+	if err := checklistStore.DB.First(chlist, clid).Error; err != nil {
+		logger.Error(err)
+		return nil, errors.ErrChecklistNotFound
+	}
+	err := checklistStore.DB.Model(&chlist).Related(&chlist.Items, "clid").Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrDbBadOperation
+	}
+	return chlist, nil
 }
 
 func (checklistStore *ChecklistStore) Delete(clid uint) error {
-	err := checklistStore.DB.Delete(&models.Checklist{ID: clid}).Error
+	var items []models.Item
+	err := checklistStore.DB.Model(&models.Checklist{ID: clid}).Related(&items, "clid").Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrBoardNotFound
+	}
+
+	for id := range items {
+		err = checklistStore.DB.Delete(&models.Item{ID: items[id].ID}).Error
+		if err != nil {
+			logger.Error(err)
+			return errors.ErrBoardNotFound
+		}
+	}
+
+	err = checklistStore.DB.Delete(&models.Checklist{ID: clid}).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrBoardNotFound

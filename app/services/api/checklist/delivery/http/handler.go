@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -26,9 +27,9 @@ func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.
 	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Create,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.PUT("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Update,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
 	router.DELETE("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Delete,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
 }
 
 func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
@@ -74,5 +75,15 @@ func (checklistHandler *ChecklistHandler) Update(ctx echo.Context) error {
 }
 
 func (checklistHandler *ChecklistHandler) Delete(ctx echo.Context) error {
-	return ctx.NoContent(errors.ResolveErrorToCode(errors.ErrDbBadOperation))
+	var clid uint
+	_, err := fmt.Sscan(ctx.Param("clid"), &clid)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	if checklistHandler.useCase.Delete(clid) != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+
+	return ctx.NoContent(http.StatusOK)
 }
