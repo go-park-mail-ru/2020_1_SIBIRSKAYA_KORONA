@@ -161,13 +161,10 @@ func (taskHandler *TaskHandler) CreateComment(ctx echo.Context) error {
 }
 
 func (taskHandler *TaskHandler) GetComments(ctx echo.Context) error {
-	//cid := ctx.Get("cid").(uint)
-	var tid uint
-	_, err := fmt.Sscan(ctx.Param("tid"), &tid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	cmts, err := taskHandler.useCase.GetComments(tid)
+	uid := ctx.Get("uid").(uint)
+	tid := ctx.Get("tid").(uint)
+
+	cmts, err := taskHandler.useCase.GetComments(tid, uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())

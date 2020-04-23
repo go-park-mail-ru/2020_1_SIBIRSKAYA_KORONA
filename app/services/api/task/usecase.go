@@ -13,5 +13,5 @@ type UseCase interface {
 
 	//Comments -------------------
 	CreateComment(comment *models.Comment) error
-	GetComments(tid uint) (models.Comments, error)
+	GetComments(tid uint, uid uint) (models.Comments, error)
 }

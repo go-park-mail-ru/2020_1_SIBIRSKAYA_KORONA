@@ -114,6 +114,8 @@ func easyjsonE9abebc9DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 			out.Nickname = string(in.String())
 		case "avatar":
 			out.Avatar = string(in.String())
+		case "readerIsAuthor":
+			out.ReaderIsAuthor = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -157,6 +159,11 @@ func easyjsonE9abebc9EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		const prefix string = ",\"avatar\":"
 		out.RawString(prefix)
 		out.String(string(in.Avatar))
+	}
+	{
+		const prefix string = ",\"readerIsAuthor\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.ReaderIsAuthor))
 	}
 	out.RawByte('}')
 }
