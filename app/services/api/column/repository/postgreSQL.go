@@ -39,6 +39,7 @@ func (columnStore *ColumnStore) Get(cid uint) (*models.Column, error) {
 func (columnStore *ColumnStore) GetTasksByID(cid uint) (models.Tasks, error) {
 	var tsks []models.Task
 	err := columnStore.DB.Model(&models.Column{ID: cid}).Related(&tsks, "cid").Error
+	// err := columnStore.DB.Model(&models.Column{ID: cid}).Preload("Members").Related(&tsks, "cid").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrColNotFound

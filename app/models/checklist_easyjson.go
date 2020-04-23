@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(in *jlexer.Lexer, out *Columns) {
+func easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(in *jlexer.Lexer, out *Checklists) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		in.Skip()
@@ -26,15 +26,15 @@ func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 		in.Delim('[')
 		if *out == nil {
 			if !in.IsDelim(']') {
-				*out = make(Columns, 0, 1)
+				*out = make(Checklists, 0, 1)
 			} else {
-				*out = Columns{}
+				*out = Checklists{}
 			}
 		} else {
 			*out = (*out)[:0]
 		}
 		for !in.IsDelim(']') {
-			var v1 Column
+			var v1 Checklist
 			(v1).UnmarshalEasyJSON(in)
 			*out = append(*out, v1)
 			in.WantComma()
@@ -45,7 +45,7 @@ func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 		in.Consumed()
 	}
 }
-func easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(out *jwriter.Writer, in Columns) {
+func easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(out *jwriter.Writer, in Checklists) {
 	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 		out.RawString("null")
 	} else {
@@ -61,29 +61,29 @@ func easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v Columns) MarshalJSON() ([]byte, error) {
+func (v Checklists) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&w, v)
+	easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Columns) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(w, v)
+func (v Checklists) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *Columns) UnmarshalJSON(data []byte) error {
+func (v *Checklists) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&r, v)
+	easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Columns) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(l, v)
+func (v *Checklists) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(l, v)
 }
-func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(in *jlexer.Lexer, out *Column) {
+func easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(in *jlexer.Lexer, out *Checklist) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -104,33 +104,33 @@ func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		switch key {
 		case "id":
 			out.ID = uint(in.Uint())
-		case "title":
+		case "name":
 			out.Name = string(in.String())
-		case "position":
-			out.Pos = float64(in.Float64())
-		case "tasks":
+		case "items":
 			if in.IsNull() {
 				in.Skip()
-				out.Tasks = nil
+				out.Items = nil
 			} else {
 				in.Delim('[')
-				if out.Tasks == nil {
+				if out.Items == nil {
 					if !in.IsDelim(']') {
-						out.Tasks = make([]Task, 0, 1)
+						out.Items = make([]Item, 0, 1)
 					} else {
-						out.Tasks = []Task{}
+						out.Items = []Item{}
 					}
 				} else {
-					out.Tasks = (out.Tasks)[:0]
+					out.Items = (out.Items)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v4 Task
+					var v4 Item
 					(v4).UnmarshalEasyJSON(in)
-					out.Tasks = append(out.Tasks, v4)
+					out.Items = append(out.Items, v4)
 					in.WantComma()
 				}
 				in.Delim(']')
 			}
+		case "tid":
+			out.Tid = uint(in.Uint())
 		default:
 			in.SkipRecursive()
 		}
@@ -141,7 +141,7 @@ func easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		in.Consumed()
 	}
 }
-func easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(out *jwriter.Writer, in Column) {
+func easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(out *jwriter.Writer, in Checklist) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -151,21 +151,18 @@ func easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.Uint(uint(in.ID))
 	}
 	{
-		const prefix string = ",\"title\":"
+		const prefix string = ",\"name\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
 	{
-		const prefix string = ",\"position\":"
+		const prefix string = ",\"items\":"
 		out.RawString(prefix)
-		out.Float64(float64(in.Pos))
-	}
-	if len(in.Tasks) != 0 {
-		const prefix string = ",\"tasks\":"
-		out.RawString(prefix)
-		{
+		if in.Items == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
 			out.RawByte('[')
-			for v5, v6 := range in.Tasks {
+			for v5, v6 := range in.Items {
 				if v5 > 0 {
 					out.RawByte(',')
 				}
@@ -174,29 +171,34 @@ func easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 			out.RawByte(']')
 		}
 	}
+	{
+		const prefix string = ",\"tid\":"
+		out.RawString(prefix)
+		out.Uint(uint(in.Tid))
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v Column) MarshalJSON() ([]byte, error) {
+func (v Checklist) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&w, v)
+	easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Column) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonE1a760eeEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(w, v)
+func (v Checklist) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *Column) UnmarshalJSON(data []byte) error {
+func (v *Checklist) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&r, v)
+	easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Column) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonE1a760eeDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
+func (v *Checklist) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
 }

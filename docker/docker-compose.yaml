@@ -1,21 +1,52 @@
 version: "2.3"
 
 services:
-  web:
-    image: drello-backend
+  api:
+    image: drello-api
     container_name: drello-backend-api
+    environment: 
+      - DRELLO_PUBLIC_DIR=/app/public
     ports:
       - "8080:8080"
 
     volumes:
       # Отображение для сохранения картинки из под докера в папку фронтенда
-      - /home/ubuntu/frontend/public:/app/public
+      - ${DRELLO_PUBLIC_DIR}:/app/public
+
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      session:
+        condition: service_started
+      user:
+        condition: service_started
+
+
+  session:
+    image: drello-session
+    container_name: drello-backend-session
+    ports:
+      - "8081:8081"
+
+    depends_on:
+      memcached:
+        condition: service_started
+
+  user:
+    image: drello-user
+    container_name: drello-backend-user
+    environment: 
+      - DRELLO_PUBLIC_DIR=/app/public
+    ports:
+      - "8082:8082"
+
+    volumes:
+      # Отображение для сохранения картинки из под докера в папку фронтенда
+      - ${DRELLO_PUBLIC_DIR}:/app/public
 
     depends_on:
       postgres:
         condition: service_healthy
-      memcached:
-        condition: service_started
 
   memcached:
     container_name: memcached_container

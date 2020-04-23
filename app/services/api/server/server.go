@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
-	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 	"log"
+
+	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
@@ -27,6 +28,14 @@ import (
 	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/delivery/http"
 	taskRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/repository"
 	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/usecase"
+
+	checklistHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/delivery/http"
+	checklistRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/repository"
+	checklistUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/usecase"
+
+	itemHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/delivery/http"
+	itemRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/repository"
+	itemUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/usecase"
 
 	labelRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/repository"
 	labelUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/usecase"
@@ -58,7 +67,7 @@ func (server *Server) Run() {
 	// TODO: конфиг
 	// session
 	grpcSessionConn, err := grpc.Dial(
-		"127.0.0.1:8081",
+		server.ApiConfig.GetSessionClient(),
 		grpc.WithInsecure(),
 	)
 	if err != nil {
@@ -68,7 +77,7 @@ func (server *Server) Run() {
 	sessionGrpcClient := proto.NewSessionClient(grpcSessionConn)
 	// user
 	grpcUserConn, err := grpc.Dial(
-		"127.0.0.1:8082",
+		server.ApiConfig.GetUserClient(),
 		grpc.WithInsecure(),
 	)
 	if err != nil {
@@ -83,13 +92,16 @@ func (server *Server) Run() {
 	}
 	logger.Info("Postgresql succesfull start")
 	defer postgresClient.Close()
-	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Label{})
+	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Comment{},
+		&models.Checklist{}, &models.Item{}, &models.Label{})
 	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
 	usrRepo := userRepo.CreateRepository(userGrpcClient, server.UserConfig)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
 	colRepo := colsRepo.CreateRepository(postgresClient)
 	lblRepo := labelRepo.CreateRepository(postgresClient)
 	tskRepo := taskRepo.CreateRepository(postgresClient)
+	chlistRepo := checklistRepo.CreateRepository(postgresClient)
+	itmRepo := itemRepo.CreateRepository(postgresClient)
 
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
@@ -98,9 +110,11 @@ func (server *Server) Run() {
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
 	lUseCase := labelUseCase.CreateUseCase(lblRepo)
 	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
+	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
+	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 
 	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, lUseCase, tUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
 	router := echo.New()
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
@@ -111,6 +125,8 @@ func (server *Server) Run() {
 	colsHandler.CreateHandler(router, cUseCase, mw)
 	labelHandler.CreateHandler(router, lUseCase, mw)
 	taskHandler.CreateHandler(router, tUseCase, mw)
+	checklistHandler.CreateHandler(router, chUseCase, mw)
+	itemHandler.CreateHandler(router, itmUseCase, mw)
 
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {
