@@ -118,12 +118,10 @@ func (taskStore *TaskStore) CreateComment(cmt *models.Comment) error {
 	err := taskStore.DB.Select("nickname, avatar").
 		Where("id = ?", cmt.Uid).
 		Find(&user).Error
-
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrUserNotFound
 	}
-
 	cmt.Avatar = user.Avatar
 	cmt.Nickname = user.Nickname
 	err = taskStore.DB.Create(cmt).Error
@@ -132,7 +130,6 @@ func (taskStore *TaskStore) CreateComment(cmt *models.Comment) error {
 		//return errors.ErrConflict
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }
 
@@ -144,7 +141,6 @@ func (taskStore *TaskStore) GetComments(tid uint) (models.Comments, error) {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
-
 	var user models.User
 	// TODO: попробовать через preload
 	for id := range cmts {
@@ -158,6 +154,5 @@ func (taskStore *TaskStore) GetComments(tid uint) (models.Comments, error) {
 		cmts[id].Avatar = user.Avatar
 		cmts[id].Nickname = user.Nickname
 	}
-
 	return cmts, nil
 }

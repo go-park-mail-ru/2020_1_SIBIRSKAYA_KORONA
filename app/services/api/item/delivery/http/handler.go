@@ -21,7 +21,6 @@ func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.GoMid
 	handler := &ItemHandler{
 		useCase: useCase,
 	}
-
 	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items", handler.Create,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
 	router.PUT("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Update,
@@ -36,22 +35,20 @@ func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
-	var item models.Item
+	var itm models.Item
 	body := ctx.Get("body").([]byte)
-	err = item.UnmarshalJSON(body)
+	err = itm.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	item.Clid = clid
-
-	err = itemHandler.useCase.Create(&item)
+	itm.Clid = clid
+	err = itemHandler.useCase.Create(&itm)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	resp, err := item.MarshalJSON()
+	resp, err := itm.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
@@ -60,25 +57,22 @@ func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
 
 func (itemHandler *ItemHandler) Update(ctx echo.Context) error {
 	clid := ctx.Get("clid").(uint)
-
 	itid := ctx.Get("itid").(uint)
-
-	var item models.Item
+	var itm models.Item
 	body := ctx.Get("body").([]byte)
-	err := item.UnmarshalJSON(body)
+	err := itm.UnmarshalJSON(body)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-	item.Clid = clid
-	item.ID = itid
-
-	err = itemHandler.useCase.Update(&item)
+	itm.Clid = clid
+	itm.ID = itid
+	err = itemHandler.useCase.Update(&itm)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	resp, err := item.MarshalJSON()
+	resp, err := itm.MarshalJSON()
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}

@@ -64,7 +64,6 @@ func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			ctx.Request().RequestURI,
 			ctx.Response().Status,
 			time.Since(start))
-
 		return res
 	}
 }
@@ -226,7 +225,7 @@ func (mw *GoMiddleware) CheckLabelInBoard(next echo.HandlerFunc) echo.HandlerFun
 		if _, err := fmt.Sscan(ctx.Param("lid"), &lid); err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-		if _, err := mw.cUseCase.Get(bid, lid); err != nil {
+		if _, err := mw.lUseCase.Get(bid, lid); err != nil {
 			logger.Error(err)
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}

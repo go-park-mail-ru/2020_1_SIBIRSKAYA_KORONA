@@ -17,8 +17,8 @@ func CreateRepository(db *gorm.DB) item.Repository {
 	return &ItemStore{DB: db}
 }
 
-func (itemStore *ItemStore) Create(item *models.Item) error {
-	err := itemStore.DB.Create(item).Error
+func (itemStore *ItemStore) Create(itm *models.Item) error {
+	err := itemStore.DB.Create(itm).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
@@ -32,31 +32,26 @@ func (itemStore *ItemStore) Update(newItem *models.Item) error {
 		logger.Error(err)
 		return errors.ErrItemNotFound // TODO: ошибку добавить
 	}
-
 	if newItem.Text != "" {
 		oldItem.Text = newItem.Text
 	}
-
 	if newItem.IsDone != oldItem.IsDone {
 		oldItem.IsDone = newItem.IsDone
 	}
-
 	if err := itemStore.DB.Save(oldItem).Error; err != nil {
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-
 	return nil
 }
 
 func (itemStore *ItemStore) GetByID(itid uint) (*models.Item, error) {
-	item := new(models.Item)
-	if err := itemStore.DB.First(item, itid).Error; err != nil {
+	itm := new(models.Item)
+	if err := itemStore.DB.First(itm, itid).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrChecklistNotFound
 	}
-
-	return item, nil
+	return itm, nil
 }
 
 func (itemStore *ItemStore) Delete(itid uint) error {

@@ -72,7 +72,6 @@ func (taskUseCase *TaskUseCase) Unassign(tid uint, uid uint) error {
 		logger.Error(err)
 		return err
 	}
-
 	err = taskUseCase.taskRepo.Unassign(tid, usr)
 	if err != nil {
 		logger.Error(err)
@@ -84,13 +83,11 @@ func (taskUseCase *TaskUseCase) Unassign(tid uint, uid uint) error {
 // Comments ------------------------------------------------
 func (taskUseCase *TaskUseCase) CreateComment(cmt *models.Comment) error {
 	//user, err := taskUseCase.userRepo.GetByID(cmt.Uid)
-
 	err := taskUseCase.taskRepo.CreateComment(cmt)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-
 	return nil
 }
 
@@ -100,7 +97,6 @@ func (taskUseCase *TaskUseCase) GetComments(tid uint, readerID uint) (models.Com
 		logger.Error(err)
 		return nil, err
 	}
-
 	for cmtID := range cmts {
 		if cmts[cmtID].Uid == readerID {
 			cmts[cmtID].ReaderIsAuthor = true

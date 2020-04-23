@@ -113,7 +113,6 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 	assignUid := ctx.Get("uid_for_assign").(uint)
-
 	err := taskHandler.useCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
@@ -143,11 +142,9 @@ func (taskHandler *TaskHandler) CreateComment(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-
 	cmt.Uid = ctx.Get("uid").(uint)
 	cmt.Tid = ctx.Get("tid").(uint)
 	cmt.CreatedAt = time.Now().Unix()
-
 	err = taskHandler.useCase.CreateComment(&cmt)
 	if err != nil {
 		logger.Error(err)
@@ -163,7 +160,6 @@ func (taskHandler *TaskHandler) CreateComment(ctx echo.Context) error {
 func (taskHandler *TaskHandler) GetComments(ctx echo.Context) error {
 	uid := ctx.Get("uid").(uint)
 	tid := ctx.Get("tid").(uint)
-
 	cmts, err := taskHandler.useCase.GetComments(tid, uid)
 	if err != nil {
 		logger.Error(err)

@@ -102,7 +102,6 @@ func (server *Server) Run() {
 	tskRepo := taskRepo.CreateRepository(postgresClient)
 	chlistRepo := checklistRepo.CreateRepository(postgresClient)
 	itmRepo := itemRepo.CreateRepository(postgresClient)
-
 	// use case
 	sUseCase := sessionUseCase.CreateUseCase(sesRepo, usrRepo)
 	uUseCase := userUseCase.CreateUseCase(sesRepo, usrRepo)
@@ -112,7 +111,6 @@ func (server *Server) Run() {
 	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
-
 	// delivery
 	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
 	router := echo.New()
@@ -127,7 +125,6 @@ func (server *Server) Run() {
 	taskHandler.CreateHandler(router, tUseCase, mw)
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
-
 	// start
 	if err := router.Start(server.GetAddr()); err != nil {
 		log.Fatal(err)
