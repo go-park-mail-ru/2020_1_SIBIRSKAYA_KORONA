@@ -20,7 +20,7 @@ type UserHandler struct {
 	useCase user.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.Middleware) {
 	handler := &UserHandler{
 		useCase: useCase,
 	}

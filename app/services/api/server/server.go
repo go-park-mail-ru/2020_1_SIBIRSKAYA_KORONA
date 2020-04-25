@@ -6,9 +6,6 @@ import (
 
 	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
-
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
@@ -42,11 +39,15 @@ import (
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -64,7 +65,6 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	// repo
 	// micro-serv
-	// TODO: конфиг
 	// session
 	grpcSessionConn, err := grpc.Dial(
 		server.ApiConfig.GetSessionClient(),
@@ -111,12 +111,15 @@ func (server *Server) Run() {
 	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
-	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
+	// middlware
 	router := echo.New()
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
+	router.Use(mw.Metrics)
+	// delivery
+	router.GET("/api/metrics", echo.WrapHandler(promhttp.Handler()))
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase, mw)

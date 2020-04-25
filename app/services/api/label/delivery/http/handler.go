@@ -17,7 +17,7 @@ type LabelHandler struct {
 	useCase label.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase label.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase label.UseCase, mw *middleware.Middleware) {
 	handler := &LabelHandler{
 		useCase: useCase,
 	}

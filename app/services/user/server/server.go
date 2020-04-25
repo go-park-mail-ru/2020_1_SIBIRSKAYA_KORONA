@@ -12,6 +12,8 @@ import (
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"google.golang.org/grpc"
@@ -45,11 +47,10 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	grpcSrv := grpc.NewServer(grpc.KeepaliveParams(
-		keepalive.ServerParameters{
-			MaxConnectionIdle: 5 * time.Minute,
-		},
-	))
+	grpcSrv := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{MaxConnectionIdle: 5 * time.Minute}),
+		grpc.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor()),
+	)
 	proto.RegisterUserServer(grpcSrv, handler.CreateHandler(usrUseCase))
 	log.Println("server start on address:", server.GetAddr())
 	if err := grpcSrv.Serve(listener); err != nil {

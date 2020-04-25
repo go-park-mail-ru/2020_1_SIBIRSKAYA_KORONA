@@ -13,6 +13,7 @@ import (
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -40,11 +41,10 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	grpcSrv := grpc.NewServer(grpc.KeepaliveParams(
-		keepalive.ServerParameters{
-			MaxConnectionIdle: 5 * time.Minute,
-		},
-	))
+	grpcSrv := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{MaxConnectionIdle: 5 * time.Minute}),
+		grpc.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor()),
+	)
 	proto.RegisterSessionServer(grpcSrv, handler.CreateHandler(sesUseCase))
 	log.Println("server start on address:", server.GetAddr())
 	if err := grpcSrv.Serve(listener); err != nil {

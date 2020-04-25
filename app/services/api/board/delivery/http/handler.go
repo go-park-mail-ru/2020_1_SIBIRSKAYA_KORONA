@@ -17,7 +17,7 @@ type BoardHandler struct {
 	useCase board.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Middleware) {
 	handler := &BoardHandler{
 		useCase: useCase,
 	}

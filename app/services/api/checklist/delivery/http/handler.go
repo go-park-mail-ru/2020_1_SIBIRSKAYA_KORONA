@@ -17,7 +17,7 @@ type ChecklistHandler struct {
 	useCase checklist.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.Middleware) {
 	handler := &ChecklistHandler{
 		useCase: useCase,
 	}

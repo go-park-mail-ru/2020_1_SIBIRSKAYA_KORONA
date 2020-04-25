@@ -17,7 +17,7 @@ type ItemHandler struct {
 	useCase item.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.Middleware) {
 	handler := &ItemHandler{
 		useCase: useCase,
 	}
