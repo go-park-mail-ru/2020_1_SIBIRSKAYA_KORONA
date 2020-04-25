@@ -26,20 +26,6 @@ func CreateS3Repository(sessS3 *session.Session, bucket_ string) attach.FileRepo
 	return &S3Store{sessionS3: sessS3, bucket: bucket_}
 }
 
-// var sess = connectAWS()
-
-// func CreateS3Session() *session.Session {
-// 	sess, err := session.NewSession(
-// 		&aws.Config{
-// 			Region: aws.String("us-east-2"),
-// 		},
-// 	)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return sess
-// }
-
 func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader) (string, error) {
 	file, err := attachFile.Open()
 	if err != nil {
@@ -52,9 +38,9 @@ func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader) (string, er
 	filename := attachFile.Filename
 	uploader := s3manager.NewUploader(s3Store.sessionS3)
 	manager, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s3Store.bucket), // Bucket to be used // TODO: вынести в env
-		Key:    aws.String(filename),       // Name of the file to be saved
-		Body:   file,                       // File
+		Bucket: aws.String(s3Store.bucket),
+		Key:    aws.String(filename),
+		Body:   file,
 	})
 
 	if err != nil {
