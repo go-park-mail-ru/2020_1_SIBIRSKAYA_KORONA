@@ -42,7 +42,7 @@ func (attachStore *AttachStore) GetByID(fid uint) (*models.AttachedFile, error) 
 	attach := new(models.AttachedFile)
 	if err := attachStore.DB.First(attach, fid).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrChecklistNotFound
+		return nil, errors.ErrFileNotFound
 	}
 
 	return attach, nil

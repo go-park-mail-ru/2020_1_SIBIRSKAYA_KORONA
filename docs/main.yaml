@@ -45,11 +45,16 @@ tags:
   externalDocs:
     description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
+- name: "files"
+  description: "Основная работа с приложенными файлами"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
 - name: "token"
   description: "Точка для получения CSRF-токена"
   externalDocs:
     description: "Какой бы сюда вставить URL??"
-    url: "http://swagger.io"    
+    url: "http://swagger.io"
 
 paths:
   /settings:
@@ -74,6 +79,10 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/files:
+    $ref: "endpoints/files.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1files"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/files/{fid}:
+    $ref: "endpoints/files.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1files~1{fid}"
   /boards/{bid}/columns/{cid}/tasks/{tid}/members/{uid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1members~1{uid}"
   /boards/{bid}/members/{uid}:
@@ -99,6 +108,15 @@ components:
 
     ApiResponse:
       $ref: "models/user.yaml#/components/schemas/ApiResponse"
+
+    Checklist:
+      $ref: "models/checklist.yaml#/components/schemas/Checklist"
+
+    Item:
+      $ref: "models/item.yaml#/components/schemas/Item"
+
+    File:
+      $ref: "models/file.yaml#/components/schemas/File"
 
   securitySchemes:
     app_id:
