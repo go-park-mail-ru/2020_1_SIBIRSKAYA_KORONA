@@ -45,6 +45,11 @@ tags:
   externalDocs:
     description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
+- name: "checklists"
+  description: "Основная работа с чеклистами"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
 - name: "files"
   description: "Основная работа с приложенными файлами"
   externalDocs:
@@ -79,6 +84,14 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}~1items"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items/{itid}:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}~1items~1{itid}"
   /boards/{bid}/columns/{cid}/tasks/{tid}/files:
     $ref: "endpoints/files.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1files"
   /boards/{bid}/columns/{cid}/tasks/{tid}/files/{fid}:

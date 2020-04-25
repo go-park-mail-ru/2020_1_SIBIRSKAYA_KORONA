@@ -6,6 +6,12 @@ paths:
       summary: "Получаем все приложенные к таске файлы"
 
       parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
         - in: path
           name: bid
           required: true
@@ -42,11 +48,11 @@ paths:
                   - $ref: "../models/file.yaml#/components/schemas/File"
                 example: [{  
                     "id": 10,
-                    "url": https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt,
+                    "url": "https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt",
                     "filename": "DummyFile",
                   },{
                     "id": 11,
-                    "url": https://drellobucket.s3.us-east-2.amazonaws.com/Manual.pdf,
+                    "url": "https://drellobucket.s3.us-east-2.amazonaws.com/Manual.pdf",
                     "filename": "Manual.pdf",
                 }]
 
@@ -63,7 +69,7 @@ paths:
           description: "Не нашли какую-нибудь связанную сущность"
 
         500:
-          description: "Внутренная ошибка при маршалинге найденного пользователя"
+          description: "Внутренная ошибка сервера"
     
     post:
       tags:
@@ -71,6 +77,12 @@ paths:
       summary: "Загружаем приложенный файл"
 
       parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
         - in: path
           name: bid
           required: true
@@ -116,7 +128,7 @@ paths:
               - $ref: "../models/file.yaml#/components/schemas/File"
               example: {  
                 "id": 10,
-                "url": https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt,
+                "url": "https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt",
                 "filename": "DummyFile",
               }
 
@@ -136,7 +148,7 @@ paths:
           description: "Не удалось загрузить файл в сервис"
 
         500:
-          description: "Внутренная ошибка при маршалинге найденного пользователя"
+          description: "Внутренная ошибка сервера"
 
   /boards/{bid}/columns/{cid}/tasks/{tid}/files/{fid}:
     delete:
@@ -145,6 +157,12 @@ paths:
         summary: "Удаляем файл из сервиса"
 
         parameters:
+          - in: cookie
+            name: session_id
+            schema:
+              type: string
+            required: true
+          
           - in: path
             name: bid
             required: true
@@ -197,4 +215,4 @@ paths:
             description: "Не удалось удалить файл из сервиса"
 
           500:
-            description: "Внутренная ошибка при маршалинге найденного пользователя"
+            description: "Внутренная ошибка сервера"
