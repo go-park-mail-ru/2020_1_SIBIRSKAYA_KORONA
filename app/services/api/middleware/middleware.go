@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column"
@@ -27,31 +28,33 @@ type GoMiddleware struct {
 	origins    map[string]struct{}
 	serverMode string
 
-	sUseCase  session.UseCase
-	bUseCase  board.UseCase
-	cUseCase  column.UseCase
-	tUseCase  task.UseCase
-	lUseCase  label.UseCase
-	chUseCase checklist.UseCase
-	itUseCase item.UseCase
+	sUseCase    session.UseCase
+	bUseCase    board.UseCase
+	cUseCase    column.UseCase
+	tUseCase    task.UseCase
+	lUseCase    label.UseCase
+	chUseCase   checklist.UseCase
+	itUseCase   item.UseCase
+	atchUseCase attach.UseCase
 }
 
 func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
-	chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase) *GoMiddleware {
+	chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *GoMiddleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
 	}
 	return &GoMiddleware{
-		origins:    origins_,
-		serverMode: viper.GetString("server.mode"),
-		sUseCase:   sUseCase_,
-		bUseCase:   bUseCase_,
-		cUseCase:   cUseCase_,
-		lUseCase:   lUseCase_,
-		tUseCase:   tUseCase_,
-		chUseCase:  chUseCase_,
-		itUseCase:  itUseCase_,
+		origins:     origins_,
+		serverMode:  viper.GetString("server.mode"),
+		sUseCase:    sUseCase_,
+		bUseCase:    bUseCase_,
+		cUseCase:    cUseCase_,
+		lUseCase:    lUseCase_,
+		tUseCase:    tUseCase_,
+		chUseCase:   chUseCase_,
+		itUseCase:   itUseCase_,
+		atchUseCase: atchUseCase_,
 	}
 }
 
@@ -280,6 +283,22 @@ func (mw *GoMiddleware) CheckItemInChecklist(next echo.HandlerFunc) echo.Handler
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("itid", itid)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckAttachInTask(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		tid := ctx.Get("tid").(uint)
+		var fid uint
+		if _, err := fmt.Sscan(ctx.Param("fid"), &fid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := mw.atchUseCase.GetByID(tid, fid); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("fid", fid)
 		return next(ctx)
 	}
 }

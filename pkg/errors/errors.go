@@ -8,8 +8,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Пакет для определения типичных ошибок, которые потом будут использоваться в кастомных обёртках
-
 const (
 	Internal     = "internal error"
 	Conflict     = "conflict with exists data"
@@ -33,6 +31,11 @@ const (
 	ChecklistNotFound = "checklist not found"
 
 	ItemNotFound = "item not found"
+
+	FileNotFound = "file not found"
+
+	BadFileUploadS3 = "unsuccessful file upload to s3"
+	BadFileDeleteS3 = "unsuccessful file delete on s3"
 
 	DbBadOperation  = "unsuccessful ORM operation"
 	BadAvatarUpload = "unsuccessful avatar upload"
@@ -71,6 +74,11 @@ var (
 	// ошибки, связанные с итемами
 	ErrItemNotFound = errors.New(ChecklistNotFound)
 
+	// ошибки, связанные с файлами
+	ErrFileNotFound    = errors.New(FileNotFound)
+	ErrBadFileUploadS3 = errors.New(BadFileUploadS3)
+	ErrBadFileDeleteS3 = errors.New(BadFileDeleteS3)
+
 	// ошибки, связанные с бд
 	ErrDbBadOperation  = errors.New(DbBadOperation)
 	ErrBadAvatarUpload = errors.New(BadAvatarUpload)
@@ -99,6 +107,9 @@ var messToError = map[string]error{
 	ChecklistNotFound: ErrChecklistNotFound,
 
 	ItemNotFound: ErrItemNotFound,
+
+	BadFileUploadS3: ErrBadFileUploadS3,
+	BadFileDeleteS3: ErrBadFileDeleteS3,
 }
 
 var errorToCodeMap = map[error]int{
@@ -133,6 +144,11 @@ var errorToCodeMap = map[error]int{
 
 	// ошибки, связанные с итемами
 	ErrItemNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с файлами
+	ErrFileNotFound:    http.StatusNotFound,
+	ErrBadFileUploadS3: http.StatusUnprocessableEntity,
+	ErrBadFileUploadS3: http.StatusUnprocessableEntity,
 }
 
 func ResolveErrorToCode(err error) (code int) {

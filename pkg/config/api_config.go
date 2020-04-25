@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/spf13/viper"
 )
 
@@ -14,6 +16,8 @@ type ApiConfigController struct {
 	dbConnection      string
 	grpcUserClient    string
 	grpcSessionClient string
+	s3Bucket          string
+	s3BucketRegion    string
 }
 
 func CreateApiConfigController() *ApiConfigController {
@@ -23,6 +27,16 @@ func CreateApiConfigController() *ApiConfigController {
 	dbName := viper.GetString("database.name")
 	dbMode := viper.GetString("database.sslmode")
 
+	bucket, exists := os.LookupEnv("S3_BUCKET")
+	if !exists {
+		logger.Fatal("S3_BUCKET environment variable not exist")
+	}
+
+	region, exists := os.LookupEnv("S3_BUCKET_REGION")
+	if !exists {
+		logger.Fatal("S3_BUCKET_REGION environment variable not exist")
+	}
+
 	return &ApiConfigController{
 		origins:           viper.GetStringSlice("cors.allowed_origins"),
 		serverIp:          viper.GetString("server.ip"),
@@ -31,6 +45,8 @@ func CreateApiConfigController() *ApiConfigController {
 		dbConnection:      fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode),
 		grpcUserClient:    viper.GetString("grpc_clients.user"),
 		grpcSessionClient: viper.GetString("grpc_clients.session"),
+		s3Bucket:          bucket,
+		s3BucketRegion:    region,
 	}
 }
 
@@ -60,4 +76,12 @@ func (cc *ApiConfigController) GetUserClient() string {
 
 func (cc *ApiConfigController) GetSessionClient() string {
 	return cc.grpcSessionClient
+}
+
+func (cc *ApiConfigController) GetS3Bucket() string {
+	return cc.s3Bucket
+}
+
+func (cc *ApiConfigController) GetS3BucketRegion() string {
+	return cc.s3BucketRegion
 }
