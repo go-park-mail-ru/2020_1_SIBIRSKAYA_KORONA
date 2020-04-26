@@ -39,14 +39,19 @@ func CreateApiConfigController() *ApiConfigController {
 		logger.Fatal("S3_BUCKET_REGION environment variable not exist")
 	}
 
-	crtPath, exists := os.LookupEnv("TLS_CRT_PATH")
+	credentialsDir, exists := os.LookupEnv("TLS_CREDENTIALS_DIR")
 	if !exists {
-		logger.Fatal("TLS_CRT_PATH environment variable not exist")
+		logger.Fatal("TLS_CREDENTIALS_DIR environment variable not exist")
 	}
 
-	keyPath, exists := os.LookupEnv("TLS_KEY_PATH")
+	keyFile, exists := os.LookupEnv("TLS_KEY_FILE")
 	if !exists {
-		logger.Fatal("TLS_KEY_PATH environment variable not exist")
+		logger.Fatal("TLS_KEY_FILE environment variable not exist")
+	}
+
+	crtFile, exists := os.LookupEnv("TLS_CRT_FILE")
+	if !exists {
+		logger.Fatal("TLS_CRT_FILE environment variable not exist")
 	}
 
 	return &ApiConfigController{
@@ -59,8 +64,8 @@ func CreateApiConfigController() *ApiConfigController {
 		grpcSessionClient: viper.GetString("grpc_clients.session"),
 		s3Bucket:          bucket,
 		s3BucketRegion:    region,
-		tlsCrtPath:        crtPath,
-		tlsKeyPath:        keyPath,
+		tlsCrtPath:        fmt.Sprintf("%s/%s", credentialsDir, crtFile),
+		tlsKeyPath:        fmt.Sprintf("%s/%s", credentialsDir, keyFile),
 	}
 }
 
