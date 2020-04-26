@@ -28,32 +28,27 @@ type Middleware struct {
 	origins    map[string]struct{}
 	serverMode string
 	metr       metric.Metrics
-
-	sUseCase  session.UseCase
-	bUseCase  board.UseCase
-	cUseCase  column.UseCase
-	tUseCase  task.UseCase
-	lUseCase  label.UseCase
-	chUseCase checklist.UseCase
-	itUseCase item.UseCase
+	sUseCase   session.UseCase
+	bUseCase   board.UseCase
+	cUseCase   column.UseCase
+	tUseCase   task.UseCase
+	lUseCase   label.UseCase
+	chUseCase  checklist.UseCase
+	itUseCase  item.UseCase
 }
 
 //TODO: убрать нахрен вайпер
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
-	chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase) *Middleware {
+func CreateMiddleware(metr_ metric.Metrics, sUseCase_ session.UseCase, bUseCase_ board.UseCase,
+	cUseCase_ column.UseCase, tUseCase_ task.UseCase, chUseCase_ checklist.UseCase,
+	itUseCase_ item.UseCase, lUseCase_ label.UseCase) *Middleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
 	}
-	metr_, err := metric.CreateMetrics()
-	if err != nil {
-		logger.Error(err)
-		return nil
-	}
 	return &Middleware{
 		origins:    origins_,
 		serverMode: viper.GetString("server.mode"),
-		metr:       *metr_,
+		metr:       metr_,
 		sUseCase:   sUseCase_,
 		bUseCase:   bUseCase_,
 		cUseCase:   cUseCase_,

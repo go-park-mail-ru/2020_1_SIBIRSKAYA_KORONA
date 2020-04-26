@@ -6,13 +6,15 @@ import (
 	"net"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
-	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/dilivery/grpc"
-	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/repository"
-	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/interceptor"
+	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/dilivery/grpc"
+	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/repository"
+	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -41,9 +43,14 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	metr, err := metric.CreateMetrics("0.0.0.0:7071", "session")
+	if err != nil {
+		log.Fatal(err)
+	}
+	mw := interceptor.CreateInterceptor(metr)
 	grpcSrv := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{MaxConnectionIdle: 5 * time.Minute}),
-		grpc.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor()),
+		grpc.ChainUnaryInterceptor(grpc_recovery.UnaryServerInterceptor(), mw.Metrics),
 	)
 	proto.RegisterSessionServer(grpcSrv, handler.CreateHandler(sesUseCase))
 	log.Println("server start on address:", server.GetAddr())

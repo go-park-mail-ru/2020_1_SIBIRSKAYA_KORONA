@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 	"log"
 
 	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
@@ -47,7 +48,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -113,13 +113,16 @@ func (server *Server) Run() {
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	// middlware
 	router := echo.New()
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
+	metr, err := metric.CreateMetrics("0.0.0.0:7070", "api")
+	if err != nil {
+		log.Fatal(err)
+	}
+	mw := drelloMiddleware.CreateMiddleware(metr, sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase)
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
 	router.Use(mw.Metrics)
 	// delivery
-	router.GET("/api/metrics", echo.WrapHandler(promhttp.Handler()))
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase, mw)

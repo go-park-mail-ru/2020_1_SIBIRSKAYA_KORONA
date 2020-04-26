@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/session/server"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/server"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 

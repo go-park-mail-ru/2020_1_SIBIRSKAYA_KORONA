@@ -2,7 +2,6 @@ package errors
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"google.golang.org/grpc/status"
@@ -146,7 +145,6 @@ func ResolveErrorToCode(err error) (code int) {
 func ResolveFromRPC(err error) error {
 	err, has := messToError[status.Convert(err).Message()]
 	if !has {
-		log.Println(err)
 		return ErrInternal
 	}
 	return err

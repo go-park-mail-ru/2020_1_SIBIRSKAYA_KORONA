@@ -1,28 +1,36 @@
 package metric
 
 import (
+	"log"
 	"strconv"
 
+	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type Metrics struct {
+type Metrics interface {
+	IncHits(status int, method, path string)
+	ObserveResponseTime(status int, method, path string, observeTime float64)
+}
+
+type PrometheusMetrics struct {
 	HitsTotal prometheus.Counter
 	Hits      *prometheus.CounterVec
 	Times     *prometheus.HistogramVec
 }
 
-func CreateMetrics() (*Metrics, error) {
-	var metr Metrics
+func CreateMetrics(address string, name string) (Metrics, error) {
+	var metr PrometheusMetrics
 	metr.HitsTotal = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "hits_total",
+		Name: name + "_hits_total",
 	})
 	if err := prometheus.Register(metr.HitsTotal); err != nil {
 		return nil, err
 	}
 	metr.Hits = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "hits",
+			Name: name + "_hits",
 		},
 		[]string{"status", "method", "path"},
 	)
@@ -31,7 +39,7 @@ func CreateMetrics() (*Metrics, error) {
 	}
 	metr.Times = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name: "times",
+			Name: name + "_times",
 		},
 		[]string{"status", "method", "path"},
 	)
@@ -41,14 +49,21 @@ func CreateMetrics() (*Metrics, error) {
 	if err := prometheus.Register(prometheus.NewBuildInfoCollector()); err != nil {
 		return nil, err
 	}
+	go func() {
+		router := echo.New()
+		router.GET(name+"/metrics", echo.WrapHandler(promhttp.Handler()))
+		if err := router.Start(address); err != nil {
+			log.Fatal(err)
+		}
+	}()
 	return &metr, nil
 }
 
-func (metr *Metrics) IncHits(status int, method, path string) {
+func (metr *PrometheusMetrics) IncHits(status int, method, path string) {
 	metr.HitsTotal.Inc()
 	metr.Hits.WithLabelValues(strconv.Itoa(status), method, path).Inc()
 }
 
-func (metr *Metrics) ObserveResponseTime(status int, method, path string, observeTime float64) {
+func (metr *PrometheusMetrics) ObserveResponseTime(status int, method, path string, observeTime float64) {
 	metr.Times.WithLabelValues(strconv.Itoa(status), method, path).Observe(observeTime)
 }

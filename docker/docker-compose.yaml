@@ -1,5 +1,9 @@
 version: "2.3"
 
+networks:
+  monitor-net:
+    driver: bridge
+
 services:
   api:
     image: drello-api
@@ -69,3 +73,32 @@ services:
       timeout: 2s
       retries: 2
       start_period: 3s
+
+#  #prometheus:
+#   # image: prom/prometheus:latest
+#    #user: "1000:1000"
+#    #volumes:
+#    #  - ./monitoring/:/etc/prometheus/
+#    #  - ./monitoring/prometheus_data:/prometheus
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#    networks:
+#      - monitor-net
+#    labels:
+#      org.label-schema.group: "monitoring"
+#    ports:
+#      - 9090:9090
+#
+#  grafana:
+#    image: grafana/grafana:latest
+#    depends_on:
+#      - prometheus
+#    volumes:
+#      - ./monitoring/grafana_data:/var/lib/grafana
+#    environment:
+#      - GF_SECURITY_ADMAIN_PASSWORD=temppasword
+#    labels:
+#      org.label-schema.group: "monitoring"
+#    ports:
+#      - 3030:3000
