@@ -6,7 +6,7 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app 
 
-EXPOSE 8081
+EXPOSE 8081 7071
 
 COPY --from=drello-builder:latest /application/drello_session /app
 COPY --from=drello-builder:latest /application/cmd/session/session_config.yaml /app

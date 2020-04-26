@@ -1,9 +1,5 @@
 version: "2.3"
 
-networks:
-  monitor-net:
-    driver: bridge
-
 services:
   api:
     image: drello-api
@@ -19,6 +15,7 @@ services:
       - S3_BUCKET=${S3_BUCKET}
     ports:
       - "8080:8080"
+      - "7070:7070"
 
     volumes:
       # Отображение для сохранения картинки из под докера в папку фронтенда
@@ -39,6 +36,7 @@ services:
     container_name: drello-backend-session
     ports:
       - "8081:8081"
+      - "7071:7071"
 
     depends_on:
       memcached:
@@ -51,6 +49,7 @@ services:
       - DRELLO_PUBLIC_DIR=/app/public
     ports:
       - "8082:8082"
+      - "7072:7072"
 
     volumes:
       # Отображение для сохранения картинки из под докера в папку фронтенда
@@ -82,31 +81,28 @@ services:
       retries: 2
       start_period: 3s
 
-#  #prometheus:
-#   # image: prom/prometheus:latest
-#    #user: "1000:1000"
-#    #volumes:
-#    #  - ./monitoring/:/etc/prometheus/
-#    #  - ./monitoring/prometheus_data:/prometheus
-#    command:
-#      - '--config.file=/etc/prometheus/prometheus.yml'
-#      - '--storage.tsdb.path=/prometheus'
-#    networks:
-#      - monitor-net
-#    labels:
-#      org.label-schema.group: "monitoring"
-#    ports:
-#      - 9090:9090
-#
-#  grafana:
-#    image: grafana/grafana:latest
-#    depends_on:
-#      - prometheus
-#    volumes:
-#      - ./monitoring/grafana_data:/var/lib/grafana
-#    environment:
-#      - GF_SECURITY_ADMAIN_PASSWORD=temppasword
-#    labels:
-#      org.label-schema.group: "monitoring"
-#    ports:
-#      - 3030:3000
+  prometheus:
+    container_name: prometheus_container
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:Z
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=20d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - '9090:9090'
+
+  node_exporter:
+    container_name: node_exporter_container
+    image: prom/node-exporter
+    ports:
+      - '9100:9100'
+
+  grafana:
+    container_name: grafana_container
+    image: grafana/grafana
+    ports:
+      - '3000:3000'
