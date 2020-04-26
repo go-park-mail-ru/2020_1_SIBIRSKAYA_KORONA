@@ -18,6 +18,8 @@ type ApiConfigController struct {
 	grpcSessionClient string
 	s3Bucket          string
 	s3BucketRegion    string
+	tlsCrtPath        string
+	tlsKeyPath        string
 }
 
 func CreateApiConfigController() *ApiConfigController {
@@ -37,6 +39,16 @@ func CreateApiConfigController() *ApiConfigController {
 		logger.Fatal("S3_BUCKET_REGION environment variable not exist")
 	}
 
+	crtPath, exists := os.LookupEnv("TLS_CRT_PATH")
+	if !exists {
+		logger.Fatal("TLS_CRT_PATH environment variable not exist")
+	}
+
+	keyPath, exists := os.LookupEnv("TLS_KEY_PATH")
+	if !exists {
+		logger.Fatal("TLS_KEY_PATH environment variable not exist")
+	}
+
 	return &ApiConfigController{
 		origins:           viper.GetStringSlice("cors.allowed_origins"),
 		serverIp:          viper.GetString("server.ip"),
@@ -47,6 +59,8 @@ func CreateApiConfigController() *ApiConfigController {
 		grpcSessionClient: viper.GetString("grpc_clients.session"),
 		s3Bucket:          bucket,
 		s3BucketRegion:    region,
+		tlsCrtPath:        crtPath,
+		tlsKeyPath:        keyPath,
 	}
 }
 
@@ -84,4 +98,12 @@ func (cc *ApiConfigController) GetS3Bucket() string {
 
 func (cc *ApiConfigController) GetS3BucketRegion() string {
 	return cc.s3BucketRegion
+}
+
+func (cc *ApiConfigController) GetTLSCrtPath() string {
+	return cc.tlsCrtPath
+}
+
+func (cc *ApiConfigController) GetTLSKeyPath() string {
+	return cc.tlsKeyPath
 }

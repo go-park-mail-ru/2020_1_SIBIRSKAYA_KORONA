@@ -10,16 +10,16 @@ logger: {
 }
 
 grpc_clients: {
-  #user: 127.0.0.1:8082,
-  user: user:8082,
-  #session: 127.0.0.1:8081,
-  session: session:8081,
+  user: 127.0.0.1:8082,
+  #user: user:8082,
+  session: 127.0.0.1:8081,
+  #session: session:8081,
 }
 
 database: {
   dbms: postgres,
-  host: postgres,
-  #host: localhost,
+  #host: postgres,
+  host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
@@ -28,7 +28,7 @@ database: {
 
 frontend: {
   protocol: https,
-  ip: localhost,
+  ip: 0.0.0.0,
   port: 5555,
   #public_dir задается в переменной окружения
 
@@ -41,6 +41,7 @@ cors: {
   allowed_origins: [
     http://89.208.197.150,
     https://89.208.197.150,
+    https://0.0.0.0:5555,
     http://localhost,
     http://localhost:5757,
     http://localhost:5555,

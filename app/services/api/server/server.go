@@ -156,7 +156,7 @@ func (server *Server) Run() {
 	attachHandler.CreateHandler(router, atchUseCase, mw)
 
 	// start
-	if err := router.Start(server.GetAddr()); err != nil {
+	if err := router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath()); err != nil {
 		log.Fatal(err)
 	}
 }

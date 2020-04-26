@@ -84,6 +84,8 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/comments:
+    $ref: "endpoints/comments.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1comments"
   /boards/{bid}/columns/{cid}/tasks/{tid}/checklists:
     $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists"
   /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}:

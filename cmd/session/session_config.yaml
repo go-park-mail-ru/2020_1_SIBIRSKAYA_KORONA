@@ -10,7 +10,7 @@ logger: {
 }
 
 memcached: {
-  host: memcached,
-  #host: localhost,
+  #host: memcached,
+  host: localhost,
   port: 11211,
 }
