@@ -17,7 +17,7 @@ type ColumnHandler struct {
 	useCase column.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.Middleware) {
 	handler := &ColumnHandler{useCase: useCase}
 	// TODO: обсудить кто может создавать колонки
 	router.POST("/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission)

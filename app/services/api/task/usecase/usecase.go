@@ -72,7 +72,6 @@ func (taskUseCase *TaskUseCase) Unassign(tid uint, uid uint) error {
 		logger.Error(err)
 		return err
 	}
-
 	err = taskUseCase.taskRepo.Unassign(tid, usr)
 	if err != nil {
 		logger.Error(err)

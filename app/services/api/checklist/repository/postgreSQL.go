@@ -33,7 +33,6 @@ func (checklistStore *ChecklistStore) Get(tid uint) (models.Checklists, error) {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation
 	}
-
 	for id := range chlists {
 		err := checklistStore.DB.Model(chlists[id]).Order("id").Related(&chlists[id].Items, "clid").Error
 		if err != nil {
@@ -65,7 +64,6 @@ func (checklistStore *ChecklistStore) Delete(clid uint) error {
 		logger.Error(err)
 		return errors.ErrBoardNotFound
 	}
-
 	for id := range items {
 		err = checklistStore.DB.Delete(&models.Item{ID: items[id].ID}).Error
 		if err != nil {
@@ -73,7 +71,6 @@ func (checklistStore *ChecklistStore) Delete(clid uint) error {
 			return errors.ErrBoardNotFound
 		}
 	}
-
 	err = checklistStore.DB.Delete(&models.Checklist{ID: clid}).Error
 	if err != nil {
 		logger.Error(err)

@@ -19,7 +19,7 @@ type CommentHandler struct {
 	useCase comment.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Middleware) {
 	handler := &CommentHandler{useCase: useCase}
 
 	router.POST("boards/:bid/columns/:cid/tasks/:tid/comments", handler.CreateComment,

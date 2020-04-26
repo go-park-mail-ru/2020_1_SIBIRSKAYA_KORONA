@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
+	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
@@ -52,8 +51,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/labstack/echo/v4"
@@ -74,7 +76,6 @@ func (server *Server) GetAddr() string {
 func (server *Server) Run() {
 	// repo
 	// micro-serv
-	// TODO: конфиг
 	// session
 	grpcSessionConn, err := grpc.Dial(
 		server.ApiConfig.GetSessionClient(),
@@ -138,12 +139,18 @@ func (server *Server) Run() {
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
 
-	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase)
+	// middlware
 	router := echo.New()
+	metr, err := metric.CreateMetrics("0.0.0.0:7070", "api")
+	if err != nil {
+		log.Fatal(err)
+	}
+	mw := drelloMiddleware.CreateMiddleware(metr, sUseCase, bUseCase, cUseCase, tUseCase, comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase)
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
+	router.Use(mw.Metrics)
+	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
 	boardHandler.CreateHandler(router, bUseCase, mw)

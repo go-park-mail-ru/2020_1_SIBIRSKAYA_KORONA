@@ -17,7 +17,7 @@ type TaskHandler struct {
 	useCase task.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middleware) {
 	handler := &TaskHandler{useCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
@@ -103,7 +103,6 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 	assignUid := ctx.Get("uid_for_assign").(uint)
-
 	err := taskHandler.useCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)

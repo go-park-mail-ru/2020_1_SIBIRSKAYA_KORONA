@@ -34,7 +34,7 @@ func (taskStore *TaskStore) Get(tid uint) (*models.Task, error) {
 		return nil, errors.ErrTaskNotFound
 	}
 	err := taskStore.DB.Model(tsk).Related(&tsk.Members, "Members").
-		Related(&tsk.Labels, "Labels").Error
+		Order("id").Related(&tsk.Labels, "Labels").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrDbBadOperation

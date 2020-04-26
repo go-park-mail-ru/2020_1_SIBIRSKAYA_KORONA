@@ -92,7 +92,7 @@ func (boardStore *BoardStore) Get(bid uint) (*models.Board, error) {
 
 func (boardStore *BoardStore) GetLabelsByID(bid uint) (models.Labels, error) {
 	var lbls []models.Label
-	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&lbls, "bid").Error
+	err := boardStore.DB.Model(&models.Board{ID: bid}).Order("id").Related(&lbls, "bid").Error
 	if err != nil {
 		logger.Error(err)
 		return nil, errors.ErrBoardNotFound

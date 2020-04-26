@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user/server"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/user/server"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 

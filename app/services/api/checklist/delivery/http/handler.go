@@ -17,11 +17,10 @@ type ChecklistHandler struct {
 	useCase checklist.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.Middleware) {
 	handler := &ChecklistHandler{
 		useCase: useCase,
 	}
-
 	router.GET("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Create,
@@ -40,9 +39,7 @@ func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
-
 	chlist.Tid = ctx.Get("tid").(uint)
-
 	err = checklistHandler.useCase.Create(&chlist)
 	if err != nil {
 		logger.Error(err)
@@ -57,7 +54,6 @@ func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
 
 func (checklistHandler *ChecklistHandler) Get(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-
 	chlists, err := checklistHandler.useCase.Get(tid)
 	if err != nil {
 		logger.Error(err)
@@ -80,10 +76,8 @@ func (checklistHandler *ChecklistHandler) Delete(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-
 	if checklistHandler.useCase.Delete(clid) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
-
 	return ctx.NoContent(http.StatusOK)
 }

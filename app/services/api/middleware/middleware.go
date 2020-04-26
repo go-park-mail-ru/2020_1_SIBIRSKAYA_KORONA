@@ -19,16 +19,18 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 )
 
-type GoMiddleware struct {
+type Middleware struct {
 	origins    map[string]struct{}
 	serverMode string
 
+	metr        metric.Metrics
 	sUseCase    session.UseCase
 	bUseCase    board.UseCase
 	cUseCase    column.UseCase
@@ -40,15 +42,16 @@ type GoMiddleware struct {
 	atchUseCase attach.UseCase
 }
 
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
-	comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *GoMiddleware {
+func CreateMiddleware(metr_ metric.Metrics, sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
+	comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *Middleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
 	}
-	return &GoMiddleware{
+	return &Middleware{
 		origins:     origins_,
 		serverMode:  viper.GetString("server.mode"),
+		metr:        metr_,
 		sUseCase:    sUseCase_,
 		bUseCase:    bUseCase_,
 		cUseCase:    cUseCase_,
@@ -61,7 +64,7 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 	}
 }
 
-func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		start := time.Now()
 		res := next(ctx)
@@ -70,12 +73,11 @@ func (mw *GoMiddleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			ctx.Request().RequestURI,
 			ctx.Response().Status,
 			time.Since(start))
-
 		return res
 	}
 }
 
-func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		origin := ctx.Request().Header.Get("Origin")
 		if _, exist := mw.origins[origin]; !exist {
@@ -92,7 +94,7 @@ func (mw *GoMiddleware) CORS(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		defer func() {
 			if err := recover(); err != nil {
@@ -105,7 +107,23 @@ func (mw *GoMiddleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) Sanitize(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) Metrics(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		start := time.Now()
+		err := next(ctx)
+		var status int
+		if err != nil {
+			status = err.(*echo.HTTPError).Code
+		} else {
+			status = ctx.Response().Status
+		}
+		mw.metr.ObserveResponseTime(status, ctx.Request().Method, ctx.Path(), time.Since(start).Seconds())
+		mw.metr.IncHits(status, ctx.Request().Method, ctx.Path())
+		return nil
+	}
+}
+
+func (mw *Middleware) Sanitize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		body, err := ioutil.ReadAll(ctx.Request().Body)
 		if err != nil {
@@ -121,7 +139,7 @@ func (mw *GoMiddleware) Sanitize(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("session_id")
 		if err != nil {
@@ -141,7 +159,7 @@ func (mw *GoMiddleware) CheckAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		token := ctx.Request().Header.Get(csrf.CSRFheader)
 		if token == "" {
@@ -156,7 +174,7 @@ func (mw *GoMiddleware) CSRFmiddle(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // Вызывается после AuthByCookie
-func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		var bid uint
 		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
@@ -174,7 +192,7 @@ func (mw *GoMiddleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.H
 }
 
 // вызывается после CheckBoard...Permission
-func (mw *GoMiddleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		bid := ctx.Get("bid").(uint)
 		var assignUid uint
@@ -192,7 +210,7 @@ func (mw *GoMiddleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.Ha
 	}
 }
 
-func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		var bid uint
 		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
@@ -209,7 +227,7 @@ func (mw *GoMiddleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.Ha
 	}
 }
 
-func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		bid := ctx.Get("bid").(uint)
 		var cid uint
@@ -225,14 +243,14 @@ func (mw *GoMiddleware) CheckColInBoard(next echo.HandlerFunc) echo.HandlerFunc 
 	}
 }
 
-func (mw *GoMiddleware) CheckLabelInBoard(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckLabelInBoard(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		bid := ctx.Get("bid").(uint)
 		var lid uint
 		if _, err := fmt.Sscan(ctx.Param("lid"), &lid); err != nil {
 			return ctx.NoContent(http.StatusBadRequest)
 		}
-		if _, err := mw.cUseCase.Get(bid, lid); err != nil {
+		if _, err := mw.lUseCase.Get(bid, lid); err != nil {
 			logger.Error(err)
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
@@ -241,7 +259,7 @@ func (mw *GoMiddleware) CheckLabelInBoard(next echo.HandlerFunc) echo.HandlerFun
 	}
 }
 
-func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cid := ctx.Get("cid").(uint)
 		var tid uint
@@ -257,7 +275,7 @@ func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func (mw *GoMiddleware) CheckCommentInTask(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckCommentInTask(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		tid := ctx.Get("tid").(uint)
 		var comid uint
@@ -273,7 +291,7 @@ func (mw *GoMiddleware) CheckCommentInTask(next echo.HandlerFunc) echo.HandlerFu
 	}
 }
 
-func (mw *GoMiddleware) CheckChecklistInTask(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckChecklistInTask(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		tid := ctx.Get("tid").(uint)
 		var clid uint
@@ -290,7 +308,7 @@ func (mw *GoMiddleware) CheckChecklistInTask(next echo.HandlerFunc) echo.Handler
 	}
 }
 
-func (mw *GoMiddleware) CheckItemInChecklist(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckItemInChecklist(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		clid := ctx.Get("clid").(uint)
 		var itid uint
@@ -306,7 +324,7 @@ func (mw *GoMiddleware) CheckItemInChecklist(next echo.HandlerFunc) echo.Handler
 	}
 }
 
-func (mw *GoMiddleware) CheckAttachInTask(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) CheckAttachInTask(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		tid := ctx.Get("tid").(uint)
 		var fid uint
@@ -322,7 +340,7 @@ func (mw *GoMiddleware) CheckAttachInTask(next echo.HandlerFunc) echo.HandlerFun
 	}
 }
 
-func (mw *GoMiddleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		if mw.serverMode == "debug" {
 			dump, err := httputil.DumpRequest(ctx.Request(), true)

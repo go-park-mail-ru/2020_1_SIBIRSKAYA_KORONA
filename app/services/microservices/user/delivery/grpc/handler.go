@@ -4,10 +4,9 @@ import (
 	"context"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/user"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-
 	"github.com/golang/protobuf/ptypes/empty"
 )
 

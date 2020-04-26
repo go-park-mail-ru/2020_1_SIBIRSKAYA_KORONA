@@ -15,7 +15,7 @@ type AttachHandler struct {
 	useCase attach.UseCase
 }
 
-func CreateHandler(router *echo.Echo, useCase attach.UseCase, mw *middleware.GoMiddleware) {
+func CreateHandler(router *echo.Echo, useCase attach.UseCase, mw *middleware.Middleware) {
 	handler := &AttachHandler{
 		useCase: useCase,
 	}

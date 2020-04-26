@@ -133,7 +133,7 @@ func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 				}
 				for !in.IsDelim(']') {
 					var v4 User
-					(v4).UnmarshalEasyJSON(in)
+					easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v4)
 					out.Members = append(out.Members, v4)
 					in.WantComma()
 				}
@@ -181,6 +181,29 @@ func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 					var v6 Checklist
 					(v6).UnmarshalEasyJSON(in)
 					out.Checklists = append(out.Checklists, v6)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "labels":
+			if in.IsNull() {
+				in.Skip()
+				out.Labels = nil
+			} else {
+				in.Delim('[')
+				if out.Labels == nil {
+					if !in.IsDelim(']') {
+						out.Labels = make([]Label, 0, 1)
+					} else {
+						out.Labels = []Label{}
+					}
+				} else {
+					out.Labels = (out.Labels)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v7 Label
+					(v7).UnmarshalEasyJSON(in)
+					out.Labels = append(out.Labels, v7)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -239,11 +262,11 @@ func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v7, v8 := range in.Members {
-				if v7 > 0 {
+			for v8, v9 := range in.Members {
+				if v8 > 0 {
 					out.RawByte(',')
 				}
-				(v8).MarshalEasyJSON(out)
+				easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v9)
 			}
 			out.RawByte(']')
 		}
@@ -253,11 +276,11 @@ func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v9, v10 := range in.Comments {
-				if v9 > 0 {
+			for v10, v11 := range in.Comments {
+				if v10 > 0 {
 					out.RawByte(',')
 				}
-				(v10).MarshalEasyJSON(out)
+				(v11).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -267,11 +290,25 @@ func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v11, v12 := range in.Checklists {
-				if v11 > 0 {
+			for v12, v13 := range in.Checklists {
+				if v12 > 0 {
 					out.RawByte(',')
 				}
-				(v12).MarshalEasyJSON(out)
+				(v13).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	if len(in.Labels) != 0 {
+		const prefix string = ",\"labels\":"
+		out.RawString(prefix)
+		{
+			out.RawByte('[')
+			for v14, v15 := range in.Labels {
+				if v14 > 0 {
+					out.RawByte(',')
+				}
+				(v15).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -301,4 +338,93 @@ func (v *Task) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Task) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
+}
+func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *User) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "id":
+			out.ID = uint(in.Uint())
+		case "name":
+			out.Name = string(in.String())
+		case "surname":
+			out.Surname = string(in.String())
+		case "nickname":
+			out.Nickname = string(in.String())
+		case "avatar":
+			out.Avatar = string(in.String())
+		case "email":
+			out.Email = string(in.String())
+		case "password":
+			if in.IsNull() {
+				in.Skip()
+				out.Password = nil
+			} else {
+				out.Password = in.Bytes()
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in User) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"id\":"
+		out.RawString(prefix[1:])
+		out.Uint(uint(in.ID))
+	}
+	{
+		const prefix string = ",\"name\":"
+		out.RawString(prefix)
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"surname\":"
+		out.RawString(prefix)
+		out.String(string(in.Surname))
+	}
+	{
+		const prefix string = ",\"nickname\":"
+		out.RawString(prefix)
+		out.String(string(in.Nickname))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
+	}
+	if in.Email != "" {
+		const prefix string = ",\"email\":"
+		out.RawString(prefix)
+		out.String(string(in.Email))
+	}
+	if len(in.Password) != 0 {
+		const prefix string = ",\"password\":"
+		out.RawString(prefix)
+		out.Base64Bytes(in.Password)
+	}
+	out.RawByte('}')
 }
