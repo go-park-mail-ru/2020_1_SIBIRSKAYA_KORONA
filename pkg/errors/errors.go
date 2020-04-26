@@ -28,6 +28,8 @@ const (
 
 	TaskNotFound = "task not found"
 
+	CommentNotFound = "comment not found"
+
 	ChecklistNotFound = "checklist not found"
 
 	ItemNotFound = "item not found"
@@ -68,6 +70,9 @@ var (
 	// ошибки, связанные с тасками
 	ErrTaskNotFound = errors.New(TaskNotFound)
 
+	// ошибки, связанные с комментариями
+	ErrCommentNotFound = errors.New(CommentNotFound)
+
 	// ошибки, связанные с чеклистами
 	ErrChecklistNotFound = errors.New(ChecklistNotFound)
 
@@ -104,6 +109,8 @@ var messToError = map[string]error{
 
 	TaskNotFound: ErrTaskNotFound,
 
+	CommentNotFound: ErrCommentNotFound,
+
 	ChecklistNotFound: ErrChecklistNotFound,
 
 	ItemNotFound: ErrItemNotFound,
@@ -138,6 +145,9 @@ var errorToCodeMap = map[error]int{
 
 	// ошибки, связанные с таской
 	ErrTaskNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с комментариями
+	ErrCommentNotFound: http.StatusNotFound,
 
 	// ошибки, связанные с чеклистами
 	ErrChecklistNotFound: http.StatusNotFound,

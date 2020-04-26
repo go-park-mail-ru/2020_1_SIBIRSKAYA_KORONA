@@ -29,6 +29,10 @@ import (
 	taskRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/repository"
 	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/usecase"
 
+	commentHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/comment/delivery/http"
+	commentRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/comment/repository"
+	commentUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/comment/usecase"
+
 	checklistHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/delivery/http"
 	checklistRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/repository"
 	checklistUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/usecase"
@@ -106,6 +110,7 @@ func (server *Server) Run() {
 	colRepo := colsRepo.CreateRepository(postgresClient)
 	lblRepo := labelRepo.CreateRepository(postgresClient)
 	tskRepo := taskRepo.CreateRepository(postgresClient)
+	comRepo := commentRepo.CreateRepository(postgresClient)
 	chlistRepo := checklistRepo.CreateRepository(postgresClient)
 	itmRepo := itemRepo.CreateRepository(postgresClient)
 
@@ -128,12 +133,13 @@ func (server *Server) Run() {
 	cUseCase := colsUseCase.CreateUseCase(colRepo)
 	lUseCase := labelUseCase.CreateUseCase(lblRepo)
 	tUseCase := taskUseCase.CreateUseCase(tskRepo, usrRepo)
+	comUseCase := commentUseCase.CreateUseCase(comRepo)
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
 
 	// delivery
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase)
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase, comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase)
 	router := echo.New()
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
@@ -144,6 +150,7 @@ func (server *Server) Run() {
 	colsHandler.CreateHandler(router, cUseCase, mw)
 	labelHandler.CreateHandler(router, lUseCase, mw)
 	taskHandler.CreateHandler(router, tUseCase, mw)
+	commentHandler.CreateHandler(router, comUseCase, mw)
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
 	attachHandler.CreateHandler(router, atchUseCase, mw)

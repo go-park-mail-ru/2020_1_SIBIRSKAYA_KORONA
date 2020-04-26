@@ -10,8 +10,4 @@ type UseCase interface {
 	Delete(tid uint) error
 	Assign(tid uint, uid uint) error
 	Unassign(tid uint, uid uint) error
-
-	//Comments -------------------
-	CreateComment(comment *models.Comment) error
-	GetComments(tid uint, uid uint) (models.Comments, error)
 }

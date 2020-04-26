@@ -11,6 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/comment"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
@@ -32,6 +33,7 @@ type GoMiddleware struct {
 	bUseCase    board.UseCase
 	cUseCase    column.UseCase
 	tUseCase    task.UseCase
+	comUseCase  comment.UseCase
 	lUseCase    label.UseCase
 	chUseCase   checklist.UseCase
 	itUseCase   item.UseCase
@@ -39,7 +41,7 @@ type GoMiddleware struct {
 }
 
 func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
-	chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *GoMiddleware {
+	comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *GoMiddleware {
 	origins_ := make(map[string]struct{})
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
@@ -52,6 +54,7 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 		cUseCase:    cUseCase_,
 		lUseCase:    lUseCase_,
 		tUseCase:    tUseCase_,
+		comUseCase:  comUseCase_,
 		chUseCase:   chUseCase_,
 		itUseCase:   itUseCase_,
 		atchUseCase: atchUseCase_,
@@ -250,6 +253,22 @@ func (mw *GoMiddleware) CheckTaskInCol(next echo.HandlerFunc) echo.HandlerFunc {
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
 		ctx.Set("tid", tid)
+		return next(ctx)
+	}
+}
+
+func (mw *GoMiddleware) CheckCommentInTask(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		tid := ctx.Get("tid").(uint)
+		var comid uint
+		if _, err := fmt.Sscan(ctx.Param("comid"), &comid); err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		if _, err := mw.comUseCase.GetByID(tid, comid); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("comid", comid)
 		return next(ctx)
 	}
 }
