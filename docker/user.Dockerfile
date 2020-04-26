@@ -6,7 +6,7 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app 
 
-EXPOSE 8082
+EXPOSE 8082 7072
 
 COPY --from=drello-builder:latest /application/drello_user /app
 COPY --from=drello-builder:latest /application/cmd/user/user_config.yaml /app

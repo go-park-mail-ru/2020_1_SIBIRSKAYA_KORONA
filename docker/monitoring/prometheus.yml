@@ -7,7 +7,18 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'golang'
+  - job_name: 'system'
     static_configs:
-      - targets: ['localhost:7070', 'localhost:7071', 'localhost:7072']
+      - targets: ['node_exporter:9100']
 
+  - job_name: 'api'
+    static_configs:
+      - targets: ['api:7070']
+
+  - job_name: 'session'
+    static_configs:
+      - targets: ['session:7071']
+
+  - job_name: 'user'
+    static_configs:
+      - targets: ['user:7072']

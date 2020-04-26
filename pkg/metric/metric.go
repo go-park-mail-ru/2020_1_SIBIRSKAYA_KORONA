@@ -51,7 +51,7 @@ func CreateMetrics(address string, name string) (Metrics, error) {
 	}
 	go func() {
 		router := echo.New()
-		router.GET(name+"/metrics", echo.WrapHandler(promhttp.Handler()))
+		router.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 		if err := router.Start(address); err != nil {
 			log.Fatal(err)
 		}

@@ -6,7 +6,7 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app 
 
-EXPOSE 8080
+EXPOSE 8080 7070
 
 COPY --from=drello-builder:latest /application/drello_api /app
 COPY --from=drello-builder:latest /application/cmd/api/api_config.yaml /app
