@@ -16,15 +16,12 @@ func init() {
 func SanitizeJSON(s []byte) ([]byte, error) {
 	d := json.NewDecoder(bytes.NewReader(s))
 	d.UseNumber()
-
 	var i interface{}
 	err := d.Decode(&i)
 	if err != nil {
 		return nil, err
 	}
 	sanitize(i)
-
-	//TODO: проверить
 	return json.MarshalIndent(i, "", "    ")
 }
 

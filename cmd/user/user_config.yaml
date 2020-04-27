@@ -1,0 +1,31 @@
+server: {
+  ip: 0.0.0.0,
+  port: 8082,
+  mode : release,
+}
+
+logger: {
+  logfile: stdout,
+  level: debug,
+}
+
+database: {
+  dbms: postgres,
+  host: postgres,
+  #host: localhost,
+  user: drello_user,
+  password: drello1234,
+  name: drello_db,
+  sslmode: disable
+}
+
+frontend: {
+  protocol: http,
+  ip: localhost,
+  port: 80,
+  #public_dir задается в переменной окружения
+
+  #относительно public_dir
+  avatar_dir: /img/avatar,
+  default_avatar: /img/default_avatar.png
+}

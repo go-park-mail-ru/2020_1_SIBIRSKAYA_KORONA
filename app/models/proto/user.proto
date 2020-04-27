@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "message.proto";
+import "google/protobuf/empty.proto";
+
+package proto;
+
+service User {
+    rpc Create (UserMess) returns (UidMess);
+    rpc GetByID(UidMess) returns (UserMess);
+    rpc GetByNickname(NicknameMess) returns (UserMess);
+    rpc CheckPassword(CheckPassMess) returns (BoolMess);
+    rpc Update(UpdateMess) returns (google.protobuf.Empty);
+    rpc Delete(UidMess) returns (google.protobuf.Empty);
+}

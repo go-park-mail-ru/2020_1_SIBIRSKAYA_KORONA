@@ -1,0 +1,571 @@
+paths:
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists:
+    get:
+      tags:
+      - "checklists"
+      summary: "Получаем все cозданные в таске чеклисты"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          deудалилиcription: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+          
+      responses:
+        200:
+          description: "Корректный запрос, получаем массив чеклистов (в которые вложены итемы)"
+
+          content:
+            application/json:
+              schema:
+                type: "array"
+                files:
+                  - $ref: "../models/checklist.yaml#/components/schemas/Checklist"
+                example: [{  
+                    "id": 10,
+                    "name": "Прикрутить чеклисты",
+                    "items": [
+                      {
+                        "id": "10",
+                        "text": "Написать хэндлеры",
+                        "done": false,
+                        "clid": 10
+
+                      },
+                      {
+                        "id": "11",
+                        "text": "Написать юзкейс",
+                        "done": false,
+                        "clid": 10
+
+                      },
+                      {
+                        "id": "12",
+                        "text": "Написать репозиторий",
+                        "done": false,
+                        "clid": 10
+                      },
+                    ],
+                  },{
+                    "id": 11,
+                    "name": "Прикрутить итемы",
+                    "items": [
+                      {
+                        "id": "13",
+                        "text": "Написать хэндлеры",
+                        "done": false,
+                        "clid": 11
+
+                      },
+                      {
+                        "id": "14",
+                        "text": "Написать юзкейс",
+                        "done": false,
+                        "clid": 11
+
+                      },
+                      {
+                        "id": "15",
+                        "text": "Написать репозиторий",
+                        "done": false,
+                        "clid": 11
+                      },
+                    ],
+                }]
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка при маршалинге найденного пользователя"
+    
+    post:
+      tags:
+      - "checklists"
+      summary: "Создаем чеклист в таске"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+      requestBody:
+        description: Имя чеклиста
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/checklist.yaml#/components/schemas/Checklist"
+            example: {
+              "name": "Прикрутить чеклисты",
+            }
+
+         
+      responses:
+        200:
+          description: "Успешно создали чеклист"
+
+          content:
+            application/json:
+              schema:
+              - $ref: "../models/checklist.yaml#/components/schemas/Checklist"
+              example: {  
+                "id": 10,
+                "name": "Прикрутить чеклисты",
+                "tid": 8,
+              }
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}:
+    put:
+      tags:
+      - "checklists"
+      summary: "Обновляем чеклист"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+        - in: path
+          name: fid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер приложенного файлика
+          example: 8
+
+      responses:
+        200:
+          description: "Успешно обновили чеклист"
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+    delete:
+      tags:
+      - "checklists"
+      summary: "Удаляем чеклист"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+        - in: path
+          name: fid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер приложенного файлика
+          example: 8
+
+      responses:
+        200:
+          description: "Успешно удалили чеклист"
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items:
+    post:
+      tags:
+      - "checklists"
+      summary: "Создаем итем в чеклисте"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+        - in: path
+          name: clid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер чеклиста
+          example: 4
+
+      requestBody:
+        description: Данные для создания итема
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/item.yaml#/components/schemas/Item"
+            example: {
+              "text": "Написать хэндлеры",
+              "done": false
+            }
+
+      responses:
+        200:
+          description: "Успешно создали итем"
+
+          content:
+            application/json:
+              schema:
+              - $ref: "../models/item.yaml#/components/schemas/Item"
+              example: {  
+                "text": "Написать хэндлеры",
+                "done": false,
+              }
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items/{itid}:
+    put:
+      tags:
+      - "checklists"
+      summary: "Обновляем итем в чеклисте"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+        - in: path
+          name: clid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер чеклиста
+          example: 4
+
+        - in: path
+          name: itid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер итема
+          example: 5  
+
+      requestBody:
+        description: Новые данные итема
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../models/item.yaml#/components/schemas/Item"
+            example: {
+              "text": "Написать хэндлеры",
+              "done": true
+            }
+
+      responses:
+        200:
+          description: "Успешно обновили итем"
+
+          content:
+            application/json:
+              schema:
+              - $ref: "../models/item.yaml#/components/schemas/Item"
+              example: {  
+                "text": "Написать хэндлеры",
+                "done": true,
+              }
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+
+    delete:
+      tags:
+      - "checklists"
+      summary: "Удаляем итем из чеклиста"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+        - in: path
+          name: clid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер чеклиста
+          example: 4
+
+        - in: path
+          name: itid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер итема
+          example: 5  
+
+      responses:
+        200:
+          description: "Успешно удалили итем"
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+

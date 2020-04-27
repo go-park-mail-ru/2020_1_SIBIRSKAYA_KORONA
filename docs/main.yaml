@@ -45,11 +45,21 @@ tags:
   externalDocs:
     description: "Какой бы сюда вставить URL??"
     url: "http://swagger.io"
+- name: "checklists"
+  description: "Основная работа с чеклистами"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
+- name: "files"
+  description: "Основная работа с приложенными файлами"
+  externalDocs:
+    description: "Какой бы сюда вставить URL??"
+    url: "http://swagger.io"
 - name: "token"
   description: "Точка для получения CSRF-токена"
   externalDocs:
     description: "Какой бы сюда вставить URL??"
-    url: "http://swagger.io"    
+    url: "http://swagger.io"
 
 paths:
   /settings:
@@ -60,6 +70,8 @@ paths:
     $ref: "endpoints/session.yaml#/paths/~1token"  
   /profile/{id_or_nickname}:
     $ref: "endpoints/profile.yaml#/paths/~1profile~1{id_or_nickname}"
+  #/search/profile?nickname={part_of_nickname}&limit={limit}:
+    #$ref: "endpoints/profile.yaml#/paths/~1search~1profile?nickname={part_of_nickname}&limit={limit}"
   /boards:
     $ref: "endpoints/boards.yaml#/paths/~1boards"
   /boards/{bid}:
@@ -72,6 +84,27 @@ paths:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks"
   /boards/{bid}/columns/{cid}/tasks/{tid}:
     $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/comments:
+    $ref: "endpoints/comments.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1comments"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}~1items"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/checklists/{clid}/items/{itid}:
+    $ref: "endpoints/checklists.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1checklists~1{clid}~1items~1{itid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/files:
+    $ref: "endpoints/files.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1files"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/files/{fid}:
+    $ref: "endpoints/files.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1files~1{fid}"
+  /boards/{bid}/columns/{cid}/tasks/{tid}/members/{uid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1columns~1{cid}~1tasks~1{tid}~1members~1{uid}"
+  /boards/{bid}/members/{uid}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1members~1{uid}"
+  /boards/{bid}/search_for_invite?nickname={part_of_nickname}&limit={limit}:
+    $ref: "endpoints/boards.yaml#/paths/~1boards~1{bid}~1search_for_invite?nickname={part_of_nickname}&limit={limit}"
+
 
 components:
   schemas:
@@ -90,6 +123,15 @@ components:
 
     ApiResponse:
       $ref: "models/user.yaml#/components/schemas/ApiResponse"
+
+    Checklist:
+      $ref: "models/checklist.yaml#/components/schemas/Checklist"
+
+    Item:
+      $ref: "models/item.yaml#/components/schemas/Item"
+
+    File:
+      $ref: "models/file.yaml#/components/schemas/File"
 
   securitySchemes:
     app_id:

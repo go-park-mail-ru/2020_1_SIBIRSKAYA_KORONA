@@ -1,0 +1,16 @@
+server: {
+  ip: 0.0.0.0,
+  port: 8081,
+  mode : release,
+}
+
+logger: {
+  logfile: stdout,
+  level: debug,
+}
+
+memcached: {
+  host: memcached,
+  #host: localhost,
+  port: 11211,
+}
