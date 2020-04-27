@@ -45,14 +45,20 @@ func (columnStore *ColumnStore) GetTasksByID(cid uint) (models.Tasks, error) {
 		return nil, errors.ErrColNotFound
 	}
 	// TODO: попробовать через preload
-	// наполняем таску назначенными пользователями
+	// наполняем таску назначенными пользователями и лейблами
 	for id := range tsks {
 		err := columnStore.DB.Model(tsks[id]).Related(&tsks[id].Members, "Members").Error
 		if err != nil {
 			logger.Error(err)
 			return nil, errors.ErrDbBadOperation
 		}
+		err = columnStore.DB.Model(tsks[id]).Related(&tsks[id].Labels, "Labels").Error
+		if err != nil {
+			logger.Error(err)
+			return nil, errors.ErrDbBadOperation
+		}
 	}
+
 	return tsks, nil
 }
 
