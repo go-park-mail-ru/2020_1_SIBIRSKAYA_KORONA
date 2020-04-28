@@ -7,6 +7,7 @@ package mocks
 import (
 	models "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	gomock "github.com/golang/mock/gomock"
+	multipart "mime/multipart"
 	reflect "reflect"
 )
 
@@ -34,59 +35,59 @@ func (m *MockUseCase) EXPECT() *MockUseCaseMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockUseCase) Create(column *models.Column) error {
+func (m *MockUseCase) Create(attachModel *models.AttachedFile, attachFile *multipart.FileHeader) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", column)
+	ret := m.ctrl.Call(m, "Create", attachModel, attachFile)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create
-func (mr *MockUseCaseMockRecorder) Create(column interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) Create(attachModel, attachFile interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUseCase)(nil).Create), column)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUseCase)(nil).Create), attachModel, attachFile)
 }
 
 // Get mocks base method
-func (m *MockUseCase) Get(bid, cid uint) (*models.Column, error) {
+func (m *MockUseCase) Get(tid uint) (models.AttachedFiles, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", bid, cid)
-	ret0, _ := ret[0].(*models.Column)
+	ret := m.ctrl.Call(m, "Get", tid)
+	ret0, _ := ret[0].(models.AttachedFiles)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockUseCaseMockRecorder) Get(bid, cid interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) Get(tid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUseCase)(nil).Get), bid, cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUseCase)(nil).Get), tid)
 }
 
-// GetTasksByID mocks base method
-func (m *MockUseCase) GetTasksByID(cid uint) (models.Tasks, error) {
+// GetByID mocks base method
+func (m *MockUseCase) GetByID(tid, fid uint) (*models.AttachedFile, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTasksByID", cid)
-	ret0, _ := ret[0].(models.Tasks)
+	ret := m.ctrl.Call(m, "GetByID", tid, fid)
+	ret0, _ := ret[0].(*models.AttachedFile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTasksByID indicates an expected call of GetTasksByID
-func (mr *MockUseCaseMockRecorder) GetTasksByID(cid interface{}) *gomock.Call {
+// GetByID indicates an expected call of GetByID
+func (mr *MockUseCaseMockRecorder) GetByID(tid, fid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTasksByID", reflect.TypeOf((*MockUseCase)(nil).GetTasksByID), cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUseCase)(nil).GetByID), tid, fid)
 }
 
 // Delete mocks base method
-func (m *MockUseCase) Delete(cid uint) error {
+func (m *MockUseCase) Delete(fid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", cid)
+	ret := m.ctrl.Call(m, "Delete", fid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockUseCaseMockRecorder) Delete(cid interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) Delete(fid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUseCase)(nil).Delete), cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUseCase)(nil).Delete), fid)
 }

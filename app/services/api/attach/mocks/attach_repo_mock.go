@@ -34,59 +34,59 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockRepository) Create(column *models.Column) error {
+func (m *MockRepository) Create(attach *models.AttachedFile) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", column)
+	ret := m.ctrl.Call(m, "Create", attach)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create
-func (mr *MockRepositoryMockRecorder) Create(column interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Create(attach interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), column)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), attach)
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(cid uint) (*models.Column, error) {
+func (m *MockRepository) Get(tid uint) (models.AttachedFiles, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", cid)
-	ret0, _ := ret[0].(*models.Column)
+	ret := m.ctrl.Call(m, "Get", tid)
+	ret0, _ := ret[0].(models.AttachedFiles)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(cid interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(tid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), tid)
 }
 
-// GetTasksByID mocks base method
-func (m *MockRepository) GetTasksByID(cid uint) (models.Tasks, error) {
+// GetByID mocks base method
+func (m *MockRepository) GetByID(fid uint) (*models.AttachedFile, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTasksByID", cid)
-	ret0, _ := ret[0].(models.Tasks)
+	ret := m.ctrl.Call(m, "GetByID", fid)
+	ret0, _ := ret[0].(*models.AttachedFile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTasksByID indicates an expected call of GetTasksByID
-func (mr *MockRepositoryMockRecorder) GetTasksByID(cid interface{}) *gomock.Call {
+// GetByID indicates an expected call of GetByID
+func (mr *MockRepositoryMockRecorder) GetByID(fid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTasksByID", reflect.TypeOf((*MockRepository)(nil).GetTasksByID), cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), fid)
 }
 
 // Delete mocks base method
-func (m *MockRepository) Delete(cid uint) error {
+func (m *MockRepository) Delete(fid uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", cid)
+	ret := m.ctrl.Call(m, "Delete", fid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockRepositoryMockRecorder) Delete(cid interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Delete(fid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), cid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), fid)
 }

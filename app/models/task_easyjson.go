@@ -133,7 +133,7 @@ func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 				}
 				for !in.IsDelim(']') {
 					var v4 User
-					easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v4)
+					(v4).UnmarshalEasyJSON(in)
 					out.Members = append(out.Members, v4)
 					in.WantComma()
 				}
@@ -266,7 +266,7 @@ func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 				if v8 > 0 {
 					out.RawByte(',')
 				}
-				easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v9)
+				(v9).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -338,93 +338,4 @@ func (v *Task) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Task) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
-}
-func easyjson79a0a577DecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *User) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "name":
-			out.Name = string(in.String())
-		case "surname":
-			out.Surname = string(in.String())
-		case "nickname":
-			out.Nickname = string(in.String())
-		case "avatar":
-			out.Avatar = string(in.String())
-		case "email":
-			out.Email = string(in.String())
-		case "password":
-			if in.IsNull() {
-				in.Skip()
-				out.Password = nil
-			} else {
-				out.Password = in.Bytes()
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson79a0a577EncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in User) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"surname\":"
-		out.RawString(prefix)
-		out.String(string(in.Surname))
-	}
-	{
-		const prefix string = ",\"nickname\":"
-		out.RawString(prefix)
-		out.String(string(in.Nickname))
-	}
-	{
-		const prefix string = ",\"avatar\":"
-		out.RawString(prefix)
-		out.String(string(in.Avatar))
-	}
-	if in.Email != "" {
-		const prefix string = ",\"email\":"
-		out.RawString(prefix)
-		out.String(string(in.Email))
-	}
-	if len(in.Password) != 0 {
-		const prefix string = ",\"password\":"
-		out.RawString(prefix)
-		out.Base64Bytes(in.Password)
-	}
-	out.RawByte('}')
 }

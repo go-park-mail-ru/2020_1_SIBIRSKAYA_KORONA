@@ -123,7 +123,7 @@ func easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 				}
 				for !in.IsDelim(']') {
 					var v4 Item
-					easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in, &v4)
+					(v4).UnmarshalEasyJSON(in)
 					out.Items = append(out.Items, v4)
 					in.WantComma()
 				}
@@ -155,18 +155,16 @@ func easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
-	{
+	if len(in.Items) != 0 {
 		const prefix string = ",\"items\":"
 		out.RawString(prefix)
-		if in.Items == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
+		{
 			out.RawByte('[')
 			for v5, v6 := range in.Items {
 				if v5 > 0 {
 					out.RawByte(',')
 				}
-				easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out, v6)
+				(v6).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -201,67 +199,4 @@ func (v *Checklist) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Checklist) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels1(l, v)
-}
-func easyjsonB31f6f5eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(in *jlexer.Lexer, out *Item) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "text":
-			out.Text = string(in.String())
-		case "done":
-			out.IsDone = bool(in.Bool())
-		case "clid":
-			out.Clid = uint(in.Uint())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjsonB31f6f5eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(out *jwriter.Writer, in Item) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"text\":"
-		out.RawString(prefix)
-		out.String(string(in.Text))
-	}
-	{
-		const prefix string = ",\"done\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsDone))
-	}
-	{
-		const prefix string = ",\"clid\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Clid))
-	}
-	out.RawByte('}')
 }

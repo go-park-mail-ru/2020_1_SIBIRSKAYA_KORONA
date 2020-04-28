@@ -48,11 +48,11 @@ func (mr *MockUseCaseMockRecorder) Create(uid, board interface{}) *gomock.Call {
 }
 
 // GetBoardsByUser mocks base method
-func (m *MockUseCase) GetBoardsByUser(uid uint) ([]models.Board, []models.Board, error) {
+func (m *MockUseCase) GetBoardsByUser(uid uint) (models.Boards, models.Boards, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBoardsByUser", uid)
-	ret0, _ := ret[0].([]models.Board)
-	ret1, _ := ret[1].([]models.Board)
+	ret0, _ := ret[0].(models.Boards)
+	ret1, _ := ret[1].(models.Boards)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -78,11 +78,26 @@ func (mr *MockUseCaseMockRecorder) Get(uid, bid, isAdmin interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUseCase)(nil).Get), uid, bid, isAdmin)
 }
 
+// GetLabelsByID mocks base method
+func (m *MockUseCase) GetLabelsByID(bid uint) (models.Labels, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLabelsByID", bid)
+	ret0, _ := ret[0].(models.Labels)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLabelsByID indicates an expected call of GetLabelsByID
+func (mr *MockUseCaseMockRecorder) GetLabelsByID(bid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLabelsByID", reflect.TypeOf((*MockUseCase)(nil).GetLabelsByID), bid)
+}
+
 // GetColumnsByID mocks base method
-func (m *MockUseCase) GetColumnsByID(bid uint) ([]models.Column, error) {
+func (m *MockUseCase) GetColumnsByID(bid uint) (models.Columns, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetColumnsByID", bid)
-	ret0, _ := ret[0].([]models.Column)
+	ret0, _ := ret[0].(models.Columns)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -150,10 +165,10 @@ func (mr *MockUseCaseMockRecorder) DeleteMember(bid, uid interface{}) *gomock.Ca
 }
 
 // GetUsersForInvite mocks base method
-func (m *MockUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) ([]models.User, error) {
+func (m *MockUseCase) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsersForInvite", bid, nicknamePart, limit)
-	ret0, _ := ret[0].([]models.User)
+	ret0, _ := ret[0].(models.Users)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

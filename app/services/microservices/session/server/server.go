@@ -8,14 +8,14 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/interceptor"
-	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/dilivery/grpc"
+	handler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/delivery/grpc"
 	repo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/repository"
 	useCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/session/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
