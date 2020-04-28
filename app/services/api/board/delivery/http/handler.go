@@ -26,7 +26,7 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
 	router.GET("/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.PUT("/boards/:bid", handler.Update, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.PUT("/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
 	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
@@ -120,10 +120,35 @@ func (boardHandler *BoardHandler) GetColumns(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) Update(ctx echo.Context) error {
-	return ctx.NoContent(http.StatusOK)
+	var brd models.Board
+	body := ctx.Get("body").([]byte)
+	err := brd.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	brd.ID = ctx.Get("bid").(uint)
+	err = boardHandler.useCase.Update(&brd)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	resp, err := brd.MarshalJSON()
+	if err != nil {
+		logger.Error(err)
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
 }
 
 func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
+	bid := ctx.Get("bid").(uint)
+
+	err := boardHandler.useCase.Delete(bid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
 	return ctx.NoContent(http.StatusOK)
 }
 

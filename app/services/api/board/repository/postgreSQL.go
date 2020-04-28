@@ -127,7 +127,36 @@ func (boardStore *BoardStore) Update(newBoard *models.Board) error {
 }
 
 func (boardStore *BoardStore) Delete(bid uint) error {
-	err := boardStore.DB.Delete(&models.Column{ID: bid}).Error
+	//TODO: трэш, переделать под каскад, файлики здесь игнорируются
+	var columns []models.Column
+	err := boardStore.DB.Model(&models.Board{ID: bid}).Related(&columns, "bid").Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+
+	for columnID := range columns {
+		var tasks []models.Task
+		err := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
+		if err != nil {
+			logger.Error(err)
+			return errors.ErrDbBadOperation
+		}
+		for taskID := range tasks {
+			err := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
+			if err != nil {
+				logger.Error(err)
+				return errors.ErrDbBadOperation
+			}
+		}
+		err = boardStore.DB.Delete(&models.Column{ID: columns[columnID].ID}).Error
+		if err != nil {
+			logger.Error(err)
+			return errors.ErrDbBadOperation
+		}
+	}
+
+	err = boardStore.DB.Delete(&models.Board{ID: bid}).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrBoardNotFound
