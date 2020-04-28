@@ -1,35 +1,30 @@
 package http_test
 
 import (
-	"flag"
-	"io"
-	"os"
-	"testing"
-
+	"bytes"
 	"encoding/json"
-
-	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"flag"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	test "net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/delivery/http"
-	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/mocks"
-	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
+	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/mocks"
+	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
+	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
+	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
-
-	"bytes"
-	"fmt"
-	"mime/multipart"
-	"net/http"
-	test "net/http/httptest"
-
-	"path/filepath"
-	"strings"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,46 +36,36 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
 	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
 	flag.Parse()
-
 	viper.SetConfigFile(test_opts.configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
 	logger.InitLogger()
-
 	os.Exit(m.Run())
 }
 
 func createUserHandler(controller *gomock.Controller) *userHandler.UserHandler {
 	userRepoMock := userMocks.NewMockRepository(controller)
 	sessionRepoMock := sessionMocks.NewMockRepository(controller)
-
 	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
-
-	return userHandler.CreateHandlerTest(uUsecase)
+	return userHandler.CreateHandler(uUsecase)
 }
 
 func TestCreate(t *testing.T) {
 	// t.Skip()
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
 	handler := userHandler.CreateHandlerTest(userUsecaseMock)
-
 	var testUser models.TestUser
 	err := faker.FakeData(&testUser)
 	assert.NoError(t, err)
 	//t.Logf("%+v", testUser)
-
 	bodyJSON, err := json.Marshal(testUser)
 	body := string(bodyJSON)
-
 	router := echo.New()
-
 	request := test.NewRequest(echo.POST, "/settings", strings.NewReader(body))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)

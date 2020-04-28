@@ -2,29 +2,29 @@ package repository_test
 
 import (
 	"flag"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/repository"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"github.com/jinzhu/gorm"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"testing"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/microservices/user/repository"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
+	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-var test_opts struct {
+var TestOpts struct {
 	configPath string
 }
 
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
+	flag.StringVar(&TestOpts.configPath, "test-c", "", "path to configuration file")
+	flag.StringVar(&TestOpts.configPath, "test-config", "", "path to configuration file")
 	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
+	viper.SetConfigFile(TestOpts.configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
@@ -38,9 +38,8 @@ func SetupDB() (sqlmock.Sqlmock, *gorm.DB) {
 	if err != nil {
 		log.Fatalf("cant create mock: %s", err)
 	}
-	DB, erro := gorm.Open("postgres", db)
-	// DB.AutoMigrate(&models.Board{})
-	if erro != nil {
+	DB, err := gorm.Open("postgres", db)
+	if err != nil {
 		log.Fatalf("Got an unexpected error: %s", err)
 
 	}
@@ -215,7 +214,7 @@ func TestUpdate(t *testing.T) {
 		sqlmock.NewResult(int64(usr.ID), 1))
 	mock.ExpectCommit()
 
-	if err := repo.Update(nil, &usr, nil); err != nil {
+	if err := repo.Update(nil, usr); err != nil {
 		t.Fatalf("unexpected error %s", err)
 		return
 	}
@@ -229,7 +228,7 @@ func TestUpdate(t *testing.T) {
 	usr.ID++
 	mock.ExpectQuery(`SELECT (\*) FROM (.*)"users" WHERE (.*)"users"."id" (.*) LIMIT 1`).WithArgs(
 		usr.ID).WillReturnError(errors.ErrUserNotFound)
-	if err := repo.Update(nil, &usr, nil); err == nil {
+	if err := repo.Update(nil, usr); err == nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
@@ -237,4 +236,16 @@ func TestUpdate(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 		return
 	}
+}
+
+func TestCheckPassword(t *testing.T) {
+
+}
+
+func TestDelete(t *testing.T) {
+
+}
+
+func TestGetUsersByNicknamePart(t *testing.T) {
+
 }
