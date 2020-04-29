@@ -13,6 +13,11 @@ import (
 
 var sugarLogger *zap.SugaredLogger
 
+type LoggerConfig struct {
+	Logfile  string
+	Loglevel zapcore.Level
+}
+
 // для соответствия уровня логгирования в конфиге и внутренним уровнем логера
 var loggerLevelMap = map[string]zapcore.Level{
 	"debug":  zapcore.DebugLevel,
@@ -34,8 +39,42 @@ func getLoggerLevel() zapcore.Level {
 }
 
 func InitLogger() {
+	if sugarLogger != nil {
+		return
+	}
+
 	logFile := viper.GetString("logger.logfile")
 	logLevel := getLoggerLevel()
+
+	var logWriter zapcore.WriteSyncer
+
+	if logFile != "stdout" {
+		logWriter = zapcore.AddSync(&lumberjack.Logger{
+			Filename: logFile,
+			//TODO: подумать как достать из конфига
+			MaxSize:   1 << 30, //1G
+			LocalTime: true,
+			Compress:  true,
+		})
+	} else {
+		logWriter = zapcore.AddSync(os.Stdout)
+	}
+
+	//encoder := zap.NewProductionEncoderConfig()
+	encoder := zap.NewDevelopmentEncoderConfig()
+	encoder.EncodeTime = zapcore.ISO8601TimeEncoder
+	core := zapcore.NewCore(zapcore.NewConsoleEncoder(encoder), logWriter, zap.NewAtomicLevelAt(logLevel))
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	sugarLogger = logger.Sugar()
+}
+
+func InitLoggerByConfig(config LoggerConfig) {
+	if sugarLogger != nil {
+		return
+	}
+
+	logFile := config.Logfile
+	logLevel := config.Loglevel
 
 	var logWriter zapcore.WriteSyncer
 
