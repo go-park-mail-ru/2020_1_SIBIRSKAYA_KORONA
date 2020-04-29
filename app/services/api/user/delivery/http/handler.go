@@ -17,19 +17,19 @@ import (
 )
 
 type UserHandler struct {
-	useCase user.UseCase
+	UseCase user.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.Middleware) {
 	handler := &UserHandler{
-		useCase: useCase,
+		UseCase: useCase,
 	}
 	router.POST("/settings", handler.Create, mw.Sanitize)
 	router.GET("/profile/:id_or_nickname", handler.Get)
 	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
 	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
 	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
-	router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
+	//router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
 }
 
 func (userHandler *UserHandler) Create(ctx echo.Context) error {
@@ -47,7 +47,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 		viper.GetString("frontend.port"),
 		viper.GetString("frontend.default_avatar"))
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	sid, err := userHandler.useCase.Create(&usr, int32(sessionExpires.Unix()))
+	sid, err := userHandler.UseCase.Create(&usr, int32(sessionExpires.Unix()))
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -67,9 +67,9 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 	usr := new(models.User)
 	var err error
 	if uid, er := strconv.Atoi(usrKey); er == nil {
-		usr, err = userHandler.useCase.GetByID(uint(uid))
+		usr, err = userHandler.UseCase.GetByID(uint(uid))
 	} else {
-		usr, err = userHandler.useCase.GetByNickname(usrKey)
+		usr, err = userHandler.UseCase.GetByNickname(usrKey)
 	}
 	if err != nil {
 		logger.Error(err)
@@ -84,7 +84,7 @@ func (userHandler *UserHandler) Get(ctx echo.Context) error {
 
 func (userHandler *UserHandler) GetAll(ctx echo.Context) error {
 	uid := ctx.Get("uid").(uint)
-	usr, err := userHandler.useCase.GetByID(uid)
+	usr, err := userHandler.UseCase.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -109,7 +109,7 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 	if err != nil {
 		logger.Error(err)
 	}
-	if err := userHandler.useCase.Update(oldPass, newUser, avatarFileDescriptor); err != nil {
+	if err := userHandler.UseCase.Update(oldPass, newUser, avatarFileDescriptor); err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
@@ -119,14 +119,17 @@ func (userHandler *UserHandler) Update(ctx echo.Context) error {
 func (userHandler *UserHandler) Delete(ctx echo.Context) error {
 	sid := ctx.Get("sid").(string)
 	uid := ctx.Get("uid").(uint)
-	if userHandler.useCase.Delete(uid, sid) != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
+	err := userHandler.UseCase.Delete(uid, sid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	newCookie := http.Cookie{Name: "session_id", Value: sid, Expires: time.Now().AddDate(-1, 0, 0)}
 	ctx.SetCookie(&newCookie)
 	return ctx.NoContent(http.StatusOK)
 }
 
+/*
 func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
 	nicknamePart := ctx.QueryParam("nickname")
 	if nicknamePart == "" {
@@ -137,14 +140,11 @@ func (userHandler *UserHandler) GetUsersByNicknamePart(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	_, err = userHandler.useCase.GetUsersByNicknamePart(nicknamePart, limit)
+	_, err = userHandler.UseCase.GetUsersByNicknamePart(nicknamePart, limit)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	// body, err := message.GetBody(message.Pair{Name: "user", Data: usersData})
-	// if err != nil {
-	// 	return ctx.NoContent(http.StatusInternalServerError)
-	// }
 	return ctx.String(http.StatusOK, "мой репозиторий не работает")
 }
+*/
