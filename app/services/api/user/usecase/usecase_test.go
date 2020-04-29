@@ -1,14 +1,15 @@
 package usecase_test
 
 import (
+	"os"
+	"testing"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/mocks"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
-	"os"
-	"testing"
 
 	"github.com/bxcodec/faker"
 	"github.com/golang/mock/gomock"
@@ -63,9 +64,7 @@ func TestGetByID(t *testing.T) {
 
 	// good
 	ID := testUser.ID
-	userRepoMock.EXPECT().
-		GetByID(ID).
-		Return(&testUser, nil)
+	userRepoMock.EXPECT().GetByID(ID).Return(&testUser, nil)
 
 	user, err := uUsecase.GetByID(ID)
 	assert.NoError(t, err)
@@ -73,9 +72,7 @@ func TestGetByID(t *testing.T) {
 
 	// error
 	ID++
-	userRepoMock.EXPECT().
-		GetByID(ID).
-		Return(nil, errors.ErrUserNotFound)
+	userRepoMock.EXPECT().GetByID(ID).Return(nil, errors.ErrUserNotFound)
 	_, err = uUsecase.GetByID(ID)
 	assert.Equal(t, err, errors.ErrUserNotFound)
 }
@@ -94,19 +91,14 @@ func TestGetByNickname(t *testing.T) {
 
 	// good
 	nickname := testUser.Nickname
-	userRepoMock.EXPECT().
-		GetByNickname(nickname).
-		Return(&testUser, nil)
-
+	userRepoMock.EXPECT().GetByNickname(nickname).Return(&testUser, nil)
 	user, err := uUsecase.GetByNickname(nickname)
 	assert.NoError(t, err)
 	assert.Equal(t, &testUser, user)
 
 	// error
 	nickname += "a"
-	userRepoMock.EXPECT().
-		GetByNickname(nickname).
-		Return(nil, errors.ErrUserNotFound)
+	userRepoMock.EXPECT().GetByNickname(nickname).Return(nil, errors.ErrUserNotFound)
 	_, err = uUsecase.GetByNickname(nickname)
 	assert.Equal(t, err, errors.ErrUserNotFound)
 }
@@ -124,32 +116,17 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	oldPass := []byte("oldPass")
-	userRepoMock.EXPECT().
-		Update([]byte("oldPass"), testUser, nil).
-		Return(nil)
-	updateErr := uUsecase.Update(oldPass, testUser, nil)
-
-	assert.NoError(t, updateErr)
+	userRepoMock.EXPECT().Update(oldPass, testUser, nil).Return(nil)
+	err = uUsecase.Update(oldPass, testUser, nil)
+	assert.NoError(t, err)
 
 	// error not found
 	testUser.ID++
-	userRepoMock.EXPECT().
-		Update(nil, testUser, nil).
-		Return(errors.ErrUserNotFound)
+	userRepoMock.EXPECT().Update(nil, testUser, nil).Return(errors.ErrUserNotFound)
 	err = uUsecase.Update(nil, testUser, nil)
 	assert.Equal(t, err, errors.ErrUserNotFound)
-
-	// error wrong pass
-	testUser.ID--
-	oldPass = []byte("dfvdfvdfv")
-	userRepoMock.EXPECT().
-		Update(oldPass, testUser, nil).
-		Return(errors.ErrWrongPassword)
-	err = uUsecase.Update(oldPass, testUser, nil)
-	assert.Equal(t, err, errors.ErrWrongPassword)
 }
 
-//GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error)
 func TestGetUsersByNicknamePart(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
@@ -232,19 +209,5 @@ func TestDelete(t *testing.T) {
 	admins, members, err := uUsecase.GetBoardsByID(testUser.ID)
 	assert.Nil(t, admins)
 	assert.Nil(t, members)
-	assert.NoError(t, err)
-}*/
-/*func TestCheckPassword(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
-	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
-
-	var id uint = 1
-	pass := []byte("12345678")
-	// good
-	userRepoMock.EXPECT().CheckPassword(id, pass).Return(true)
-	ok := uUsecase.//CheckPassword(id, pass)
 	assert.NoError(t, err)
 }*/
