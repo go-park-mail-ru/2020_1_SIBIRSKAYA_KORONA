@@ -1,37 +1,24 @@
 package usecase_test
 
 import (
-	"flag"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
-	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/mocks"
-	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/usecase"
+	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/mocks"
+	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
+	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
+	"github.com/bxcodec/faker"
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-var test_opts struct {
-	configPath string
-}
-
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-
+	logger.InitLogger()
 	os.Exit(m.Run())
 }
 
@@ -42,21 +29,17 @@ func createRepoMocks(controller *gomock.Controller) (*userMocks.MockRepository, 
 }
 
 func TestCreate(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
 
 	userRepoMock.EXPECT().
 		Create(gomock.Any()).
 		Return(nil)
-
 	sessionRepoMock.EXPECT().
 		Create(gomock.Any()).
-		Return("cookie_value", nil)
+		Return("cookie_value") //, nil)
 
 	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
 
@@ -162,12 +145,10 @@ func TestUpdate(t *testing.T) {
 
 func TestGetBoardsByID(t *testing.T) {
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
-
 	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
 
 	var testUser models.User

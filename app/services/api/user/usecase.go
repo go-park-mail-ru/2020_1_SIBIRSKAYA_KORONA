@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 )
 
+//go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/user_usecase_mock.go
 type UseCase interface {
 	Create(user *models.User, sessionExpires int32) (string, error)
 	GetByID(uid uint) (*models.User, error)

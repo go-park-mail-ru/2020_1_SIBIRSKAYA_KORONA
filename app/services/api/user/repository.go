@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 )
 
+//go:generate mockgen -source=usecase.go -package=mocks -destination=./mocks/user_usecase_mock.go
 type Repository interface {
 	Create(user *models.User) error
 	GetByID(id uint) (*models.User, error)
