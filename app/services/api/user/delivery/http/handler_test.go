@@ -2,149 +2,293 @@ package http_test
 
 import (
 	"bytes"
-	"encoding/json"
-	"flag"
-	"fmt"
-	"io"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/labstack/echo/v4"
+	"log"
 	"mime/multipart"
 	"net/http"
 	test "net/http/httptest"
 	"os"
-	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/mocks"
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
-	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
+	"github.com/bxcodec/faker"
 	"github.com/golang/mock/gomock"
-	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-var test_opts struct {
-	configPath string
-}
-
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
 	logger.InitLogger()
 	os.Exit(m.Run())
 }
 
-func createUserHandler(controller *gomock.Controller) *userHandler.UserHandler {
-	userRepoMock := userMocks.NewMockRepository(controller)
-	sessionRepoMock := sessionMocks.NewMockRepository(controller)
-	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
-	return userHandler.CreateHandler(uUsecase)
+func GetContexFromJSON(method, path string, body []byte) echo.Context {
+	reader := strings.NewReader(string(body))
+	request := test.NewRequest(method, path, reader)
+	return echo.New().NewContext(request, test.NewRecorder())
 }
 
+/*func GetContexFromMultiPart(method, path string, body *bytes.Buffer) echo.Context {
+	request := test.NewRequest(method, path, body)
+	return echo.New().NewContext(request, test.NewRecorder())
+}*/
+
+// TODO:
+/*
 func TestCreate(t *testing.T) {
-	// t.Skip()
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
-	handler := userHandler.CreateHandlerTest(userUsecaseMock)
-	var testUser models.TestUser
-	err := faker.FakeData(&testUser)
-	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
-	bodyJSON, err := json.Marshal(testUser)
-	body := string(bodyJSON)
-	router := echo.New()
-	request := test.NewRequest(echo.POST, "/settings", strings.NewReader(body))
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
+  t.Parallel()
+  ctrl := gomock.NewController(t)
+  defer ctrl.Finish()
+  userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+  handler := userHandler.UserHandler{UseCase: userUseCaseMock}
 
-	// userUsecaseMock.EXPECT().
-	// 	Create(gomock.Any(), gomock.Any()).
-	// 	Return("test_sid", nil)
+  var testUser models.UserTest
+  err := faker.FakeData(&testUser)
+  log.Println(testUser.Password)
+  //testUser.Password = []byte("lovelove")
+  assert.NoError(t, err)
+  testUser.Password = base64.StdEncoding.EncodeToString([]byte("lovelove"))
+  body, err := testUser.MarshalJSON()
+  assert.NoError(t, err)
 
-	err = handler.Create(context)
-
-	assert.NoError(t, err)
-	//assert.Equal(t, context.Response().Status, http.StatusOK)
+  userUseCaseMock.EXPECT().Create(gomock.Any(), gomock.Any()).Return("test_sid", nil)
+  ctx := GetContex(echo.POST, "/settings", body)
+  err = handler.Create(ctx)
+  assert.NoError(t, err)
+  assert.Equal(t, ctx.Response().Status, http.StatusOK)
 }
+*/
 
 func TestGet(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
-	handler := userHandler.CreateHandlerTest(userUsecaseMock)
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
 
 	var testUser models.User
 	err := faker.FakeData(&testUser)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
 
-	router := echo.New()
+	{
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname, nil)
+		ctx.SetParamNames("id_or_nickname")
 
-	request := test.NewRequest(echo.GET, "/profile/"+testUser.Nickname, nil)
-	//t.Log("/profile/" + testUser.Nickname)
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
+		// good nickname
+		userUseCaseMock.EXPECT().GetByNickname(testUser.Nickname).Return(&testUser, nil)
+		ctx.SetParamValues(testUser.Nickname)
+		err = handler.Get(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
 
-	userUsecaseMock.EXPECT().
-		GetByNickname(gomock.Any()).
-		Return(&testUser, nil)
+	{
+		strID := strconv.Itoa(int(testUser.ID))
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID, nil)
+		ctx.SetParamNames("id_or_nickname")
 
-	err = handler.Get(context)
+		// good id
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(&testUser, nil)
+		ctx.SetParamValues(strID)
+		err = handler.Get(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+	{
+		testUser.Nickname += "aa"
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname, nil)
+		ctx.SetParamNames("id_or_nickname")
+
+		// error nickname
+		userUseCaseMock.EXPECT().GetByNickname(testUser.Nickname).Return(nil, errors.ErrUserNotFound)
+		ctx.SetParamValues(testUser.Nickname)
+		err = handler.Get(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
+
+	{
+		testUser.ID++
+		strID := strconv.Itoa(int(testUser.ID))
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID, nil)
+		ctx.SetParamNames("id_or_nickname")
+
+		// error id
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(nil, errors.ErrUserNotFound)
+		ctx.SetParamValues(strID)
+		err = handler.Get(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
 
 }
 
 func TestGetAll(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
-	handler := userHandler.CreateHandlerTest(userUsecaseMock)
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
 
 	var testUser models.User
 	err := faker.FakeData(&testUser)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
 
-	router := echo.New()
-	request := test.NewRequest(echo.GET, "/profile/"+testUser.Nickname, nil)
+	{
+		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx.Set("uid", testUser.ID)
 
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
+		// good
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(&testUser, nil)
+		err = handler.GetAll(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
 
-	context.Set("uid", testUser.ID)
+	{
+		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		testUser.ID++
+		ctx.Set("uid", testUser.ID)
 
-	userUsecaseMock.EXPECT().
-		GetByID(testUser.ID).
-		Return(&testUser, nil)
-
-	err = handler.GetAll(context)
-
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+		// error
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(nil, errors.ErrUserNotFound)
+		err = handler.GetAll(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
 }
+
+func TestGetUpdate(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+	testUser.Password = []byte("bbbb")
+	oldPass := string(testUser.Password)
+	newPass := string(testUser.Password) + "aaa"
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	writer.WriteField("newName", testUser.Name)
+	writer.WriteField("newSurname", testUser.Surname)
+	writer.WriteField("newNickname", testUser.Nickname)
+	writer.WriteField("newEmail", testUser.Email)
+	writer.WriteField("newPassword", newPass)
+	writer.WriteField("oldPassword", oldPass)
+	err = writer.Close()
+	assert.NoError(t, err)
+	{
+		request := test.NewRequest(echo.PUT, "/settings", body)
+		ctx := echo.New().NewContext(request, test.NewRecorder())
+		//ctx := GetContexFromMultiPart(echo.PUT, "/settings", body)
+		ctx.Set("uid", testUser.ID)
+		// good
+		testUser.Password = []byte(newPass)
+		// TODO: разобраться без any
+		userUseCaseMock.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		err = handler.Update(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
+	{
+		request := test.NewRequest(echo.PUT, "/settings", body)
+		ctx := echo.New().NewContext(request, test.NewRecorder())
+		testUser.ID++
+		ctx.Set("uid", testUser.ID)
+		// error
+		userUseCaseMock.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.ErrUserNotFound)
+		err = handler.Update(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
+
+	var id uint = 1
+	sid := "test_sid"
+
+	{
+		ctx := GetContexFromJSON(echo.DELETE, "/settings", nil)
+		ctx.Set("uid", id)
+		ctx.Set("sid", sid)
+
+		// good
+		userUseCaseMock.EXPECT().Delete(id, sid).Return(nil)
+		err := handler.Delete(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
+
+	{
+		id++
+
+		ctx := GetContexFromJSON(echo.DELETE, "/settings", nil)
+		ctx.Set("uid", id)
+		ctx.Set("sid", sid)
+
+		// error
+		userUseCaseMock.EXPECT().Delete(id, sid).Return(errors.ErrUserNotFound)
+		err := handler.Delete(ctx)
+		assert.NoError(t, err)
+		log.Println(ctx.Response().Status, http.StatusNotFound)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
+}
+
+func TestGetUsersByNicknamePart(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
+
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
+
+	{
+		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx.Set("uid", testUser.ID)
+
+		// good
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(&testUser, nil)
+		err = handler.GetAll(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
+
+	{
+		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		testUser.ID++
+		ctx.Set("uid", testUser.ID)
+
+		// error
+		userUseCaseMock.EXPECT().GetByID(testUser.ID).Return(nil, errors.ErrUserNotFound)
+		err = handler.GetAll(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
+	}
+}
+
+/*
 
 func TestGetBoards(t *testing.T) {
 	// t.Skip()
@@ -185,92 +329,5 @@ func TestGetBoards(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, context.Response().Status, http.StatusOK)
 }
-
-func TestGetUpdate(t *testing.T) {
-	// t.Skip()
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
-	handler := userHandler.CreateHandlerTest(userUsecaseMock)
-
-	var testUser models.TestUser
-	err := faker.FakeData(&testUser)
-	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
-
-	pathToDefaultAvatar := fmt.Sprintf("%s/%s",
-		viper.GetString("frontend.public_dir"),
-		viper.GetString("frontend.default_avatar"))
-
-	file, err := os.Open(pathToDefaultAvatar)
-	assert.NoError(t, err)
-	defer file.Close()
-
-	router := echo.New()
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	writer.WriteField("newName", testUser.Name)
-	writer.WriteField("newSurname", testUser.Surname)
-	writer.WriteField("newNickname", testUser.Nickname)
-	writer.WriteField("newEmail", testUser.Email)
-	writer.WriteField("newPassword", testUser.Password+"postfix")
-	writer.WriteField("oldPassword", testUser.Password)
-
-	part, err := writer.CreateFormFile("avatar", filepath.Base(pathToDefaultAvatar))
-	_, err = io.Copy(part, file)
-	assert.NoError(t, err)
-
-	err = writer.Close()
-	assert.NoError(t, err)
-
-	request := test.NewRequest(echo.PUT, "/settings", body)
-
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-	context.Set("uid", testUser.ID)
-
-	userUsecaseMock.EXPECT().
-		Update(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(nil)
-
-	err = handler.Update(context)
-
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
-}
-
-func TestDelete(t *testing.T) {
-	// t.Skip()
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userUsecaseMock := userMocks.NewMockUseCase(ctrl)
-	handler := userHandler.CreateHandlerTest(userUsecaseMock)
-
-	var testUser models.TestUser
-	err := faker.FakeData(&testUser)
-	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
-
-	router := echo.New()
-	request := test.NewRequest(echo.DELETE, "/settings", nil)
-
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-	context.Set("uid", testUser.ID)
-	context.Set("sid", "e24f326c-c489-4c5f-9cea-4b9681877155")
-
-	userUsecaseMock.EXPECT().
-		Delete(testUser.ID, "e24f326c-c489-4c5f-9cea-4b9681877155").
-		Return(nil)
-
-	err = handler.Delete(context)
-
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
-}
+/*
+*/

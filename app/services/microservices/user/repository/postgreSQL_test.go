@@ -360,11 +360,7 @@ func TestGetUsersByNicknamePart(t *testing.T) {
 	query = regexp.QuoteMeta(`SELECT * FROM "users" WHERE (nickname LIKE $1) LIMIT ` + fmt.Sprintf("%d", limit))
 	mock.ExpectQuery(query).WithArgs(part + "%").WillReturnError(errors.ErrUserNotFound)
 	usrs, err = repo.GetUsersByNicknamePart(part, limit)
-	if err != nil {
-		t.Fatalf("unexpected error %s", err)
-		return
-	}
-	if len(usrs) != 0 || err != nil {
+	if len(usrs) != 0 || err == nil {
 		t.Errorf("wrong answer")
 		return
 	}
