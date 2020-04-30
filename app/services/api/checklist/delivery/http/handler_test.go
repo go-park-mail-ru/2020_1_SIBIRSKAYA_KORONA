@@ -11,8 +11,8 @@ import (
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/delivery/http"
-	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/mocks"
+	checklistHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/delivery/http"
+	checklistMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -36,18 +36,18 @@ func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
+	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
+	handler := checklistHandler.ChecklistHandler{UseCase: checklistUsecaseMock}
+
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
+	assert.NoError(t, err)
 
 	var testTask models.Task
-	err := faker.FakeData(&testTask)
+	err = faker.FakeData(&testTask)
 	assert.NoError(t, err)
 
-	body, err := testTask.MarshalJSON()
-	assert.NoError(t, err)
-
-	var testColumn models.Column
-	err = faker.FakeData(&testColumn)
+	body, err := testChecklist.MarshalJSON()
 	assert.NoError(t, err)
 
 	router := echo.New()
@@ -56,8 +56,9 @@ func TestCreate(t *testing.T) {
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
 	context.Set("body", body)
-	context.Set("cid", testColumn.ID)
-	taskUsecaseMock.EXPECT().
+	context.Set("tid", testTask.ID)
+
+	checklistUsecaseMock.EXPECT().
 		Create(gomock.Any()).
 		Return(nil)
 
@@ -68,20 +69,24 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
+	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
+	handler := checklistHandler.ChecklistHandler{UseCase: checklistUsecaseMock}
 
-	var testTask models.Task
-	err := faker.FakeData(&testTask)
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
 
-	body, err := testTask.MarshalJSON()
+	var testTask models.Task
+	err = faker.FakeData(&testTask)
+	assert.NoError(t, err)
+
+	body, err := testChecklist.MarshalJSON()
 	assert.NoError(t, err)
 
 	router := echo.New()
@@ -89,31 +94,27 @@ func TestUpdate(t *testing.T) {
 	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
-
 	context.Set("body", body)
 	context.Set("tid", testTask.ID)
-	taskUsecaseMock.EXPECT().
-		Update(gomock.Any()).
-		Return(nil)
 
 	err = handler.Update(context)
 
 	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 }
 
 func TestDelete(t *testing.T) {
-	//t.Skip()
+	// t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
+	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
+	handler := checklistHandler.ChecklistHandler{UseCase: checklistUsecaseMock}
 
-	var testTask models.Task
-	err := faker.FakeData(&testTask)
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
 
 	router := echo.New()
@@ -121,10 +122,10 @@ func TestDelete(t *testing.T) {
 	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
+	context.Set("clid", testChecklist.ID)
 
-	context.Set("tid", testTask.ID)
-	taskUsecaseMock.EXPECT().
-		Delete(testTask.ID).
+	checklistUsecaseMock.EXPECT().
+		Delete(gomock.Any()).
 		Return(nil)
 
 	err = handler.Delete(context)

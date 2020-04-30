@@ -12,12 +12,12 @@ import (
 )
 
 type AttachHandler struct {
-	useCase attach.UseCase
+	UseCase attach.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase attach.UseCase, mw *middleware.Middleware) {
 	handler := &AttachHandler{
-		useCase: useCase,
+		UseCase: useCase,
 	}
 
 	router.GET("/boards/:bid/columns/:cid/tasks/:tid/files", handler.GetFiles,
@@ -41,7 +41,7 @@ func (attachHandler *AttachHandler) Create(ctx echo.Context) error {
 
 	logger.Info("File: ", AttachDescriptor.Filename)
 
-	err = attachHandler.useCase.Create(attach, AttachDescriptor)
+	err = attachHandler.UseCase.Create(attach, AttachDescriptor)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -57,7 +57,7 @@ func (attachHandler *AttachHandler) Create(ctx echo.Context) error {
 func (attachHandler *AttachHandler) GetFiles(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 
-	attachedFiles, err := attachHandler.useCase.Get(tid)
+	attachedFiles, err := attachHandler.UseCase.Get(tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -73,7 +73,7 @@ func (attachHandler *AttachHandler) GetFiles(ctx echo.Context) error {
 func (attachHandler *AttachHandler) Delete(ctx echo.Context) error {
 	fid := ctx.Get("fid").(uint)
 
-	err := attachHandler.useCase.Delete(fid)
+	err := attachHandler.UseCase.Delete(fid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())

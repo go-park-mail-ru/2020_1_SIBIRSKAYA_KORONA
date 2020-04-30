@@ -3,6 +3,7 @@ package repository_test
 import (
 	"log"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/bxcodec/faker"
@@ -68,6 +69,46 @@ func TestCreate(t *testing.T) {
 		itm.ID, itm.Text, itm.IsDone, itm.Clid).WillReturnError(errors.ErrConflict)
 
 	if err := repo.Create(&itm); err == nil {
+		t.Errorf("expected error, got nil")
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	//t.Skip()
+	t.Parallel()
+
+	mock, db := SetupDB()
+	defer db.Close()
+	defer mock.ExpectClose()
+	repo := repository.CreateRepository(db)
+
+	// good
+	var itm models.Item
+	err := faker.FakeData(&itm)
+	assert.NoError(t, err)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "items" WHERE "items"."id" = $1`)).WithArgs(itm.ID).WillReturnResult(
+		sqlmock.NewResult(int64(itm.ID), 1))
+
+	mock.ExpectCommit()
+	if err := repo.Delete(itm.ID); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	// error
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "items" WHERE "items"."id" = $1`)).WithArgs(itm.ID).
+		WillReturnError(errors.ErrUserNotFound)
+	if err := repo.Delete(itm.ID); err == nil {
 		t.Errorf("expected error, got nil")
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {

@@ -40,7 +40,7 @@ func (attachStore *AttachStore) Get(tid uint) (models.AttachedFiles, error) {
 
 func (attachStore *AttachStore) GetByID(fid uint) (*models.AttachedFile, error) {
 	attach := new(models.AttachedFile)
-	if err := attachStore.DB.First(attach, fid).Error; err != nil {
+	if err := attachStore.DB.Where("id = ?", fid).First(attach).Error; err != nil {
 		logger.Error(err)
 		return nil, errors.ErrFileNotFound
 	}
