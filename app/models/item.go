@@ -4,7 +4,7 @@ package models
 type Item struct {
 	ID     uint   `json:"id" gorm:"primary_key"`
 	Text   string `json:"text" gorm:"not null" faker:"word"`
-	IsDone bool   `json:"done" faker:"sentence"`
+	IsDone bool   `json:"done"`
 	Clid   uint   `json:"clid" gorm:"not null"`
 }
 

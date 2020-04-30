@@ -76,7 +76,7 @@ var (
 	ErrChecklistNotFound = errors.New(ChecklistNotFound)
 
 	// ошибки, связанные с итемами
-	ErrItemNotFound = errors.New(ChecklistNotFound)
+	ErrItemNotFound = errors.New(ItemNotFound)
 
 	// ошибки, связанные с файлами
 	ErrFileNotFound    = errors.New(FileNotFound)

@@ -1,41 +1,32 @@
 package usecase_test
 
 import (
-	"flag"
 	"os"
 	"testing"
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/mocks"
-	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/usecase"
+	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/mocks"
+	taskUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/usecase"
+	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-var test_opts struct {
-	configPath string
+func createRepoMocks(controller *gomock.Controller) (*taskMocks.MockRepository, *userMocks.MockRepository) {
+	taskRepoMock := taskMocks.NewMockRepository(controller)
+	userRepoMock := userMocks.NewMockRepository(controller)
+	return taskRepoMock, userRepoMock
 }
 
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-
+	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
-}
-
-func createRepoMocks(controller *gomock.Controller) *taskMocks.MockRepository {
-	taskRepoMock := taskMocks.NewMockRepository(controller)
-	return taskRepoMock
 }
 
 func TestCreate(t *testing.T) {
@@ -45,8 +36,8 @@ func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskRepoMock := createRepoMocks(ctrl)
-	tUsecase := taskUseCase.CreateUseCase(taskRepoMock)
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
@@ -68,8 +59,8 @@ func TestGet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskRepoMock := createRepoMocks(ctrl)
-	tUsecase := taskUseCase.CreateUseCase(taskRepoMock)
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
@@ -89,6 +80,13 @@ func TestGet(t *testing.T) {
 	task, err := tUsecase.Get(testColumn.ID, testTask.ID)
 	assert.Nil(t, task)
 	assert.Equal(t, err, errors.ErrNoPermission)
+
+	taskRepoMock.EXPECT().
+		Get(testTask.ID).
+		Return(nil, errors.ErrTaskNotFound)
+
+	_, err = tUsecase.Get(testColumn.ID, testTask.ID)
+	assert.EqualError(t, err, errors.TaskNotFound)
 }
 
 func TestUpdate(t *testing.T) {
@@ -98,8 +96,8 @@ func TestUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskRepoMock := createRepoMocks(ctrl)
-	tUsecase := taskUseCase.CreateUseCase(taskRepoMock)
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
@@ -112,6 +110,13 @@ func TestUpdate(t *testing.T) {
 
 	err = tUsecase.Update(testTask)
 	assert.NoError(t, err)
+
+	taskRepoMock.EXPECT().
+		Update(testTask).
+		Return(errors.ErrTaskNotFound)
+
+	err = tUsecase.Update(testTask)
+	assert.EqualError(t, err, errors.TaskNotFound)
 }
 
 func TestDelete(t *testing.T) {
@@ -121,8 +126,8 @@ func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskRepoMock := createRepoMocks(ctrl)
-	tUsecase := taskUseCase.CreateUseCase(taskRepoMock)
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
@@ -135,4 +140,88 @@ func TestDelete(t *testing.T) {
 
 	err = tUsecase.Delete(testTask.ID)
 	assert.NoError(t, err)
+
+	taskRepoMock.EXPECT().
+		Delete(testTask.ID).
+		Return(errors.ErrTaskNotFound)
+
+	err = tUsecase.Delete(testTask.ID)
+	assert.EqualError(t, err, errors.TaskNotFound)
+}
+
+func TestAssign(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
+
+	var testTask models.Task
+	err := faker.FakeData(&testTask)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+	var testUser models.User
+	err = faker.FakeData(&testTask)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(&testUser, nil)
+
+	taskRepoMock.EXPECT().
+		Assign(testTask.ID, &testUser).
+		Return(nil)
+
+	err = tUsecase.Assign(testTask.ID, testUser.ID)
+	assert.NoError(t, err)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(nil, errors.ErrUserNotFound)
+
+	err = tUsecase.Assign(testTask.ID, testUser.ID)
+	assert.EqualError(t, err, errors.UserNotFound)
+}
+
+func TestUnassign(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	taskRepoMock, userRepoMock := createRepoMocks(ctrl)
+	tUsecase := taskUseCase.CreateUseCase(taskRepoMock, userRepoMock)
+
+	var testTask models.Task
+	err := faker.FakeData(&testTask)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+	var testUser models.User
+	err = faker.FakeData(&testTask)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(&testUser, nil)
+
+	taskRepoMock.EXPECT().
+		Unassign(testTask.ID, &testUser).
+		Return(nil)
+
+	err = tUsecase.Unassign(testTask.ID, testUser.ID)
+	assert.NoError(t, err)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(nil, errors.ErrUserNotFound)
+
+	err = tUsecase.Unassign(testTask.ID, testUser.ID)
+	assert.EqualError(t, err, errors.UserNotFound)
+
 }
