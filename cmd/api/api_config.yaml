@@ -26,6 +26,11 @@ database: {
   sslmode: disable
 }
 
+metrics: {
+  url: "0.0.0.0:7070",
+  service: "api"
+}
+
 frontend: {
   protocol: https,
   ip: 0.0.0.0,

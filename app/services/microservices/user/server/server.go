@@ -15,7 +15,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"google.golang.org/grpc"
@@ -49,7 +49,7 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	metr, err := metric.CreateMetrics("0.0.0.0:7072", "user")
+	metr, err := metric.CreateMetrics(server.Config.GetMetricsURL(), server.Config.GetServiceName())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -17,6 +17,8 @@ type UserConfigController struct {
 	serverPort      uint
 	db              string
 	dbConnection    string
+	metricURL       string
+	service         string
 }
 
 func CreateUserConfigController() *UserConfigController {
@@ -44,6 +46,8 @@ func CreateUserConfigController() *UserConfigController {
 		serverPort:     viper.GetUint("server.port"),
 		db:             viper.GetString("database.dbms"),
 		dbConnection:   fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbMode),
+		metricURL:      viper.GetString("metrics.url"),
+		service:        viper.GetString("metrics.service"),
 	}
 }
 
@@ -77,4 +81,12 @@ func (cc *UserConfigController) GetDB() string {
 
 func (cc *UserConfigController) GetDBConnection() string {
 	return cc.dbConnection
+}
+
+func (cc *UserConfigController) GetMetricsURL() string {
+	return cc.metricURL
+}
+
+func (cc *UserConfigController) GetServiceName() string {
+	return cc.service
 }

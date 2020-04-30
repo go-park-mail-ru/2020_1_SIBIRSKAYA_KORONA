@@ -20,6 +20,8 @@ type ApiConfigController struct {
 	s3BucketRegion    string
 	tlsCrtPath        string
 	tlsKeyPath        string
+	metricURL         string
+	service           string
 }
 
 func CreateApiConfigController() *ApiConfigController {
@@ -66,6 +68,8 @@ func CreateApiConfigController() *ApiConfigController {
 		s3BucketRegion:    region,
 		tlsCrtPath:        fmt.Sprintf("%s/%s", credentialsDir, crtFile),
 		tlsKeyPath:        fmt.Sprintf("%s/%s", credentialsDir, keyFile),
+		metricURL:         viper.GetString("metrics.url"),
+		service:           viper.GetString("metrics.service"),
 	}
 }
 
@@ -111,4 +115,12 @@ func (cc *ApiConfigController) GetTLSCrtPath() string {
 
 func (cc *ApiConfigController) GetTLSKeyPath() string {
 	return cc.tlsKeyPath
+}
+
+func (cc *ApiConfigController) GetMetricsURL() string {
+	return cc.metricURL
+}
+
+func (cc *ApiConfigController) GetServiceName() string {
+	return cc.service
 }
