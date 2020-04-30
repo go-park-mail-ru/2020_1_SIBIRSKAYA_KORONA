@@ -47,9 +47,19 @@ func (sessionUseCase *SessionUseCase) Create(user *models.User, sessionExpires i
 }
 
 func (sessionUseCase *SessionUseCase) Get(sid string) (uint, bool) {
-	return sessionUseCase.sessionRepo.Get(sid)
+	id, has := sessionUseCase.sessionRepo.Get(sid)
+	if !has {
+		logger.Info("not has sid", sid)
+		return 0, false
+	}
+	return id, true
 }
 
 func (sessionUseCase *SessionUseCase) Delete(sid string) error {
-	return sessionUseCase.sessionRepo.Delete(sid)
+	err := sessionUseCase.sessionRepo.Delete(sid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }

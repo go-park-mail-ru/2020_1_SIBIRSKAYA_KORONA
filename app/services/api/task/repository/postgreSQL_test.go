@@ -76,7 +76,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	t.Skip()
+	// t.Skip()
 	t.Parallel()
 
 	mock, db := SetupDB()
@@ -89,10 +89,9 @@ func TestUpdate(t *testing.T) {
 
 	repo := repository.CreateRepository(db)
 
-	mock.ExpectQuery(`SELECT (\*) FROM (.*)"tasks" WHERE (.*)"tasks"."id" (.*) LIMIT 1`).WithArgs(
-		tsk.ID).WillReturnRows(sqlmock.NewRows(
-		[]string{"id", "name", "about", "level", "deadline", "pos", "cid"}).AddRow(
-		tsk.ID, tsk.Name, tsk.About, tsk.Level, tsk.Deadline, tsk.Pos, tsk.Cid))
+	mock.ExpectQuery(`SELECT (\*) FROM (.*)"tasks" WHERE (.*)"tasks"."id" (.*) LIMIT 1`).WithArgs(tsk.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "about", "level", "deadline", "pos", "cid"}).AddRow(
+			tsk.ID, tsk.Name, tsk.About, tsk.Level, tsk.Deadline, tsk.Pos, tsk.Cid))
 
 	// newUsr := usr
 	// newUsr.Name = "name1"
