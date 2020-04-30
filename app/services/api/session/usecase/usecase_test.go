@@ -1,36 +1,22 @@
 package usecase_test
 
 import (
-	"flag"
 	"os"
 	"testing"
-	"time"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/mocks"
+	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session/usecase"
+	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bxcodec/faker"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	sessionMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/mocks"
-	sessionUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/session/usecase"
-	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/user/mocks"
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-var test_opts struct {
-	configPath string
-}
-
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-
+	logger.InitLogger()
 	os.Exit(m.Run())
 }
 
@@ -41,42 +27,29 @@ func createRepoMocks(controller *gomock.Controller) (*userMocks.MockRepository, 
 }
 
 func TestCreate(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
 	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
 	sUsecase := sessionUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
 
 	var testUser models.User
 	err := faker.FakeData(&testUser)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
+	ses := &models.Session{ID: testUser.ID, Expires: 5}
 
-	sessionExpires := time.Now().AddDate(1, 0, 0)
-
-	userRepoMock.EXPECT().
-		GetByNickname(testUser.Nickname).
-		Return(&testUser, nil)
-
-	sessionRepoMock.EXPECT().
-		Create(gomock.Any()).
-		Return("cookie_value", nil)
-
-	userRepoMock.EXPECT().
-		CheckPasswordByID(gomock.Any(), gomock.Any()).
-		Return(true)
-
-	sid, err := sUsecase.Create(&testUser, sessionExpires)
-
+	// good
+	sid := "test_sid"
+	userRepoMock.EXPECT().GetByNickname(testUser.Nickname).Return(&testUser, nil)
+	userRepoMock.EXPECT().CheckPassword(testUser.ID, testUser.Password).Return(true)
+	sessionRepoMock.EXPECT().Create(ses).Return(sid, nil)
+	resSid, err := sUsecase.Create(&testUser, ses.Expires)
 	assert.NoError(t, err)
-	assert.Equal(t, sid, "cookie_value")
+	assert.Equal(t, sid, resSid)
 }
 
+/*
 func TestGet(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -98,7 +71,6 @@ func TestGet(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	// t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -116,3 +88,4 @@ func TestDelete(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+*/
