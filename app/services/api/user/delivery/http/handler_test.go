@@ -10,7 +10,6 @@ import (
 	test "net/http/httptest"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -28,9 +27,8 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func GetContexFromJSON(method, path string, body []byte) echo.Context {
-	reader := strings.NewReader(string(body))
-	request := test.NewRequest(method, path, reader)
+func GetContexFromJSON(method, path string) echo.Context {
+	request := test.NewRequest(method, path, nil)
 	return echo.New().NewContext(request, test.NewRecorder())
 }
 
@@ -39,31 +37,42 @@ func GetContexFromJSON(method, path string, body []byte) echo.Context {
 	return echo.New().NewContext(request, test.NewRecorder())
 }*/
 
-// TODO:
-/*
 func TestCreate(t *testing.T) {
-  t.Parallel()
-  ctrl := gomock.NewController(t)
-  defer ctrl.Finish()
-  userUseCaseMock := userMocks.NewMockUseCase(ctrl)
-  handler := userHandler.UserHandler{UseCase: userUseCaseMock}
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+	handler := userHandler.UserHandler{UseCase: userUseCaseMock}
 
-  var testUser models.UserTest
-  err := faker.FakeData(&testUser)
-  log.Println(testUser.Password)
-  //testUser.Password = []byte("lovelove")
-  assert.NoError(t, err)
-  testUser.Password = base64.StdEncoding.EncodeToString([]byte("lovelove"))
-  body, err := testUser.MarshalJSON()
-  assert.NoError(t, err)
+	var testUser models.User
+	err := faker.FakeData(&testUser)
+	assert.NoError(t, err)
 
-  userUseCaseMock.EXPECT().Create(gomock.Any(), gomock.Any()).Return("test_sid", nil)
-  ctx := GetContex(echo.POST, "/settings", body)
-  err = handler.Create(ctx)
-  assert.NoError(t, err)
-  assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	// good
+	{
+		body, err := testUser.MarshalJSON()
+		assert.NoError(t, err)
+		userUseCaseMock.EXPECT().Create(gomock.Any(), gomock.Any()).Return("test_sid", nil)
+		ctx := GetContexFromJSON(echo.POST, "/settings")
+		ctx.Set("body", body)
+		err = handler.Create(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusOK)
+	}
+	// error
+	{
+		testUser.ID++
+		body, err := testUser.MarshalJSON()
+		assert.NoError(t, err)
+		userUseCaseMock.EXPECT().Create(gomock.Any(), gomock.Any()).Return("", errors.ErrConflict)
+		ctx := GetContexFromJSON(echo.POST, "/settings")
+		ctx.Set("body", body)
+		err = handler.Create(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, ctx.Response().Status, http.StatusConflict)
+	}
+
 }
-*/
 
 func TestGet(t *testing.T) {
 	t.Parallel()
@@ -77,7 +86,7 @@ func TestGet(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname, nil)
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname)
 		ctx.SetParamNames("id_or_nickname")
 
 		// good nickname
@@ -90,7 +99,7 @@ func TestGet(t *testing.T) {
 
 	{
 		strID := strconv.Itoa(int(testUser.ID))
-		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID, nil)
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID)
 		ctx.SetParamNames("id_or_nickname")
 
 		// good id
@@ -103,7 +112,7 @@ func TestGet(t *testing.T) {
 
 	{
 		testUser.Nickname += "aa"
-		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname, nil)
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+testUser.Nickname)
 		ctx.SetParamNames("id_or_nickname")
 
 		// error nickname
@@ -117,7 +126,7 @@ func TestGet(t *testing.T) {
 	{
 		testUser.ID++
 		strID := strconv.Itoa(int(testUser.ID))
-		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID, nil)
+		ctx := GetContexFromJSON(echo.GET, "/profile/"+strID)
 		ctx.SetParamNames("id_or_nickname")
 
 		// error id
@@ -127,7 +136,6 @@ func TestGet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, ctx.Response().Status, http.StatusNotFound)
 	}
-
 }
 
 func TestGetAll(t *testing.T) {
@@ -142,7 +150,7 @@ func TestGetAll(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx := GetContexFromJSON(echo.GET, "/settings")
 		ctx.Set("uid", testUser.ID)
 
 		// good
@@ -153,7 +161,7 @@ func TestGetAll(t *testing.T) {
 	}
 
 	{
-		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx := GetContexFromJSON(echo.GET, "/settings")
 		testUser.ID++
 		ctx.Set("uid", testUser.ID)
 
@@ -226,7 +234,7 @@ func TestDelete(t *testing.T) {
 	sid := "test_sid"
 
 	{
-		ctx := GetContexFromJSON(echo.DELETE, "/settings", nil)
+		ctx := GetContexFromJSON(echo.DELETE, "/settings")
 		ctx.Set("uid", id)
 		ctx.Set("sid", sid)
 
@@ -240,7 +248,7 @@ func TestDelete(t *testing.T) {
 	{
 		id++
 
-		ctx := GetContexFromJSON(echo.DELETE, "/settings", nil)
+		ctx := GetContexFromJSON(echo.DELETE, "/settings")
 		ctx.Set("uid", id)
 		ctx.Set("sid", sid)
 
@@ -265,7 +273,7 @@ func TestGetUsersByNicknamePart(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx := GetContexFromJSON(echo.GET, "/settings")
 		ctx.Set("uid", testUser.ID)
 
 		// good
@@ -276,7 +284,7 @@ func TestGetUsersByNicknamePart(t *testing.T) {
 	}
 
 	{
-		ctx := GetContexFromJSON(echo.GET, "/settings", nil)
+		ctx := GetContexFromJSON(echo.GET, "/settings")
 		testUser.ID++
 		ctx.Set("uid", testUser.ID)
 
