@@ -107,6 +107,7 @@ paths:
                 avatar:
                   type: string
                   format: binary
+
       responses:
         200:
           description: "Успешно обновили"

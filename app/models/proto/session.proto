@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "message.proto";
+import "google/protobuf/empty.proto";
+
+package proto;
+
+service Session {
+    rpc Create (SessionMess) returns (google.protobuf.Empty);
+    rpc Get (SidMess) returns (UidMess);
+    rpc Delete (SidMess) returns (google.protobuf.Empty);
+}

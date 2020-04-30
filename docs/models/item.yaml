@@ -1,0 +1,15 @@
+components:
+  schemas:
+    Item:
+      type: "object"
+      required:
+        - "id"
+        - "text"
+        - "done"
+      properties:
+        id:
+          type: "integer"
+        text:
+          type: "string"
+        done:
+          type: "bool"

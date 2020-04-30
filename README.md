@@ -1,11 +1,12 @@
 # SIBIRSKAYA KORONA
 
-
-### [Проект](http://89.208.197.150:5757 "project")
+### [Проект](https://drello.works "project")
 
 ### [Репозиторий фронтенда](https://github.com/frontend-park-mail-ru/2020_1_SIBIRSKAYA_KORONA "frontend repo")
 
-### [Документация](http://89.208.197.150:80 "doc")
+### [Документация](http://drello.works:5757 "doc")
+
+### [Графана](http://drello.works:3000 "doc")
 
 ### Команда
 

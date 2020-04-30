@@ -1,0 +1,15 @@
+components:
+  schemas:
+    File:
+      type: "object"
+      required:
+        - "id"
+        - "URL"
+        - "filename"
+      properties:
+        id:
+          type: "integer"
+        URL:
+          type: "string"
+        filename:
+          type: "string"
