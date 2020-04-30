@@ -14,11 +14,11 @@ import (
 )
 
 type TaskHandler struct {
-	useCase task.UseCase
+	UseCase task.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middleware) {
-	handler := &TaskHandler{useCase: useCase}
+	handler := &TaskHandler{UseCase: useCase}
 	router.POST("boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
@@ -42,7 +42,7 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	tsk.Cid = ctx.Get("cid").(uint)
-	err = taskHandler.useCase.Create(&tsk)
+	err = taskHandler.UseCase.Create(&tsk)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -61,7 +61,7 @@ func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	tsk, err := taskHandler.useCase.Get(cid, tid)
+	tsk, err := taskHandler.UseCase.Get(cid, tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -82,7 +82,7 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	tsk.ID = ctx.Get("tid").(uint)
-	err = taskHandler.useCase.Update(tsk)
+	err = taskHandler.UseCase.Update(tsk)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -92,7 +92,7 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	err := taskHandler.useCase.Delete(tid)
+	err := taskHandler.UseCase.Delete(tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -103,7 +103,7 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 	assignUid := ctx.Get("uid_for_assign").(uint)
-	err := taskHandler.useCase.Assign(tid, assignUid)
+	err := taskHandler.UseCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -114,7 +114,7 @@ func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
 	assignUid := ctx.Get("uid_for_assign").(uint)
-	err := taskHandler.useCase.Unassign(tid, assignUid)
+	err := taskHandler.UseCase.Unassign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())

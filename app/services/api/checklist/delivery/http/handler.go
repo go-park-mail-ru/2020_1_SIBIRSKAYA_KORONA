@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -14,12 +13,12 @@ import (
 )
 
 type ChecklistHandler struct {
-	useCase checklist.UseCase
+	UseCase checklist.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.Middleware) {
 	handler := &ChecklistHandler{
-		useCase: useCase,
+		UseCase: useCase,
 	}
 	router.GET("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
@@ -40,7 +39,7 @@ func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	chlist.Tid = ctx.Get("tid").(uint)
-	err = checklistHandler.useCase.Create(&chlist)
+	err = checklistHandler.UseCase.Create(&chlist)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -54,7 +53,7 @@ func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
 
 func (checklistHandler *ChecklistHandler) Get(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	chlists, err := checklistHandler.useCase.Get(tid)
+	chlists, err := checklistHandler.UseCase.Get(tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -71,12 +70,8 @@ func (checklistHandler *ChecklistHandler) Update(ctx echo.Context) error {
 }
 
 func (checklistHandler *ChecklistHandler) Delete(ctx echo.Context) error {
-	var clid uint
-	_, err := fmt.Sscan(ctx.Param("clid"), &clid)
-	if err != nil {
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-	if checklistHandler.useCase.Delete(clid) != nil {
+	clid := ctx.Get("clid").(uint)
+	if checklistHandler.UseCase.Delete(clid) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	return ctx.NoContent(http.StatusOK)

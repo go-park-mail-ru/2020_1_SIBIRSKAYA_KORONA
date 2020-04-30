@@ -11,8 +11,8 @@ import (
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/delivery/http"
-	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/mocks"
+	itemHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/delivery/http"
+	itemMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -36,18 +36,18 @@ func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
+	itemUsecaseMock := itemMocks.NewMockUseCase(ctrl)
+	handler := itemHandler.ItemHandler{UseCase: itemUsecaseMock}
 
-	var testTask models.Task
-	err := faker.FakeData(&testTask)
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
 
-	body, err := testTask.MarshalJSON()
+	var testItem models.Item
+	err = faker.FakeData(&testItem)
 	assert.NoError(t, err)
 
-	var testColumn models.Column
-	err = faker.FakeData(&testColumn)
+	body, err := testItem.MarshalJSON()
 	assert.NoError(t, err)
 
 	router := echo.New()
@@ -56,8 +56,9 @@ func TestCreate(t *testing.T) {
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
 	context.Set("body", body)
-	context.Set("cid", testColumn.ID)
-	taskUsecaseMock.EXPECT().
+	context.Set("clid", testChecklist.ID)
+
+	itemUsecaseMock.EXPECT().
 		Create(gomock.Any()).
 		Return(nil)
 
@@ -74,14 +75,18 @@ func TestUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
+	itemUsecaseMock := itemMocks.NewMockUseCase(ctrl)
+	handler := itemHandler.ItemHandler{UseCase: itemUsecaseMock}
 
-	var testTask models.Task
-	err := faker.FakeData(&testTask)
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
 
-	body, err := testTask.MarshalJSON()
+	var testItem models.Item
+	err = faker.FakeData(&testItem)
+	assert.NoError(t, err)
+
+	body, err := testItem.MarshalJSON()
 	assert.NoError(t, err)
 
 	router := echo.New()
@@ -91,43 +96,14 @@ func TestUpdate(t *testing.T) {
 	context := router.NewContext(request, response)
 
 	context.Set("body", body)
-	context.Set("tid", testTask.ID)
-	taskUsecaseMock.EXPECT().
+	context.Set("itid", testItem.ID)
+	context.Set("clid", testChecklist.ID)
+
+	itemUsecaseMock.EXPECT().
 		Update(gomock.Any()).
 		Return(nil)
 
 	err = handler.Update(context)
-
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
-}
-
-func TestDelete(t *testing.T) {
-	//t.Skip()
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
-
-	var testTask models.Task
-	err := faker.FakeData(&testTask)
-	assert.NoError(t, err)
-
-	router := echo.New()
-
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-
-	context.Set("tid", testTask.ID)
-	taskUsecaseMock.EXPECT().
-		Delete(testTask.ID).
-		Return(nil)
-
-	err = handler.Delete(context)
 
 	assert.NoError(t, err)
 	assert.Equal(t, context.Response().Status, http.StatusOK)
