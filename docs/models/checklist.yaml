@@ -1,0 +1,19 @@
+components:
+  schemas:
+    Checklist:
+      type: "object"
+      required:
+        - "id"
+        - "name"
+        - "tid"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        items:
+          type: "array"
+          items:
+            $ref: "item.yaml#/components/schemas/Item"
+        tid:
+          type: "integer"

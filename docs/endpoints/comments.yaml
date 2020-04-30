@@ -1,0 +1,218 @@
+paths:
+  /boards/{bid}/columns/{cid}/tasks/{tid}/comments:
+    get:
+      tags:
+      - "files"
+      summary: "Получаем все приложенные к таске файлы"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+          
+      responses:
+        200:
+          description: "Корректный запрос, получаем массив с урлами файлов"
+
+          content:
+            application/json:
+              schema:
+                type: "array"
+                files:
+                  - $ref: "../models/file.yaml#/components/schemas/File"
+                example: [{  
+                    "id": 10,
+                    "url": "https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt",
+                    "filename": "DummyFile",
+                  },{
+                    "id": 11,
+                    "url": "https://drellobucket.s3.us-east-2.amazonaws.com/Manual.pdf",
+                    "filename": "Manual.pdf",
+                }]
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        500:
+          description: "Внутренная ошибка сервера"
+    
+    post:
+      tags:
+      - "files"
+      summary: "Загружаем приложенный файл"
+
+      parameters:
+        - in: cookie
+          name: session_id
+          schema:
+            type: string
+          required: true
+
+        - in: path
+          name: bid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер доски
+          example: 10
+
+        - in: path
+          name: сid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер колонки
+          example: 3
+
+        - in: path
+          name: tid
+          required: true
+          schema:
+            type: integer
+          description: Уникальный номер таски
+          example: 8
+
+      requestBody:
+        description: Загружаемый файлик (Завернут в мультипарт-форму)
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: "Успешно загрузили, возвращаем модель файлика"
+
+          content:
+            application/json:
+              schema:
+              - $ref: "../models/file.yaml#/components/schemas/File"
+              example: {  
+                "id": 10,
+                "url": "https://drellobucket.s3.us-east-2.amazonaws.com/DummyFile.txt",
+                "filename": "DummyFile",
+              }
+
+        400:
+          description: "Неверные path параметры"
+
+        401:
+          description: "В запросе отсутствует кука"
+        
+        403:
+          description: "Нет прав на совершение операции"
+
+        404:
+          description: "Не нашли какую-нибудь связанную сущность"
+
+        422:
+          description: "Не удалось загрузить файл в сервис"
+
+        500:
+          description: "Внутренная ошибка сервера"
+
+  /boards/{bid}/columns/{cid}/tasks/{tid}/comments/{comid}:
+    delete:
+        tags:
+        - "files"
+        summary: "Удаляем файл из сервиса"
+
+        parameters:
+          - in: cookie
+            name: session_id
+            schema:
+              type: string
+            required: true
+          
+          - in: path
+            name: bid
+            required: true
+            schema:
+              type: integer
+            description: Уникальный номер доски
+            example: 10
+
+          - in: path
+            name: сid
+            required: true
+            schema:
+              type: integer
+            description: Уникальный номер колонки
+            example: 3
+
+          - in: path
+            name: tid
+            required: true
+            schema:
+              type: integer
+            description: Уникальный номер таски
+            example: 8
+
+          - in: path
+            name: fid
+            required: true
+            schema:
+              type: integer
+            description: Уникальный номер приложенного файлика
+            example: 8
+
+        responses:
+          200:
+            description: "Успешно удалили файлик"
+
+          400:
+            description: "Неверные path параметры"
+
+          401:
+            description: "В запросе отсутствует кука"
+          
+          403:
+            description: "Нет прав на совершение операции"
+
+          404:
+            description: "Не нашли какую-нибудь связанную сущность"
+
+          422:
+            description: "Не удалось удалить файл из сервиса"
+
+          500:
+            description: "Внутренная ошибка сервера"

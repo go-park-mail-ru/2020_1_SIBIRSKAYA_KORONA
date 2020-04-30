@@ -1,9 +1,28 @@
 package models
 
-import "time"
+import (
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
+)
 
+//go:generate easyjson -all
 type Session struct {
-	SID string
-	ID uint
-	Expires time.Time
+	SID     string
+	ID      uint
+	Expires int32
+}
+
+func (ses *Session) ToProto() *proto.SessionMess {
+	return &proto.SessionMess{
+		Sid:     ses.SID,
+		Uid:     uint64(ses.ID),
+		Expires: ses.Expires,
+	}
+}
+
+func CreateSessionFromProto(ses proto.SessionMess) *Session {
+	return &Session{
+		SID:     ses.Sid,
+		ID:      uint(ses.Uid),
+		Expires: ses.Expires,
+	}
 }
