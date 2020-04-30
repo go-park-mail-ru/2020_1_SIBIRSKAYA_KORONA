@@ -15,12 +15,12 @@ import (
 )
 
 type SessionHandler struct {
-	useCase session.UseCase
+	UseCase session.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Middleware) {
 	handler := &SessionHandler{
-		useCase: useCase,
+		UseCase: useCase,
 	}
 	router.POST("/session", handler.LogIn, mw.Sanitize)
 	router.GET("/token", handler.Token, mw.CheckAuth)
@@ -36,7 +36,7 @@ func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	sessionExpires := time.Now().AddDate(1, 0, 0)
-	if sid, err := sessionHandler.useCase.Create(&usr, int32(sessionExpires.Unix())); err != nil {
+	if sid, err := sessionHandler.UseCase.Create(&usr, int32(sessionExpires.Unix())); err != nil {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	} else {
 		cookie := &http.Cookie{
@@ -62,8 +62,10 @@ func (sessionHandler *SessionHandler) Token(ctx echo.Context) error {
 
 func (sessionHandler *SessionHandler) LogOut(ctx echo.Context) error {
 	cookie := ctx.Get("sid").(string)
-	if sessionHandler.useCase.Delete(cookie) != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
+	err := sessionHandler.UseCase.Delete(cookie)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	newCookie := http.Cookie{Name: "session_id", Value: cookie, Expires: time.Now().AddDate(-1, 0, 0)}
 	ctx.SetCookie(&newCookie)

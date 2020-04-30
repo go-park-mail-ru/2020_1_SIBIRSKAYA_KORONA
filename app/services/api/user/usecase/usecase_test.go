@@ -33,12 +33,8 @@ func TestCreate(t *testing.T) {
 	defer ctrl.Finish()
 	userRepoMock, sessionRepoMock := createRepoMocks(ctrl)
 
-	userRepoMock.EXPECT().
-		Create(gomock.Any()).
-		Return(nil)
-	sessionRepoMock.EXPECT().
-		Create(gomock.Any()).
-		Return("cookie_value", nil)
+	userRepoMock.EXPECT().Create(gomock.Any()).Return(nil)
+	sessionRepoMock.EXPECT().Create(gomock.Any()).Return("cookie_value", nil)
 
 	uUsecase := userUseCase.CreateUseCase(sessionRepoMock, userRepoMock)
 	var testUser models.User
