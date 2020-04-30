@@ -10,7 +10,6 @@ DOCUMENTATION_CONTAINER_NAME=documentation
 
 TEST_FLAGS = \
 	-covermode=atomic ./... \
-	--test-config="$(PROJECT_DIR)/config.yaml" \
 	-coverprofile ${TEST_COVER_TARGET} \
 
 # тесты
