@@ -1,35 +1,22 @@
 package usecase_test
 
 import (
-	"flag"
 	"os"
 	"testing"
 
 	"github.com/bxcodec/faker"
-	columnMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/mocks"
-	columnUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/column/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	columnMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column/mocks"
+	columnUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column/usecase"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/golang/mock/gomock"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
 )
 
-var test_opts struct {
-	configPath string
-}
-
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-
+	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
 }
 
@@ -100,7 +87,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetTasksByID(t *testing.T) {
-	// t.Skip()
+	t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)

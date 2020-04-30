@@ -77,7 +77,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	// t.Skip()
+	t.Skip()
 	t.Parallel()
 
 	mock, db := SetupDB()

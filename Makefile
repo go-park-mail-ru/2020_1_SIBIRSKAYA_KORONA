@@ -10,7 +10,6 @@ DOCUMENTATION_CONTAINER_NAME=documentation
 
 TEST_FLAGS = \
 	-covermode=atomic ./... \
-	--test-config="$(PROJECT_DIR)/config.yaml" \
 	-coverprofile ${TEST_COVER_TARGET} \
 
 # тесты
@@ -19,12 +18,14 @@ generate-mocks:
 test-cover:
 	go test -v -cover $(TEST_FLAGS)
 test-coverpkg:
-	go test -v -coverpkg=./... $(TEST_FLAGS)
+	go test -v -coverpkg=./app/... $(TEST_FLAGS)
 check-report:
 	go tool cover -html=${TEST_COVER_TARGET}
 check-summary:
-	grep -v mock ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-2
-	go tool cover -func=${TEST_COVER_TARGET}-2
+	grep -v mock ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-1
+	grep -v models ${TEST_COVER_TARGET}-1 > ${TEST_COVER_TARGET}-2
+	grep -v middleware ${TEST_COVER_TARGET}-2 > ${TEST_COVER_TARGET}-3
+	go tool cover -func=${TEST_COVER_TARGET}-3
 
 # docker
 build-api-service:
