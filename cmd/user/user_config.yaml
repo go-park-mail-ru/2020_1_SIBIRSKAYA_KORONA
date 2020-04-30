@@ -19,6 +19,11 @@ database: {
   sslmode: disable
 }
 
+metrics: {
+  url: "0.0.0.0:7072",
+  service: "user"
+}
+
 frontend: {
   protocol: http,
   ip: localhost,

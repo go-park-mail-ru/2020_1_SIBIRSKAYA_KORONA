@@ -9,6 +9,11 @@ logger: {
   level: debug,
 }
 
+metrics: {
+  url: "0.0.0.0:7071",
+  service: "session"
+}
+
 memcached: {
   host: memcached,
   #host: localhost,

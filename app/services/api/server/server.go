@@ -141,7 +141,7 @@ func (server *Server) Run() {
 
 	// middlware
 	router := echo.New()
-	metr, err := metric.CreateMetrics("0.0.0.0:7070", "api")
+	metr, err := metric.CreateMetrics(server.ApiConfig.GetMetricsURL(), server.ApiConfig.GetServiceName())
 	if err != nil {
 		log.Fatal(err)
 	}

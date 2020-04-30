@@ -43,7 +43,7 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	metr, err := metric.CreateMetrics("0.0.0.0:7071", "session")
+	metr, err := metric.CreateMetrics(server.Config.GetMetricsURL(), server.Config.GetServiceName())
 	if err != nil {
 		log.Fatal(err)
 	}
