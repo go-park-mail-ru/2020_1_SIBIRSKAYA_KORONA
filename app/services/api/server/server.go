@@ -6,10 +6,6 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
-	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
-
-	notificationHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/delivery/ws"
-
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
@@ -46,8 +42,13 @@ import (
 	attachRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/repository"
 	attachUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/usecase"
 
+	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 	labelRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/repository"
 	labelUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/usecase"
+
+	notificationHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/delivery/ws"
+	notificationRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/repository"
+	notificationUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
@@ -116,6 +117,7 @@ func (server *Server) Run() {
 	comRepo := commentRepo.CreateRepository(postgresClient)
 	chlistRepo := checklistRepo.CreateRepository(postgresClient)
 	itmRepo := itemRepo.CreateRepository(postgresClient)
+	eventRepo := notificationRepo.CreateRepository(postgresClient)
 
 	S3session, err := session.NewSession(
 		&aws.Config{Region: aws.String(server.ApiConfig.GetS3BucketRegion())},
@@ -138,6 +140,7 @@ func (server *Server) Run() {
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
+	eventUseCase := notificationUseCase.CreateUseCase(eventRepo)
 
 	// middlware
 	router := echo.New()
@@ -161,8 +164,7 @@ func (server *Server) Run() {
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
 	attachHandler.CreateHandler(router, atchUseCase, mw)
-
-	notificationHandler.CreateHandler(router, nil, mw)
+	notificationHandler.CreateHandler(router, eventUseCase, mw)
 
 	// start
 	if err := router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath()); err != nil {

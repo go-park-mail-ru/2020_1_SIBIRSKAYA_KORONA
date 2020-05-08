@@ -2,8 +2,9 @@ package models
 
 //go:generate easyjson -all
 type Event struct {
-	ID       uint    `json:"-" gorm:"primary_key"`
-	Message  string  `json:"message" gorm:"not null"`
+	ID      uint   `json:"-" gorm:"primary_key"`
+	Message string `json:"message" gorm:"not null"`
+	Uid     uint   `json:"-" gorm:"not null"`
 }
 
 //easyjson:json

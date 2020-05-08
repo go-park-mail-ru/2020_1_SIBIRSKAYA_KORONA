@@ -1,18 +1,18 @@
 package usecase
 
 import (
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification"
 )
 
 type NotificationUseCase struct {
-	sessionRepo session.Repository
-	userRepo    user.Repository
+	notificationRepo notification.Repository
 }
 
-func CreateUseCase(sessionRepo_ session.Repository, userRepo_ user.Repository) user.UseCase {
-	return &UserUseCase{
-		sessionRepo: sessionRepo_,
-		userRepo:    userRepo_,
-	}
+func CreateUseCase(notificationRepo_ notification.Repository) notification.UseCase {
+	return &NotificationUseCase{notificationRepo: notificationRepo_}
+}
+
+func (notificationUseCase *NotificationUseCase) Pop(uid uint) (models.Events, bool) {
+	return notificationUseCase.notificationRepo.Pop(uid)
 }
