@@ -8,6 +8,8 @@ import (
 
 	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 
+	notificationHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/delivery/ws"
+
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
@@ -104,7 +106,7 @@ func (server *Server) Run() {
 	logger.Info("Postgresql succesfull start")
 	defer postgresClient.Close()
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Comment{},
-		&models.Checklist{}, &models.Item{}, &models.Label{}, &models.AttachedFile{})
+		&models.Checklist{}, &models.Item{}, &models.Label{}, &models.AttachedFile{}, &models.Event{})
 	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
 	usrRepo := userRepo.CreateRepository(userGrpcClient, server.UserConfig)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
@@ -116,9 +118,7 @@ func (server *Server) Run() {
 	itmRepo := itemRepo.CreateRepository(postgresClient)
 
 	S3session, err := session.NewSession(
-		&aws.Config{
-			Region: aws.String(server.ApiConfig.GetS3BucketRegion()),
-		},
+		&aws.Config{Region: aws.String(server.ApiConfig.GetS3BucketRegion())},
 	)
 	if err != nil {
 		logger.Fatal(err)
@@ -161,6 +161,8 @@ func (server *Server) Run() {
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
 	attachHandler.CreateHandler(router, atchUseCase, mw)
+
+	notificationHandler.CreateHandler(router, nil, mw)
 
 	// start
 	if err := router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath()); err != nil {
