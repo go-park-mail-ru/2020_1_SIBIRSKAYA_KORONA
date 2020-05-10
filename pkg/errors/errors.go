@@ -33,6 +33,8 @@ const (
 
 	ItemNotFound = "item not found"
 
+	NotificationNotFound = "notification not found"
+
 	FileNotFound = "file not found"
 
 	BadFileUploadS3 = "unsuccessful file upload to s3"
@@ -78,6 +80,9 @@ var (
 	// ошибки, связанные с итемами
 	ErrItemNotFound = errors.New(ItemNotFound)
 
+	// ошибки, связанные с уведомлениями
+	ErrNotificationNotFound = errors.New(NotificationNotFound)
+
 	// ошибки, связанные с файлами
 	ErrFileNotFound    = errors.New(FileNotFound)
 	ErrBadFileUploadS3 = errors.New(BadFileUploadS3)
@@ -113,6 +118,8 @@ var messToError = map[string]error{
 	ChecklistNotFound: ErrChecklistNotFound,
 
 	ItemNotFound: ErrItemNotFound,
+
+	NotificationNotFound: ErrNotificationNotFound,
 
 	BadFileUploadS3: ErrBadFileUploadS3,
 	BadFileDeleteS3: ErrBadFileDeleteS3,
@@ -153,6 +160,9 @@ var errorToCodeMap = map[error]int{
 
 	// ошибки, связанные с итемами
 	ErrItemNotFound: http.StatusNotFound,
+
+	// ошибки, связанные с уведомлениями
+	ErrNotificationNotFound: http.StatusNotFound,
 
 	// ошибки, связанные с файлами
 	ErrFileNotFound:    http.StatusNotFound,

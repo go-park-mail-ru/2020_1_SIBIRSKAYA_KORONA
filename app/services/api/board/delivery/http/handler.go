@@ -21,14 +21,15 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	handler := &BoardHandler{
 		useCase: useCase,
 	}
+	// TODO: админы
 	router.POST("/boards", handler.Create, mw.Sanitize, mw.CheckAuth)
 	router.GET("/boards", handler.GetBoardsByUser, mw.CheckAuth)
 	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
 	router.GET("/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.PUT("/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission)
-	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission) // TODO: что если есть другие админы
-	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendInviteNotifications)
 	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
 	router.GET("/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
 }
@@ -143,7 +144,6 @@ func (boardHandler *BoardHandler) Update(ctx echo.Context) error {
 
 func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
 	bid := ctx.Get("bid").(uint)
-
 	err := boardHandler.useCase.Delete(bid)
 	if err != nil {
 		logger.Error(err)
@@ -164,6 +164,9 @@ func (boardHandler *BoardHandler) InviteMember(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("forUid", uid)
+	ctx.Set("eventType", "InviteToBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

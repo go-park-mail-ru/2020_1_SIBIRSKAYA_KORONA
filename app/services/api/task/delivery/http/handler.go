@@ -28,7 +28,8 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middl
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.POST("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckUserForAssignInBoard, mw.SendInviteNotifications)
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
 }
@@ -102,18 +103,20 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assignUid := ctx.Get("uid_for_assign").(uint)
+	assignUid := ctx.Get("forUid").(uint)
 	err := taskHandler.UseCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "AssignOnTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assignUid := ctx.Get("uid_for_assign").(uint)
+	assignUid := ctx.Get("forUid").(uint)
 	err := taskHandler.UseCase.Unassign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)

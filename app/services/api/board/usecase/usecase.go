@@ -2,15 +2,19 @@ package usecase
 
 import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 )
 
 type BoardUseCase struct {
-	userRepo  user.Repository
-	boardRepo board.Repository
+	userRepo         user.Repository
+	boardRepo        board.Repository
+	notificationRepo notification.Repository
 }
 
 func CreateUseCase(userRepo_ user.Repository, boardRepo_ board.Repository) board.UseCase {

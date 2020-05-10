@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
@@ -46,18 +47,19 @@ import (
 	labelRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/repository"
 	labelUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/usecase"
 
-	notificationHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/delivery/ws"
+	notificationHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/delivery/http"
 	notificationRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/repository"
 	notificationUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/config"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/webSocketPool/gorillaWs"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -107,7 +109,7 @@ func (server *Server) Run() {
 	logger.Info("Postgresql succesfull start")
 	defer postgresClient.Close()
 	postgresClient.AutoMigrate(&models.User{}, &models.Board{}, &models.Column{}, &models.Task{}, &models.Comment{},
-		&models.Checklist{}, &models.Item{}, &models.Label{}, &models.AttachedFile{}, &models.Event{})
+		&models.Checklist{}, &models.Item{}, &models.Label{}, &models.AttachedFile{}, &models.Event{}, &models.EventMetaData{})
 	sesRepo := sessionRepo.CreateRepository(sessionGrpcClient)
 	usrRepo := userRepo.CreateRepository(userGrpcClient, server.UserConfig)
 	brdRepo := boardRepo.CreateRepository(postgresClient)
@@ -117,7 +119,7 @@ func (server *Server) Run() {
 	comRepo := commentRepo.CreateRepository(postgresClient)
 	chlistRepo := checklistRepo.CreateRepository(postgresClient)
 	itmRepo := itemRepo.CreateRepository(postgresClient)
-	eventRepo := notificationRepo.CreateRepository(postgresClient)
+	ntftRepo := notificationRepo.CreateRepository(postgresClient)
 
 	S3session, err := session.NewSession(
 		&aws.Config{Region: aws.String(server.ApiConfig.GetS3BucketRegion())},
@@ -140,19 +142,30 @@ func (server *Server) Run() {
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
-	eventUseCase := notificationUseCase.CreateUseCase(eventRepo)
+	ntftUseCase := notificationUseCase.CreateUseCase(ntftRepo)
 
 	// middlware
 	router := echo.New()
-	metr, err := metric.CreateMetrics(server.ApiConfig.GetMetricsURL(), server.ApiConfig.GetServiceName())
-	if err != nil {
-		log.Fatal(err)
-	}
-	mw := drelloMiddleware.CreateMiddleware(metr, sUseCase, bUseCase, cUseCase, tUseCase, comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase)
+
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase,
+		comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase, ntftUseCase)
+
 	router.Use(mw.RequestLogger)
 	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
 	router.Use(mw.Metrics)
+
+	// metrics
+	metr, err := metric.CreateMetrics(server.ApiConfig.GetMetricsURL(), server.ApiConfig.GetServiceName())
+	if err != nil {
+		log.Fatal(err)
+	}
+	mw.SetMetrics(metr)
+
+	// wsPool
+	wsPool := gorillaWs.CreateWebSocketPool(router, mw)
+	mw.SetWebSocketPool(wsPool)
+
 	// delivery
 	sessionHandler.CreateHandler(router, sUseCase, mw)
 	userHandler.CreateHandler(router, uUseCase, mw)
@@ -164,10 +177,11 @@ func (server *Server) Run() {
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
 	attachHandler.CreateHandler(router, atchUseCase, mw)
-	notificationHandler.CreateHandler(router, eventUseCase, mw)
+	notificationHandler.CreateHandler(router, ntftUseCase, mw)
 
 	// start
-	if err := router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath()); err != nil {
+	err = router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath())
+	if err != nil {
 		log.Fatal(err)
 	}
 }
