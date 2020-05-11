@@ -21,7 +21,7 @@ func CreateHandler(router *echo.Echo, useCase notification.UseCase, mw *middlewa
 
 	router.GET("/notifications", handler.GetAll, mw.CheckAuth)
 	router.PUT("/notifications", handler.UpdateAll, mw.Sanitize, mw.CheckAuth)
-	router.DELETE("/notifications", handler.DeleteAll, mw.Sanitize, mw.CheckAuth)
+	router.DELETE("/notifications", handler.DeleteAll, mw.CheckAuth)
 }
 
 func (notificationHandler *NotificationHandler) GetAll(ctx echo.Context) error {

@@ -36,8 +36,16 @@ func easyjsonF642ad3eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 			continue
 		}
 		switch key {
-		case "uid":
-			out.Uid = uint(in.Uint())
+		case "user":
+			if in.IsNull() {
+				in.Skip()
+				out.Usr = nil
+			} else {
+				if out.Usr == nil {
+					out.Usr = new(User)
+				}
+				(*out.Usr).UnmarshalEasyJSON(in)
+			}
 		case "bid":
 			out.Bid = uint(in.Uint())
 		case "cid":
@@ -58,15 +66,15 @@ func easyjsonF642ad3eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 	out.RawByte('{')
 	first := true
 	_ = first
-	if in.Uid != 0 {
-		const prefix string = ",\"uid\":"
+	if in.Usr != nil {
+		const prefix string = ",\"user\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
 		} else {
 			out.RawString(prefix)
 		}
-		out.Uint(uint(in.Uid))
+		(*in.Usr).MarshalEasyJSON(out)
 	}
 	if in.Bid != 0 {
 		const prefix string = ",\"bid\":"
@@ -215,8 +223,16 @@ func easyjsonF642ad3eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 			out.IsRead = bool(in.Bool())
 		case "uid":
 			out.Uid = uint(in.Uint())
-		case "makeUid":
-			out.MakeUid = uint(in.Uint())
+		case "makeUser":
+			if in.IsNull() {
+				in.Skip()
+				out.MakeUsr = nil
+			} else {
+				if out.MakeUsr == nil {
+					out.MakeUsr = new(User)
+				}
+				(*out.MakeUsr).UnmarshalEasyJSON(in)
+			}
 		case "metaData":
 			(out.MetaData).UnmarshalEasyJSON(in)
 		default:
@@ -254,9 +270,13 @@ func easyjsonF642ad3eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 		out.Uint(uint(in.Uid))
 	}
 	{
-		const prefix string = ",\"makeUid\":"
+		const prefix string = ",\"makeUser\":"
 		out.RawString(prefix)
-		out.Uint(uint(in.MakeUid))
+		if in.MakeUsr == nil {
+			out.RawString("null")
+		} else {
+			(*in.MakeUsr).MarshalEasyJSON(out)
+		}
 	}
 	{
 		const prefix string = ",\"metaData\":"

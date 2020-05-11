@@ -147,7 +147,7 @@ func (server *Server) Run() {
 	// middlware
 	router := echo.New()
 
-	mw := drelloMiddleware.CreateMiddleware(sUseCase, bUseCase, cUseCase, tUseCase,
+	mw := drelloMiddleware.CreateMiddleware(sUseCase, uUseCase, bUseCase, cUseCase, tUseCase,
 		comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase, ntftUseCase)
 
 	router.Use(mw.RequestLogger)

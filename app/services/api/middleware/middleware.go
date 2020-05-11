@@ -18,6 +18,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
@@ -38,6 +39,7 @@ type Middleware struct {
 	wsPool webSocketPool.WebSocketPool
 
 	sUseCase    session.UseCase
+	uUseCase    user.UseCase
 	bUseCase    board.UseCase
 	cUseCase    column.UseCase
 	tUseCase    task.UseCase
@@ -49,7 +51,7 @@ type Middleware struct {
 	notfUseCase notification.UseCase
 }
 
-func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase,
+func CreateMiddleware(sUseCase_ session.UseCase, uUseCase_ user.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase,
 	tUseCase_ task.UseCase, comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase,
 	lUseCase_ label.UseCase, atchUseCase_ attach.UseCase, notfUseCase_ notification.UseCase) *Middleware {
 	origins_ := make(map[string]struct{})
@@ -62,6 +64,7 @@ func CreateMiddleware(sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCa
 		serverMode: viper.GetString("server.mode"),
 
 		sUseCase:    sUseCase_,
+		uUseCase:    uUseCase_,
 		bUseCase:    bUseCase_,
 		cUseCase:    cUseCase_,
 		lUseCase:    lUseCase_,
@@ -385,10 +388,20 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			IsRead:    false,
 			MakeUid:   ctx.Get("uid").(uint),
 		}
+		ev.MakeUsr, err = mw.uUseCase.GetByID(ev.Uid)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
 		// TODO: вынести в отдельные функции
 		var membes models.Users
 		if ev.EventType == "InviteToBoard" {
 			ev.MetaData.Uid = ctx.Get("forUid").(uint)
+			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
+			if err != nil {
+				logger.Error(err)
+				return err
+			}
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
 			if err != nil {
