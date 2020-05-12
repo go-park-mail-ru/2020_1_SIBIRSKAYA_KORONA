@@ -23,7 +23,7 @@ func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Mi
 	handler := &CommentHandler{useCase: useCase}
 
 	router.POST("boards/:bid/columns/:cid/tasks/:tid/comments", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendInviteNotifications)
 	router.GET("boards/:bid/columns/:cid/tasks/:tid/comments", handler.Get, mw.CheckAuth,
 		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/comments/:comid", handler.Delete, mw.CheckAuth,

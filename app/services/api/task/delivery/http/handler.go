@@ -24,7 +24,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middl
 	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.PUT("boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendInviteNotifications)
 	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.POST("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
