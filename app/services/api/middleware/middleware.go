@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"time"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
@@ -388,7 +389,7 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			IsRead:    false,
 			MakeUid:   ctx.Get("uid").(uint),
 		}
-		ev.MakeUsr, err = mw.uUseCase.GetByID(ev.Uid)
+		ev.MakeUsr, err = mw.uUseCase.GetByID(ev.MakeUid)
 		if err != nil {
 			logger.Error(err)
 			return err
