@@ -386,13 +386,14 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 		}
 		ev := &models.Event{
 			EventType: ctx.Get("eventType").(string),
+			CreateAt:  time.Now().Unix(),
 			IsRead:    false,
 			MakeUid:   ctx.Get("uid").(uint),
 		}
 		ev.MakeUsr, err = mw.uUseCase.GetByID(ev.MakeUid)
 		if err != nil {
 			logger.Error(err)
-			return err
+			return nil
 		}
 		// TODO: вынести в отдельные функции
 		var membes models.Users
@@ -401,26 +402,50 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
 			if err != nil {
 				logger.Error(err)
-				return err
+				return nil
 			}
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
 			if err != nil {
 				logger.Error(err)
-				return err
+				return nil
 			}
 			membes = append(tmp.Members, tmp.Admins...)
+			ev.MetaData.EntityData = tmp.Name
 		} else if ev.EventType == "AssignOnTask" {
 			ev.MetaData.Uid = ctx.Get("forUid").(uint)
+			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
 			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {
 				logger.Error(err)
-				return err
+				return nil
 			}
 			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name
+		} else if ev.EventType == "UpdateTask" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name
+		} else if ev.EventType == "AddComment" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			ev.MetaData.EntityData = ctx.Get("commentText").(string)
+			membes = append(membes, *ev.MakeUsr)
 		}
 		for _, elem := range membes {
 			ev.Uid = elem.ID
@@ -432,7 +457,7 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 				logger.Error(err)
 			}
 			mw.wsPool.Send(ev.Uid, resp)
-			logger.Info("send notifications to user:", ev.Uid)
+			logger.Debug("send notifications to user:", ev.Uid)
 		}
 		return nil
 	}

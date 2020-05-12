@@ -88,6 +88,8 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 

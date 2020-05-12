@@ -22,17 +22,15 @@ type CommentHandler struct {
 func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Middleware) {
 	handler := &CommentHandler{useCase: useCase}
 
-	router.POST("boards/:bid/columns/:cid/tasks/:tid/comments", handler.CreateComment,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.GET("boards/:bid/columns/:cid/tasks/:tid/comments", handler.GetComments,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/comments/:comid", handler.DeleteComment,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask)
-	//TODO: mw.CheckCommentInTask ?
-
+	router.POST("boards/:bid/columns/:cid/tasks/:tid/comments", handler.Create, mw.Sanitize, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.GET("boards/:bid/columns/:cid/tasks/:tid/comments", handler.Get, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/comments/:comid", handler.Delete, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask)
 }
 
-func (commentHandler *CommentHandler) CreateComment(ctx echo.Context) error {
+func (commentHandler *CommentHandler) Create(ctx echo.Context) error {
 	var cmt models.Comment
 	body := ctx.Get("body").([]byte)
 	err := cmt.UnmarshalJSON(body)
@@ -54,10 +52,13 @@ func (commentHandler *CommentHandler) CreateComment(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "AddComment")
+	ctx.Set("commentText", cmt.Text)
 	return ctx.String(http.StatusOK, string(resp))
 }
 
-func (commentHandler *CommentHandler) GetComments(ctx echo.Context) error {
+func (commentHandler *CommentHandler) Get(ctx echo.Context) error {
 	uid := ctx.Get("uid").(uint)
 	tid := ctx.Get("tid").(uint)
 
@@ -73,7 +74,7 @@ func (commentHandler *CommentHandler) GetComments(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, string(resp))
 }
 
-func (commentHandler *CommentHandler) DeleteComment(ctx echo.Context) error {
+func (commentHandler *CommentHandler) Delete(ctx echo.Context) error {
 	fid := ctx.Get("comid").(uint)
 
 	err := commentHandler.useCase.Delete(fid)

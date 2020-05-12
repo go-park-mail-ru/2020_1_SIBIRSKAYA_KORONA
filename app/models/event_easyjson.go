@@ -52,6 +52,8 @@ func easyjsonF642ad3eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 			out.Cid = uint(in.Uint())
 		case "tid":
 			out.Tid = uint(in.Uint())
+		case "entityData":
+			out.EntityData = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -105,6 +107,16 @@ func easyjsonF642ad3eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 			out.RawString(prefix)
 		}
 		out.Uint(uint(in.Tid))
+	}
+	if in.EntityData != "" {
+		const prefix string = ",\"entityData\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.EntityData))
 	}
 	out.RawByte('}')
 }
@@ -219,6 +231,8 @@ func easyjsonF642ad3eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 		switch key {
 		case "eventType":
 			out.EventType = string(in.String())
+		case "createAt":
+			out.CreateAt = int64(in.Int64())
 		case "isRead":
 			out.IsRead = bool(in.Bool())
 		case "uid":
@@ -258,6 +272,11 @@ func easyjsonF642ad3eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 			out.RawString(prefix)
 		}
 		out.String(string(in.EventType))
+	}
+	{
+		const prefix string = ",\"createAt\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.CreateAt))
 	}
 	{
 		const prefix string = ",\"isRead\":"
