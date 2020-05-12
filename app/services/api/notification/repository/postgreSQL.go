@@ -28,7 +28,7 @@ func (notificationStore *NotificationStore) Create(event *models.Event) error {
 }
 
 func (notificationStore *NotificationStore) GetAll(uid uint) (models.Events, bool) {
-	var events models.Events
+	events := make(models.Events, 0)
 	err := notificationStore.DB.Where("uid = ?", uid).Find(&events).Error
 	if err != nil {
 		logger.Error(err)

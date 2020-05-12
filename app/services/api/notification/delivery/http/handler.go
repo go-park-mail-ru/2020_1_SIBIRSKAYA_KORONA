@@ -20,7 +20,7 @@ func CreateHandler(router *echo.Echo, useCase notification.UseCase, mw *middlewa
 	handler := &NotificationHandler{UseCase: useCase}
 
 	router.GET("/notifications", handler.GetAll, mw.CheckAuth)
-	router.PUT("/notifications", handler.UpdateAll, mw.Sanitize, mw.CheckAuth)
+	router.PUT("/notifications", handler.UpdateAll, mw.CheckAuth)
 	router.DELETE("/notifications", handler.DeleteAll, mw.CheckAuth)
 }
 
@@ -29,7 +29,6 @@ func (notificationHandler *NotificationHandler) GetAll(ctx echo.Context) error {
 	events, has := notificationHandler.UseCase.GetAll(uid)
 	if !has {
 		logger.Error("no notifications for the user", uid)
-		return ctx.NoContent(http.StatusNotFound)
 	}
 	resp, err := events.MarshalJSON()
 	if err != nil {
