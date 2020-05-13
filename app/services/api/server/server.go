@@ -142,7 +142,7 @@ func (server *Server) Run() {
 	chUseCase := checklistUseCase.CreateUseCase(chlistRepo, itmRepo)
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
-	ntftUseCase := notificationUseCase.CreateUseCase(ntftRepo)
+	ntftUseCase := notificationUseCase.CreateUseCase(usrRepo, ntftRepo)
 
 	// middlware
 	router := echo.New()

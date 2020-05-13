@@ -444,11 +444,22 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
-			ev.MetaData.EntityData = ctx.Get("commentText").(string)
-			membes = append(membes, *ev.MakeUsr)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name
+			ev.MetaData.About = ctx.Get("commentText").(string)
+		} else {
+			return nil
 		}
 		for _, elem := range membes {
 			ev.Uid = elem.ID
+			if ev.Uid == ev.MakeUid {
+				continue
+			}
 			if err = mw.notfUseCase.Create(ev); err != nil {
 				logger.Error(err)
 			}

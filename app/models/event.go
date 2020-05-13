@@ -20,15 +20,15 @@ func (event *Event) TableName() string {
 }
 
 type EventMetaData struct {
-	ID  uint `json:"-" gorm:"primary_key"`
-	Eid uint `json:"-"`
-	// над кем/чем совершено действие
-	Uid        uint   `json:"-"`
+	ID         uint   `json:"-" gorm:"primary_key"`
+	Eid        uint   `json:"-"`
+	Uid        uint   `json:"-"` // над кем/чем совершено действие
 	Usr        *User  `json:"user,omitempty" gorm:"-"`
 	Bid        uint   `json:"bid,omitempty"`
 	Cid        uint   `json:"cid,omitempty"`
 	Tid        uint   `json:"tid,omitempty"`
 	EntityData string `json:"entityData,omitempty"`
+	About      string `json:"about,omitempty"`
 }
 
 func (metaData *EventMetaData) TableName() string {

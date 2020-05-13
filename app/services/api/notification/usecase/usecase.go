@@ -4,6 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
@@ -11,10 +12,11 @@ import (
 
 type NotificationUseCase struct {
 	notificationRepo notification.Repository
+	userRepo         user.Repository
 }
 
-func CreateUseCase(notificationRepo_ notification.Repository) notification.UseCase {
-	return &NotificationUseCase{notificationRepo: notificationRepo_}
+func CreateUseCase(userRepo_ user.Repository, notificationRepo_ notification.Repository) notification.UseCase {
+	return &NotificationUseCase{notificationRepo: notificationRepo_, userRepo: userRepo_}
 }
 
 func (notificationUseCase *NotificationUseCase) Create(event *models.Event) error {
@@ -29,12 +31,25 @@ func (notificationUseCase *NotificationUseCase) Create(event *models.Event) erro
 }
 
 func (notificationUseCase *NotificationUseCase) GetAll(uid uint) (models.Events, bool) {
-	res, has := notificationUseCase.notificationRepo.GetAll(uid)
+	events, has := notificationUseCase.notificationRepo.GetAll(uid)
 	if !has {
 		logger.Error("no notifications for the user", uid)
 		return nil, false
 	}
-	return res, true
+	for idx := range events {
+		var err error
+		events[idx].MakeUsr, err = notificationUseCase.userRepo.GetByID(events[idx].MakeUid)
+		if err != nil {
+			logger.Error(err)
+		}
+		if events[idx].MetaData.Uid != 0 {
+			events[idx].MetaData.Usr, err = notificationUseCase.userRepo.GetByID(events[idx].MetaData.Uid)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+	}
+	return events, true
 }
 
 func (notificationUseCase *NotificationUseCase) UpdateAll(uid uint) error {

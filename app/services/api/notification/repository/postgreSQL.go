@@ -28,11 +28,17 @@ func (notificationStore *NotificationStore) Create(event *models.Event) error {
 }
 
 func (notificationStore *NotificationStore) GetAll(uid uint) (models.Events, bool) {
-	events := make(models.Events, 0)
-	err := notificationStore.DB.Where("uid = ?", uid).Find(&events).Error
+	var events models.Events
+	err := notificationStore.DB.Order("create_at").Where("uid = ?", uid).Find(&events).Error
 	if err != nil {
 		logger.Error(err)
 		return nil, false
+	}
+	for idx := range events {
+		err = notificationStore.DB.Where("eid = ?", events[idx].ID).First(&events[idx].MetaData).Error
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 	return events, true
 }

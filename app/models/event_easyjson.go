@@ -54,6 +54,8 @@ func easyjsonF642ad3eDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(i
 			out.Tid = uint(in.Uint())
 		case "entityData":
 			out.EntityData = string(in.String())
+		case "about":
+			out.About = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -117,6 +119,16 @@ func easyjsonF642ad3eEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels(o
 			out.RawString(prefix)
 		}
 		out.String(string(in.EntityData))
+	}
+	if in.About != "" {
+		const prefix string = ",\"about\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.About))
 	}
 	out.RawByte('}')
 }
