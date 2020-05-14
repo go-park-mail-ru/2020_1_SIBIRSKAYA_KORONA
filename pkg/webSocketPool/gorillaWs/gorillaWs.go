@@ -31,7 +31,7 @@ func CreateWebSocketPool(router *echo.Echo, mw *middleware.Middleware) webSocket
 			},
 		},
 	}
-	router.GET("/ws", wsPool.run, mw.CheckAuth)
+	router.GET("/api/ws", wsPool.run, mw.CheckAuth)
 	return wsPool
 }
 

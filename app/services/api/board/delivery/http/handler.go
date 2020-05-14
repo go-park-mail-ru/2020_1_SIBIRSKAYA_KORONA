@@ -30,7 +30,8 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
 	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.POST("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth)
+	router.POST("/api/boards/:bid/invite_link", handler.InviteMemberByLink, mw.CheckAuth)
+	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
