@@ -419,7 +419,7 @@ func (mw *Middleware) SendSignal(next echo.HandlerFunc) echo.HandlerFunc {
 				logger.Error(err)
 			}
 			mw.wsPool.Send(elem.ID, resp)
-			logger.Debug("send notifications to user:", ev.Uid)
+			logger.Debug("send notifications to user:", elem.ID)
 		}
 		return nil
 	}

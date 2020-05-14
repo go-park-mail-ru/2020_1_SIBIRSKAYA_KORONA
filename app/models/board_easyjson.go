@@ -179,6 +179,8 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 			out.ID = uint(in.Uint())
 		case "title":
 			out.Name = string(in.String())
+		case "invateLink":
+			out.InvateLink = string(in.String())
 		case "columns":
 			if in.IsNull() {
 				in.Skip()
@@ -294,6 +296,11 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 		const prefix string = ",\"title\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"invateLink\":"
+		out.RawString(prefix)
+		out.String(string(in.InvateLink))
 	}
 	if len(in.Columns) != 0 {
 		const prefix string = ",\"columns\":"

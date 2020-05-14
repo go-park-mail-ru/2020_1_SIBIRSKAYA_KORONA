@@ -15,7 +15,6 @@ metrics: {
 }
 
 memcached: {
-  #host: memcached,
-  host: localhost,
+  host: memcached,
   port: 11211,
 }
