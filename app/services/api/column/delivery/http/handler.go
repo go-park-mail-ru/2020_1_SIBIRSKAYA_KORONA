@@ -20,14 +20,15 @@ type ColumnHandler struct {
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.Middleware) {
 	handler := &ColumnHandler{useCase: useCase}
 	// TODO: обсудить кто может создавать колонки
-	router.POST("/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.GET("/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.GET("/boards/:bid/columns/:cid/tasks", handler.GetTasks,
+	router.POST("/api/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.SendSignal)
+	router.GET("/api/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.GET("/api/boards/:bid/columns/:cid/tasks", handler.GetTasks,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.PUT("/boards/:bid/columns/:cid", handler.Update,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.DELETE("/boards/:bid/columns/:cid", handler.Delete,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+	router.PUT("/api/boards/:bid/columns/:cid", handler.Update, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+	router.DELETE("/api/boards/:bid/columns/:cid", handler.Delete, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
@@ -48,6 +49,8 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -96,5 +99,7 @@ func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }

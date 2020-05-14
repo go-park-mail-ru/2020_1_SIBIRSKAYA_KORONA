@@ -4,11 +4,11 @@ package models
 type Event struct {
 	ID        uint          `json:"-" gorm:"primary_key"`
 	EventType string        `json:"eventType" gorm:"not null"`
-	CreateAt  int64         `json:"createAt" gorm:"not null"`
-	IsRead    bool          `json:"isRead"`
-	Uid       uint          `json:"uid" gorm:"not null"` // кому придет уведомление
-	MakeUid   uint          `json:"-" gorm:"not null"`   // кто сделал действие
-	MakeUsr   *User         `json:"makeUser" gorm:"-"`
+	CreateAt  int64         `json:"createAt,omitempty" gorm:"not null"`
+	IsRead    bool          `json:"isRead,omitempty"`
+	Uid       uint          `json:"uid,omitempty" gorm:"not null"` // кому придет уведомление
+	MakeUid   uint          `json:"-" gorm:"not null"`             // кто сделал действие
+	MakeUsr   *User         `json:"makeUser,omitempty" gorm:"-"`
 	MetaData  EventMetaData `json:"metaData" gorm:"foreignkey:eid"`
 }
 
@@ -28,7 +28,7 @@ type EventMetaData struct {
 	Cid        uint   `json:"cid,omitempty"`
 	Tid        uint   `json:"tid,omitempty"`
 	EntityData string `json:"entityData,omitempty"`
-	About      string `json:"about,omitempty"`
+	Text       string `json:"text,omitempty"`
 }
 
 func (metaData *EventMetaData) TableName() string {

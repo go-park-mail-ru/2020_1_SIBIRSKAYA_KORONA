@@ -375,8 +375,58 @@ func (mw *Middleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// redraw
+func (mw *Middleware) SendSignal(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		err := next(ctx)
+		status := ctx.Response().Status
+		if err != nil || status != http.StatusOK {
+			logger.Error("error:", err, " status:", status)
+			return err
+		}
+		ev := &models.Event{
+			EventType: ctx.Get("eventType").(string),
+		}
+		uid := ctx.Get("uid").(uint)
+		var membes models.Users
+		if ev.EventType == "UpdateBoard" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			tmp, err := mw.bUseCase.Get(uid, ev.MetaData.Bid, false)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = append(tmp.Members, tmp.Admins...)
+		} else if ev.EventType == "UpdateTask" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+		} else {
+			return nil
+		}
+		for _, elem := range membes {
+			if elem.ID == uid {
+				continue
+			}
+			resp, err := ev.MarshalJSON()
+			if err != nil {
+				logger.Error(err)
+			}
+			mw.wsPool.Send(elem.ID, resp)
+			logger.Debug("send notifications to user:", ev.Uid)
+		}
+		return nil
+	}
+}
+
 // notification
-func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.HandlerFunc {
+func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		err := next(ctx)
 		status := ctx.Response().Status
@@ -429,7 +479,7 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			}
 			membes = tmp.Members
 			ev.MetaData.EntityData = tmp.Name
-		} else if ev.EventType == "UpdateTask" {
+			/*} else if ev.EventType == "UpdateTask" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
@@ -439,7 +489,7 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 				return nil
 			}
 			membes = tmp.Members
-			ev.MetaData.EntityData = tmp.Name
+			ev.MetaData.EntityData = tmp.Name*/
 		} else if ev.EventType == "AddComment" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
@@ -451,7 +501,7 @@ func (mw *Middleware) SendInviteNotifications(next echo.HandlerFunc) echo.Handle
 			}
 			membes = tmp.Members
 			ev.MetaData.EntityData = tmp.Name
-			ev.MetaData.About = ctx.Get("commentText").(string)
+			ev.MetaData.Text = ctx.Get("commentText").(string)
 		} else {
 			return nil
 		}

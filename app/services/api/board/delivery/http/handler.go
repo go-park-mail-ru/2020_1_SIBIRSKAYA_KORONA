@@ -22,16 +22,16 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 		useCase: useCase,
 	}
 	// TODO: админы
-	router.POST("/boards", handler.Create, mw.Sanitize, mw.CheckAuth)
-	router.GET("/boards", handler.GetBoardsByUser, mw.CheckAuth)
-	router.GET("/boards/:bid", handler.Get, mw.CheckAuth)
-	router.GET("/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.GET("/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.PUT("/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission)
-	router.DELETE("/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission)
-	router.POST("/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendInviteNotifications)
-	router.DELETE("/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission)
-	router.GET("/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.POST("/api/boards", handler.Create, mw.Sanitize, mw.CheckAuth)
+	router.GET("/api/boards", handler.GetBoardsByUser, mw.CheckAuth)
+	router.GET("/api/boards/:bid", handler.Get, mw.CheckAuth)
+	router.GET("/api/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.GET("/api/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.PUT("/api/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal)
+	router.DELETE("/api/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal)
+	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
+	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
+	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
@@ -139,6 +139,8 @@ func (boardHandler *BoardHandler) Update(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -149,6 +151,8 @@ func (boardHandler *BoardHandler) Delete(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -182,6 +186,9 @@ func (boardHandler *BoardHandler) DeleteMember(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("forUid", uid)
+	ctx.Set("eventType", "DeleteFromBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

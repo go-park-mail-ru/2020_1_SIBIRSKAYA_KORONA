@@ -19,19 +19,20 @@ type TaskHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middleware) {
 	handler := &TaskHandler{UseCase: useCase}
-	router.POST("boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
+	router.POST("/api/boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
+	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.PUT("boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendInviteNotifications)
-	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.POST("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
+	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckUserForAssignInBoard, mw.SendInviteNotifications)
-	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+		mw.CheckUserForAssignInBoard, mw.SendNotification)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckUserForAssignInBoard, mw.SendNotification)
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
@@ -52,6 +53,8 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -100,6 +103,8 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -124,5 +129,7 @@ func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UnassignFromTask")
 	return ctx.NoContent(http.StatusOK)
 }

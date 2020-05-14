@@ -18,9 +18,9 @@ type NotificationHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase notification.UseCase, mw *middleware.Middleware) {
 	handler := &NotificationHandler{UseCase: useCase}
-	router.GET("/notifications", handler.GetAll, mw.CheckAuth)
-	router.PUT("/notifications", handler.UpdateAll, mw.CheckAuth)
-	router.DELETE("/notifications", handler.DeleteAll, mw.CheckAuth)
+	router.GET("/api/notifications", handler.GetAll, mw.CheckAuth)
+	router.PUT("/api/notifications", handler.UpdateAll, mw.CheckAuth)
+	router.DELETE("/api/notifications", handler.DeleteAll, mw.CheckAuth)
 }
 
 func (notificationHandler *NotificationHandler) GetAll(ctx echo.Context) error {
