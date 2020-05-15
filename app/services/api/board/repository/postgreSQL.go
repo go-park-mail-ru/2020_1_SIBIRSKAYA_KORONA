@@ -19,7 +19,7 @@ type BoardStore struct {
 }
 
 func CreateRepository(db *gorm.DB) board.Repository {
-	return &BoardStore{DB: db, linkLen: 10}
+	return &BoardStore{DB: db, linkLen: 16}
 }
 
 func (boardStore *BoardStore) generateInviteLink(size uint) string {
@@ -32,12 +32,12 @@ func (boardStore *BoardStore) generateInviteLink(size uint) string {
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
+	board.InvateLink = boardStore.generateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Create(board).Error
 	if err != nil {
 		logger.Error(err)
 		return errors.ErrConflict
 	}
-	board.InvateLink = boardStore.generateInviteLink(boardStore.linkLen)
 	err = boardStore.DB.Model(board).Association("Admins").Append(&models.User{ID: uid}).Error
 	if err != nil {
 		logger.Error(err)
