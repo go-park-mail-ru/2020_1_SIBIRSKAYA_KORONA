@@ -1,20 +1,34 @@
 package repository
 
 import (
+	"math/rand"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 type BoardStore struct {
-	DB *gorm.DB
+	DB      *gorm.DB
+	linkLen uint
 }
 
 func CreateRepository(db *gorm.DB) board.Repository {
-	return &BoardStore{DB: db}
+	return &BoardStore{DB: db, linkLen: 10}
+}
+
+func (boardStore *BoardStore) generateInviteLink(size uint) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	s := make([]rune, size)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
@@ -23,6 +37,7 @@ func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
 		logger.Error(err)
 		return errors.ErrConflict
 	}
+	board.InvateLink = boardStore.generateInviteLink(boardStore.linkLen)
 	err = boardStore.DB.Model(board).Association("Admins").Append(&models.User{ID: uid}).Error
 	if err != nil {
 		logger.Error(err)
@@ -218,4 +233,19 @@ func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, l
 		return nil, errors.ErrUserNotFound
 	}
 	return users, nil
+}
+
+func (boardStore *BoardStore) InviteMemberByLink(bid uint, uid uint) error {
+	return nil
+}
+
+func (boardStore *BoardStore) UpdateInviteLink(bid uint) (string, error) {
+	invateLink := boardStore.generateInviteLink(boardStore.linkLen)
+	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
+		UpdateColumn("invate_link", invateLink).Error
+	if err != nil {
+		logger.Error(err)
+		return "", errors.ErrDbBadOperation
+	}
+	return invateLink, nil
 }
