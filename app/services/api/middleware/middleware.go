@@ -141,7 +141,7 @@ func (mw *Middleware) Metrics(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		mw.metr.ObserveResponseTime(status, ctx.Request().Method, ctx.Path(), time.Since(start).Seconds())
 		mw.metr.IncHits(status, ctx.Request().Method, ctx.Path())
-		return nil
+		return err
 	}
 }
 
