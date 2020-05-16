@@ -24,7 +24,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middl
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
 	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
@@ -32,7 +32,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middl
 		mw.CheckUserForAssignInBoard, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckUserForAssignInBoard, mw.SendNotification)
+		mw.CheckUserForAssignInBoard, mw.SendSignal)
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
@@ -91,8 +91,14 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	// for notifications middlware
-	ctx.Set("eventType", "UpdateTask")
+	if tsk.Cid != 0 {
+		// for signal middlware
+		ctx.Set("eventType", "TaskColumnChanged")
+		ctx.Set("newCid", tsk.Cid)
+	} else {
+		// for signal middlware
+		ctx.Set("eventType", "UpdateBoard")
+	}
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -103,7 +109,7 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	// for notifications middlware
+	// for signal middlware
 	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
@@ -129,7 +135,7 @@ func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	// for notifications middlware
-	ctx.Set("eventType", "UnassignFromTask")
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }

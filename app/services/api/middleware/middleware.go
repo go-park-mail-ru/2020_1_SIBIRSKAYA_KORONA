@@ -448,11 +448,13 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 		// TODO: вынести в отдельные функции
 		var membes models.Users
 		if ev.EventType == "InviteToBoard" {
-			ev.MetaData.Uid = ctx.Get("forUid").(uint)
-			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
-			if err != nil {
-				logger.Error(err)
-				return nil
+			if ctx.Get("forUid") != nil {
+				ev.MetaData.Uid = ctx.Get("forUid").(uint)
+				ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
+				if err != nil {
+					logger.Error(err)
+					return nil
+				}
 			}
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
@@ -479,17 +481,28 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 			membes = tmp.Members
 			ev.MetaData.EntityData = tmp.Name
-			/*} else if ev.EventType == "UpdateTask" {
+		} else if ev.EventType == "TaskColumnChanged" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
-			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Cid = ctx.Get("newCid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
-			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			tmpTask, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {
 				logger.Error(err)
 				return nil
 			}
-			membes = tmp.Members
-			ev.MetaData.EntityData = tmp.Name*/
+			ev.MetaData.EntityData = tmpTask.Name
+			tmpCol, err := mw.tUseCase.Get(ev.MetaData.Bid, ev.MetaData.Cid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			ev.MetaData.Text = tmpCol.Name
+			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = append(tmp.Members, tmp.Admins...)
 		} else if ev.EventType == "AddComment" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
