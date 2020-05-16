@@ -63,10 +63,10 @@ func (mr *MockUseCaseMockRecorder) Get(bid, cid interface{}) *gomock.Call {
 }
 
 // GetTasksByID mocks base method
-func (m *MockUseCase) GetTasksByID(cid uint) ([]models.Task, error) {
+func (m *MockUseCase) GetTasksByID(cid uint) (models.Tasks, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTasksByID", cid)
-	ret0, _ := ret[0].([]models.Task)
+	ret0, _ := ret[0].(models.Tasks)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

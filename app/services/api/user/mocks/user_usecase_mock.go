@@ -9,7 +9,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	multipart "mime/multipart"
 	reflect "reflect"
-	time "time"
 )
 
 // MockUseCase is a mock of UseCase interface
@@ -36,7 +35,7 @@ func (m *MockUseCase) EXPECT() *MockUseCaseMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockUseCase) Create(user *models.User, sessionExpires time.Time) (string, error) {
+func (m *MockUseCase) Create(user *models.User, sessionExpires int32) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", user, sessionExpires)
 	ret0, _ := ret[0].(string)
@@ -80,24 +79,23 @@ func (mr *MockUseCaseMockRecorder) GetByNickname(nickname interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNickname", reflect.TypeOf((*MockUseCase)(nil).GetByNickname), nickname)
 }
 
-// GetBoardsByID mocks base method
-func (m *MockUseCase) GetBoardsByID(uid uint) ([]models.Board, []models.Board, error) {
+// GetUsersByNicknamePart mocks base method
+func (m *MockUseCase) GetUsersByNicknamePart(nicknamePart string, limit uint) ([]models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBoardsByID", uid)
-	ret0, _ := ret[0].([]models.Board)
-	ret1, _ := ret[1].([]models.Board)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret := m.ctrl.Call(m, "GetUsersByNicknamePart", nicknamePart, limit)
+	ret0, _ := ret[0].([]models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// GetBoardsByID indicates an expected call of GetBoardsByID
-func (mr *MockUseCaseMockRecorder) GetBoardsByID(uid interface{}) *gomock.Call {
+// GetUsersByNicknamePart indicates an expected call of GetUsersByNicknamePart
+func (mr *MockUseCaseMockRecorder) GetUsersByNicknamePart(nicknamePart, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBoardsByID", reflect.TypeOf((*MockUseCase)(nil).GetBoardsByID), uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersByNicknamePart", reflect.TypeOf((*MockUseCase)(nil).GetUsersByNicknamePart), nicknamePart, limit)
 }
 
 // Update mocks base method
-func (m *MockUseCase) Update(oldPass []byte, newUser *models.User, avatarFileDescriptor *multipart.FileHeader) error {
+func (m *MockUseCase) Update(oldPass []byte, newUser models.User, avatarFileDescriptor *multipart.FileHeader) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", oldPass, newUser, avatarFileDescriptor)
 	ret0, _ := ret[0].(error)

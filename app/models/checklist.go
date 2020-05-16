@@ -4,7 +4,7 @@ package models
 type Checklist struct {
 	ID    uint   `json:"id" gorm:"primary_key"`
 	Name  string `json:"name" gorm:"not null" faker:"word"`
-	Items []Item `json:"items,omitempty" gorm:"foreignkey:clid"`
+	Items []Item `json:"items,omitempty" gorm:"foreignkey:clid" faker:"-"`
 	Tid   uint   `json:"tid" gorm:"not null"`
 }
 

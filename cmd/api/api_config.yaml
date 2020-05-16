@@ -10,20 +10,22 @@ logger: {
 }
 
 grpc_clients: {
-  #user: 127.0.0.1:8082,
   user: user:8082,
-  #session: 127.0.0.1:8081,
   session: session:8081,
 }
 
 database: {
   dbms: postgres,
   host: postgres,
-  #host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
   sslmode: disable
+}
+
+metrics: {
+  url: "0.0.0.0:7070",
+  service: "api"
 }
 
 frontend: {
@@ -39,6 +41,7 @@ frontend: {
 
 cors: {
   allowed_origins: [
+    https://192.168.0.103:5555,
     http://89.208.197.150,
     https://89.208.197.150,
     https://0.0.0.0:5555,

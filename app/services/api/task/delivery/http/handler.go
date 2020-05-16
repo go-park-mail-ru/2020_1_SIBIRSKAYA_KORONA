@@ -14,23 +14,25 @@ import (
 )
 
 type TaskHandler struct {
-	useCase task.UseCase
+	UseCase task.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middleware) {
-	handler := &TaskHandler{useCase: useCase}
-	router.POST("boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
+	handler := &TaskHandler{UseCase: useCase}
+	router.POST("/api/boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
+	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.GET("boards/:bid/columns/:cid/tasks/:tid", handler.Get,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.PUT("boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.DELETE("boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.POST("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
-	router.DELETE("boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckUserForAssignInBoard)
+	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckUserForAssignInBoard, mw.SendNotification)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckUserForAssignInBoard, mw.SendNotification)
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
@@ -42,7 +44,7 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	tsk.Cid = ctx.Get("cid").(uint)
-	err = taskHandler.useCase.Create(&tsk)
+	err = taskHandler.UseCase.Create(&tsk)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -51,6 +53,8 @@ func (taskHandler *TaskHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -61,7 +65,7 @@ func (taskHandler *TaskHandler) Get(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	tsk, err := taskHandler.useCase.Get(cid, tid)
+	tsk, err := taskHandler.UseCase.Get(cid, tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -82,42 +86,50 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	tsk.ID = ctx.Get("tid").(uint)
-	err = taskHandler.useCase.Update(tsk)
+	err = taskHandler.UseCase.Update(tsk)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	err := taskHandler.useCase.Delete(tid)
+	err := taskHandler.UseCase.Delete(tid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assignUid := ctx.Get("uid_for_assign").(uint)
-	err := taskHandler.useCase.Assign(tid, assignUid)
+	assignUid := ctx.Get("forUid").(uint)
+	err := taskHandler.UseCase.Assign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "AssignOnTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 	tid := ctx.Get("tid").(uint)
-	assignUid := ctx.Get("uid_for_assign").(uint)
-	err := taskHandler.useCase.Unassign(tid, assignUid)
+	assignUid := ctx.Get("forUid").(uint)
+	err := taskHandler.UseCase.Unassign(tid, assignUid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for notifications middlware
+	ctx.Set("eventType", "UnassignFromTask")
 	return ctx.NoContent(http.StatusOK)
 }

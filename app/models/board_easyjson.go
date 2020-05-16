@@ -179,6 +179,8 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 			out.ID = uint(in.Uint())
 		case "title":
 			out.Name = string(in.String())
+		case "invateLink":
+			out.InvateLink = string(in.String())
 		case "columns":
 			if in.IsNull() {
 				in.Skip()
@@ -196,7 +198,7 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				}
 				for !in.IsDelim(']') {
 					var v4 Column
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(in, &v4)
+					(v4).UnmarshalEasyJSON(in)
 					out.Columns = append(out.Columns, v4)
 					in.WantComma()
 				}
@@ -219,7 +221,7 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				}
 				for !in.IsDelim(']') {
 					var v5 Label
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(in, &v5)
+					(v5).UnmarshalEasyJSON(in)
 					out.Labels = append(out.Labels, v5)
 					in.WantComma()
 				}
@@ -242,7 +244,7 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				}
 				for !in.IsDelim(']') {
 					var v6 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(in, &v6)
+					(v6).UnmarshalEasyJSON(in)
 					out.Admins = append(out.Admins, v6)
 					in.WantComma()
 				}
@@ -265,7 +267,7 @@ func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				}
 				for !in.IsDelim(']') {
 					var v7 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(in, &v7)
+					(v7).UnmarshalEasyJSON(in)
 					out.Members = append(out.Members, v7)
 					in.WantComma()
 				}
@@ -295,6 +297,11 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}
+	{
+		const prefix string = ",\"invateLink\":"
+		out.RawString(prefix)
+		out.String(string(in.InvateLink))
+	}
 	if len(in.Columns) != 0 {
 		const prefix string = ",\"columns\":"
 		out.RawString(prefix)
@@ -304,7 +311,7 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				if v8 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(out, v9)
+				(v9).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -318,7 +325,7 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				if v10 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(out, v11)
+				(v11).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -332,7 +339,7 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				if v12 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(out, v13)
+				(v13).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -346,7 +353,7 @@ func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(
 				if v14 > 0 {
 					out.RawByte(',')
 				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(out, v15)
+				(v15).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -376,716 +383,4 @@ func (v *Board) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Board) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels2(l, v)
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(in *jlexer.Lexer, out *User) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "name":
-			out.Name = string(in.String())
-		case "surname":
-			out.Surname = string(in.String())
-		case "nickname":
-			out.Nickname = string(in.String())
-		case "avatar":
-			out.Avatar = string(in.String())
-		case "email":
-			out.Email = string(in.String())
-		case "password":
-			if in.IsNull() {
-				in.Skip()
-				out.Password = nil
-			} else {
-				out.Password = in.Bytes()
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(out *jwriter.Writer, in User) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"surname\":"
-		out.RawString(prefix)
-		out.String(string(in.Surname))
-	}
-	{
-		const prefix string = ",\"nickname\":"
-		out.RawString(prefix)
-		out.String(string(in.Nickname))
-	}
-	{
-		const prefix string = ",\"avatar\":"
-		out.RawString(prefix)
-		out.String(string(in.Avatar))
-	}
-	if in.Email != "" {
-		const prefix string = ",\"email\":"
-		out.RawString(prefix)
-		out.String(string(in.Email))
-	}
-	if len(in.Password) != 0 {
-		const prefix string = ",\"password\":"
-		out.RawString(prefix)
-		out.Base64Bytes(in.Password)
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(in *jlexer.Lexer, out *Label) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "title":
-			out.Name = string(in.String())
-		case "color":
-			out.Color = string(in.String())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(out *jwriter.Writer, in Label) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"color\":"
-		out.RawString(prefix)
-		out.String(string(in.Color))
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(in *jlexer.Lexer, out *Column) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "title":
-			out.Name = string(in.String())
-		case "position":
-			out.Pos = float64(in.Float64())
-		case "tasks":
-			if in.IsNull() {
-				in.Skip()
-				out.Tasks = nil
-			} else {
-				in.Delim('[')
-				if out.Tasks == nil {
-					if !in.IsDelim(']') {
-						out.Tasks = make([]Task, 0, 1)
-					} else {
-						out.Tasks = []Task{}
-					}
-				} else {
-					out.Tasks = (out.Tasks)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v19 Task
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels6(in, &v19)
-					out.Tasks = append(out.Tasks, v19)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels3(out *jwriter.Writer, in Column) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"position\":"
-		out.RawString(prefix)
-		out.Float64(float64(in.Pos))
-	}
-	if len(in.Tasks) != 0 {
-		const prefix string = ",\"tasks\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v20, v21 := range in.Tasks {
-				if v20 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels6(out, v21)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels6(in *jlexer.Lexer, out *Task) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "title":
-			out.Name = string(in.String())
-		case "description":
-			out.About = string(in.String())
-		case "level":
-			out.Level = uint(in.Uint())
-		case "deadline":
-			out.Deadline = string(in.String())
-		case "position":
-			out.Pos = float64(in.Float64())
-		case "cid":
-			out.Cid = uint(in.Uint())
-		case "members":
-			if in.IsNull() {
-				in.Skip()
-				out.Members = nil
-			} else {
-				in.Delim('[')
-				if out.Members == nil {
-					if !in.IsDelim(']') {
-						out.Members = make([]User, 0, 1)
-					} else {
-						out.Members = []User{}
-					}
-				} else {
-					out.Members = (out.Members)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v22 User
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(in, &v22)
-					out.Members = append(out.Members, v22)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "comments":
-			if in.IsNull() {
-				in.Skip()
-				out.Comments = nil
-			} else {
-				in.Delim('[')
-				if out.Comments == nil {
-					if !in.IsDelim(']') {
-						out.Comments = make([]Comment, 0, 1)
-					} else {
-						out.Comments = []Comment{}
-					}
-				} else {
-					out.Comments = (out.Comments)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v23 Comment
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels7(in, &v23)
-					out.Comments = append(out.Comments, v23)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "checklists":
-			if in.IsNull() {
-				in.Skip()
-				out.Checklists = nil
-			} else {
-				in.Delim('[')
-				if out.Checklists == nil {
-					if !in.IsDelim(']') {
-						out.Checklists = make([]Checklist, 0, 1)
-					} else {
-						out.Checklists = []Checklist{}
-					}
-				} else {
-					out.Checklists = (out.Checklists)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v24 Checklist
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels8(in, &v24)
-					out.Checklists = append(out.Checklists, v24)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "labels":
-			if in.IsNull() {
-				in.Skip()
-				out.Labels = nil
-			} else {
-				in.Delim('[')
-				if out.Labels == nil {
-					if !in.IsDelim(']') {
-						out.Labels = make([]Label, 0, 1)
-					} else {
-						out.Labels = []Label{}
-					}
-				} else {
-					out.Labels = (out.Labels)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v25 Label
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(in, &v25)
-					out.Labels = append(out.Labels, v25)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels6(out *jwriter.Writer, in Task) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"description\":"
-		out.RawString(prefix)
-		out.String(string(in.About))
-	}
-	if in.Level != 0 {
-		const prefix string = ",\"level\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Level))
-	}
-	if in.Deadline != "" {
-		const prefix string = ",\"deadline\":"
-		out.RawString(prefix)
-		out.String(string(in.Deadline))
-	}
-	{
-		const prefix string = ",\"position\":"
-		out.RawString(prefix)
-		out.Float64(float64(in.Pos))
-	}
-	{
-		const prefix string = ",\"cid\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Cid))
-	}
-	if len(in.Members) != 0 {
-		const prefix string = ",\"members\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v26, v27 := range in.Members {
-				if v26 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels5(out, v27)
-			}
-			out.RawByte(']')
-		}
-	}
-	if len(in.Comments) != 0 {
-		const prefix string = ",\"comments\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v28, v29 := range in.Comments {
-				if v28 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels7(out, v29)
-			}
-			out.RawByte(']')
-		}
-	}
-	if len(in.Checklists) != 0 {
-		const prefix string = ",\"checklists\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v30, v31 := range in.Checklists {
-				if v30 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels8(out, v31)
-			}
-			out.RawByte(']')
-		}
-	}
-	if len(in.Labels) != 0 {
-		const prefix string = ",\"labels\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v32, v33 := range in.Labels {
-				if v32 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels4(out, v33)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels8(in *jlexer.Lexer, out *Checklist) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "name":
-			out.Name = string(in.String())
-		case "items":
-			if in.IsNull() {
-				in.Skip()
-				out.Items = nil
-			} else {
-				in.Delim('[')
-				if out.Items == nil {
-					if !in.IsDelim(']') {
-						out.Items = make([]Item, 0, 1)
-					} else {
-						out.Items = []Item{}
-					}
-				} else {
-					out.Items = (out.Items)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v34 Item
-					easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels9(in, &v34)
-					out.Items = append(out.Items, v34)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "tid":
-			out.Tid = uint(in.Uint())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels8(out *jwriter.Writer, in Checklist) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"name\":"
-		out.RawString(prefix)
-		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"items\":"
-		out.RawString(prefix)
-		if in.Items == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
-			out.RawByte('[')
-			for v35, v36 := range in.Items {
-				if v35 > 0 {
-					out.RawByte(',')
-				}
-				easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels9(out, v36)
-			}
-			out.RawByte(']')
-		}
-	}
-	{
-		const prefix string = ",\"tid\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Tid))
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels9(in *jlexer.Lexer, out *Item) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "text":
-			out.Text = string(in.String())
-		case "done":
-			out.IsDone = bool(in.Bool())
-		case "clid":
-			out.Clid = uint(in.Uint())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels9(out *jwriter.Writer, in Item) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"text\":"
-		out.RawString(prefix)
-		out.String(string(in.Text))
-	}
-	{
-		const prefix string = ",\"done\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsDone))
-	}
-	{
-		const prefix string = ",\"clid\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.Clid))
-	}
-	out.RawByte('}')
-}
-func easyjson202377feDecodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels7(in *jlexer.Lexer, out *Comment) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeString()
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "text":
-			out.Text = string(in.String())
-		case "createdAt":
-			out.CreatedAt = int64(in.Int64())
-		case "edited":
-			out.IsEdited = bool(in.Bool())
-		case "nickname":
-			out.Nickname = string(in.String())
-		case "avatar":
-			out.Avatar = string(in.String())
-		case "readerIsAuthor":
-			out.ReaderIsAuthor = bool(in.Bool())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson202377feEncodeGithubComGoParkMailRu20201SIBIRSKAYAKORONAAppModels7(out *jwriter.Writer, in Comment) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"text\":"
-		out.RawString(prefix)
-		out.String(string(in.Text))
-	}
-	if in.CreatedAt != 0 {
-		const prefix string = ",\"createdAt\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.CreatedAt))
-	}
-	{
-		const prefix string = ",\"edited\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsEdited))
-	}
-	{
-		const prefix string = ",\"nickname\":"
-		out.RawString(prefix)
-		out.String(string(in.Nickname))
-	}
-	{
-		const prefix string = ",\"avatar\":"
-		out.RawString(prefix)
-		out.String(string(in.Avatar))
-	}
-	{
-		const prefix string = ",\"readerIsAuthor\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.ReaderIsAuthor))
-	}
-	out.RawByte('}')
 }

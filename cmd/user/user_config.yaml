@@ -12,11 +12,15 @@ logger: {
 database: {
   dbms: postgres,
   host: postgres,
-  #host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
   sslmode: disable
+}
+
+metrics: {
+  url: "0.0.0.0:7072",
+  service: "user"
 }
 
 frontend: {

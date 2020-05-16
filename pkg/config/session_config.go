@@ -11,6 +11,8 @@ type SessionConfigController struct {
 	serverIp         string
 	serverPort       uint
 	memcachedConnect string
+	metricURL        string
+	service          string
 }
 
 func CreateSessionConfigController() *SessionConfigController {
@@ -19,6 +21,8 @@ func CreateSessionConfigController() *SessionConfigController {
 		serverIp:         viper.GetString("server.ip"),
 		serverPort:       viper.GetUint("server.port"),
 		memcachedConnect: fmt.Sprintf("%s:%d", viper.GetString("memcached.host"), viper.GetUint("memcached.port")),
+		metricURL:        viper.GetString("metrics.url"),
+		service:          viper.GetString("metrics.service"),
 	}
 }
 
@@ -36,4 +40,12 @@ func (cc *SessionConfigController) GetServerPort() uint {
 
 func (cc *SessionConfigController) GetMemcachedConnect() string {
 	return cc.memcachedConnect
+}
+
+func (cc *SessionConfigController) GetMetricsURL() string {
+	return cc.metricURL
+}
+
+func (cc *SessionConfigController) GetServiceName() string {
+	return cc.service
 }

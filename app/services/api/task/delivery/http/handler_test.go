@@ -1,23 +1,21 @@
 package http_test
 
 import (
-	"flag"
 	"os"
 	"testing"
 
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
-	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/delivery/http"
-	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/task/mocks"
+	taskHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/delivery/http"
+	taskMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 
 	test "net/http/httptest"
 
@@ -26,22 +24,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var test_opts struct {
-	configPath string
-}
-
 func TestMain(m *testing.M) {
-	flag.StringVar(&test_opts.configPath, "test-c", "", "path to configuration file")
-	flag.StringVar(&test_opts.configPath, "test-config", "", "path to configuration file")
-	flag.Parse()
-
-	viper.SetConfigFile(test_opts.configPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	logger.InitLogger()
-
+	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
 }
 
@@ -53,27 +37,25 @@ func TestCreate(t *testing.T) {
 	defer ctrl.Finish()
 
 	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.CreateHandlerTest(taskUsecaseMock)
+	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
+
+	body, err := testTask.MarshalJSON()
+	assert.NoError(t, err)
 
 	var testColumn models.Column
 	err = faker.FakeData(&testColumn)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testColumn)
-
-	bodyJSON, err := json.Marshal(testTask)
-	body := string(bodyJSON)
 
 	router := echo.New()
 
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(body))
+	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
-
+	context.Set("body", body)
 	context.Set("cid", testColumn.ID)
 	taskUsecaseMock.EXPECT().
 		Create(gomock.Any()).
@@ -82,33 +64,33 @@ func TestCreate(t *testing.T) {
 	err = handler.Create(context)
 
 	assert.NoError(t, err)
-	//assert.Equal(t, context.Response().Status, http.StatusOK)
+	assert.Equal(t, context.Response().Status, http.StatusOK)
 }
 
 func TestUpdate(t *testing.T) {
-	// t.Skip()
+	//t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.CreateHandlerTest(taskUsecaseMock)
+	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
 
-	bodyJSON, err := json.Marshal(testTask)
-	body := string(bodyJSON)
+	body, err := testTask.MarshalJSON()
+	assert.NoError(t, err)
 
 	router := echo.New()
 
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(body))
+	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
 
+	context.Set("body", body)
 	context.Set("tid", testTask.ID)
 	taskUsecaseMock.EXPECT().
 		Update(gomock.Any()).
@@ -121,26 +103,22 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	// t.Skip()
+	//t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	taskUsecaseMock := taskMocks.NewMockUseCase(ctrl)
-	handler := taskHandler.CreateHandlerTest(taskUsecaseMock)
+	handler := taskHandler.TaskHandler{UseCase: taskUsecaseMock}
 
 	var testTask models.Task
 	err := faker.FakeData(&testTask)
 	assert.NoError(t, err)
-	//t.Logf("%+v", testUser)
-
-	bodyJSON, err := json.Marshal(testTask)
-	body := string(bodyJSON)
 
 	router := echo.New()
 
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(body))
+	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
 	response := test.NewRecorder()
 	context := router.NewContext(request, response)
 

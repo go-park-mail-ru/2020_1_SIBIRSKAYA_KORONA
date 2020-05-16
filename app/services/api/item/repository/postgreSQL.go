@@ -30,7 +30,7 @@ func (itemStore *ItemStore) Update(newItem *models.Item) error {
 	var oldItem models.Item
 	if err := itemStore.DB.Where("id = ?", newItem.ID).First(&oldItem).Error; err != nil {
 		logger.Error(err)
-		return errors.ErrItemNotFound // TODO: ошибку добавить
+		return errors.ErrItemNotFound
 	}
 	if newItem.Text != "" {
 		oldItem.Text = newItem.Text
@@ -49,7 +49,7 @@ func (itemStore *ItemStore) GetByID(itid uint) (*models.Item, error) {
 	itm := new(models.Item)
 	if err := itemStore.DB.First(itm, itid).Error; err != nil {
 		logger.Error(err)
-		return nil, errors.ErrChecklistNotFound
+		return nil, errors.ErrItemNotFound
 	}
 	return itm, nil
 }
@@ -58,7 +58,7 @@ func (itemStore *ItemStore) Delete(itid uint) error {
 	err := itemStore.DB.Delete(&models.Item{ID: itid}).Error
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrBoardNotFound
+		return errors.ErrDbBadOperation
 	}
 	return nil
 }

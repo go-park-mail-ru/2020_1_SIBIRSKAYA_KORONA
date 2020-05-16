@@ -25,7 +25,7 @@ func (sessionStore *SessionStore) Create(ses models.Session) error {
 	})
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrConflict
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func (sessionStore *SessionStore) Get(sid string) (uint, error) {
 	idByte, err := sessionStore.DB.Get(sid)
 	if err != nil {
 		logger.Error(err)
-		return 0, errors.ErrDbBadOperation
+		return 0, errors.ErrNoCookie
 	}
 	var id uint
 	_, err = fmt.Sscan(string(idByte.Value), &id)
@@ -48,7 +48,7 @@ func (sessionStore *SessionStore) Delete(sid string) error {
 	err := sessionStore.DB.Delete(sid)
 	if err != nil {
 		logger.Error(err)
-		return errors.ErrDbBadOperation
+		return errors.ErrNoCookie
 	}
 	return nil
 }

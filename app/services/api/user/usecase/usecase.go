@@ -63,7 +63,6 @@ func (userUseCase *UserUseCase) GetUsersByNicknamePart(nicknamePart string, limi
 		logger.Error(err)
 		return nil, err
 	}
-
 	return users, nil
 }
 

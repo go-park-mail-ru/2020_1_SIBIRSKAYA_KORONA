@@ -7,6 +7,8 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist"
@@ -14,13 +16,17 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/comment"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/item"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/notification"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/session"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/task"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/csrf"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/sanitize"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/webSocketPool"
 
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -30,8 +36,11 @@ type Middleware struct {
 	origins    map[string]struct{}
 	serverMode string
 
-	metr        metric.Metrics
+	metr   metric.Metrics
+	wsPool webSocketPool.WebSocketPool
+
 	sUseCase    session.UseCase
+	uUseCase    user.UseCase
 	bUseCase    board.UseCase
 	cUseCase    column.UseCase
 	tUseCase    task.UseCase
@@ -40,19 +49,23 @@ type Middleware struct {
 	chUseCase   checklist.UseCase
 	itUseCase   item.UseCase
 	atchUseCase attach.UseCase
+	notfUseCase notification.UseCase
 }
 
-func CreateMiddleware(metr_ metric.Metrics, sUseCase_ session.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase, tUseCase_ task.UseCase,
-	comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase, lUseCase_ label.UseCase, atchUseCase_ attach.UseCase) *Middleware {
+func CreateMiddleware(sUseCase_ session.UseCase, uUseCase_ user.UseCase, bUseCase_ board.UseCase, cUseCase_ column.UseCase,
+	tUseCase_ task.UseCase, comUseCase_ comment.UseCase, chUseCase_ checklist.UseCase, itUseCase_ item.UseCase,
+	lUseCase_ label.UseCase, atchUseCase_ attach.UseCase, notfUseCase_ notification.UseCase) *Middleware {
 	origins_ := make(map[string]struct{})
+	// TODO: вайпер
 	for _, key := range viper.GetStringSlice("cors.allowed_origins") {
 		origins_[key] = struct{}{}
 	}
 	return &Middleware{
-		origins:     origins_,
-		serverMode:  viper.GetString("server.mode"),
-		metr:        metr_,
+		origins:    origins_,
+		serverMode: viper.GetString("server.mode"),
+
 		sUseCase:    sUseCase_,
+		uUseCase:    uUseCase_,
 		bUseCase:    bUseCase_,
 		cUseCase:    cUseCase_,
 		lUseCase:    lUseCase_,
@@ -61,7 +74,16 @@ func CreateMiddleware(metr_ metric.Metrics, sUseCase_ session.UseCase, bUseCase_
 		chUseCase:   chUseCase_,
 		itUseCase:   itUseCase_,
 		atchUseCase: atchUseCase_,
+		notfUseCase: notfUseCase_,
 	}
+}
+
+func (mw *Middleware) SetMetrics(metr_ metric.Metrics) {
+	mw.metr = metr_
+}
+
+func (mw *Middleware) SetWebSocketPool(wsPool_ webSocketPool.WebSocketPool) {
+	mw.wsPool = wsPool_
 }
 
 func (mw *Middleware) RequestLogger(next echo.HandlerFunc) echo.HandlerFunc {
@@ -119,7 +141,7 @@ func (mw *Middleware) Metrics(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		mw.metr.ObserveResponseTime(status, ctx.Request().Method, ctx.Path(), time.Since(start).Seconds())
 		mw.metr.IncHits(status, ctx.Request().Method, ctx.Path())
-		return nil
+		return err
 	}
 }
 
@@ -191,6 +213,23 @@ func (mw *Middleware) CheckBoardMemberPermission(next echo.HandlerFunc) echo.Han
 	}
 }
 
+func (mw *Middleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var bid uint
+		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
+		if err != nil {
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		uid := ctx.Get("uid").(uint)
+		if _, err := mw.bUseCase.Get(uid, bid, true); err != nil {
+			logger.Error(err)
+			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+		}
+		ctx.Set("bid", bid)
+		return next(ctx)
+	}
+}
+
 // вызывается после CheckBoard...Permission
 func (mw *Middleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
@@ -204,24 +243,7 @@ func (mw *Middleware) CheckUserForAssignInBoard(next echo.HandlerFunc) echo.Hand
 			logger.Error(err)
 			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 		}
-		ctx.Set("uid_for_assign", assignUid)
-		ctx.Set("bid", bid)
-		return next(ctx)
-	}
-}
-
-func (mw *Middleware) CheckBoardAdminPermission(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		var bid uint
-		_, err := fmt.Sscan(ctx.Param("bid"), &bid)
-		if err != nil {
-			return ctx.NoContent(http.StatusBadRequest)
-		}
-		uid := ctx.Get("uid").(uint)
-		if _, err := mw.bUseCase.Get(uid, bid, true); err != nil {
-			logger.Error(err)
-			return ctx.String(errors.ResolveErrorToCode(err), err.Error())
-		}
+		ctx.Set("forUid", assignUid)
 		ctx.Set("bid", bid)
 		return next(ctx)
 	}
@@ -350,5 +372,154 @@ func (mw *Middleware) DebugMiddle(next echo.HandlerFunc) echo.HandlerFunc {
 			logger.Debugf("\nRequest dump begin :--------------\n\n%s\n\nRequest dump end :--------------", dump)
 		}
 		return next(ctx)
+	}
+}
+
+// redraw
+func (mw *Middleware) SendSignal(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		err := next(ctx)
+		status := ctx.Response().Status
+		if err != nil || status != http.StatusOK {
+			logger.Error("error:", err, " status:", status)
+			return err
+		}
+		ev := &models.Event{
+			EventType: ctx.Get("eventType").(string),
+		}
+		uid := ctx.Get("uid").(uint)
+		var membes models.Users
+		if ev.EventType == "UpdateBoard" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			tmp, err := mw.bUseCase.Get(uid, ev.MetaData.Bid, false)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = append(tmp.Members, tmp.Admins...)
+		} else if ev.EventType == "UpdateTask" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+		} else {
+			return nil
+		}
+		for _, elem := range membes {
+			if elem.ID == uid {
+				continue
+			}
+			resp, err := ev.MarshalJSON()
+			if err != nil {
+				logger.Error(err)
+			}
+			mw.wsPool.Send(elem.ID, resp)
+			logger.Debug("send notifications to user:", elem.ID)
+		}
+		return nil
+	}
+}
+
+// notification
+func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		err := next(ctx)
+		status := ctx.Response().Status
+		if err != nil || status != http.StatusOK {
+			logger.Error("error:", err, " status:", status)
+			return err
+		}
+		ev := &models.Event{
+			EventType: ctx.Get("eventType").(string),
+			CreateAt:  time.Now().Unix(),
+			IsRead:    false,
+			MakeUid:   ctx.Get("uid").(uint),
+		}
+		ev.MakeUsr, err = mw.uUseCase.GetByID(ev.MakeUid)
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+		// TODO: вынести в отдельные функции
+		var membes models.Users
+		if ev.EventType == "InviteToBoard" {
+			ev.MetaData.Uid = ctx.Get("forUid").(uint)
+			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = append(tmp.Members, tmp.Admins...)
+			ev.MetaData.EntityData = tmp.Name
+		} else if ev.EventType == "AssignOnTask" {
+			ev.MetaData.Uid = ctx.Get("forUid").(uint)
+			ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name
+			/*} else if ev.EventType == "UpdateTask" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name*/
+		} else if ev.EventType == "AddComment" {
+			ev.MetaData.Bid = ctx.Get("bid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
+			ev.MetaData.Tid = ctx.Get("tid").(uint)
+			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			if err != nil {
+				logger.Error(err)
+				return nil
+			}
+			membes = tmp.Members
+			ev.MetaData.EntityData = tmp.Name
+			ev.MetaData.Text = ctx.Get("commentText").(string)
+		} else {
+			return nil
+		}
+		for _, elem := range membes {
+			ev.Uid = elem.ID
+			if ev.Uid == ev.MakeUid {
+				continue
+			}
+			if err = mw.notfUseCase.Create(ev); err != nil {
+				logger.Error(err)
+			}
+			resp, err := ev.MarshalJSON()
+			if err != nil {
+				logger.Error(err)
+			}
+			mw.wsPool.Send(ev.Uid, resp)
+			logger.Debug("send notifications to user:", ev.Uid)
+		}
+		return nil
 	}
 }
