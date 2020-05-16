@@ -1,0 +1,35 @@
+name: Docker-way build
+
+on:
+  push:
+    branches: [ci_cd]
+  pull_request:
+    branches: [ci_cd]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: DockerHub login
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }}
+
+      - name: Create Builder, application images
+        run: |
+          docker build -f ../docker/builder.Dockerfile,
+          docker build -t drello/session:${GITHUB_SHA::8} -f ../docker/session.Dockerfile,
+          docker build -t drello/user:${GITHUB_SHA::8} -f ../docker/user.Dockerfile,
+          docker build -t drello/api:${GITHUB_SHA::8} -f ../docker/api.Dockerfile,
+      
+      - name: Push application images
+        run: |
+          docker push drello/session:${GITHUB_SHA::8}
+          docker push drello/user:${GITHUB_SHA::8}
+          docker push drello/api:${GITHUB_SHA::8}
+          
+
+
+
+
+
