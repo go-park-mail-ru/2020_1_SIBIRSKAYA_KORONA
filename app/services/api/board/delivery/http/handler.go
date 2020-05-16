@@ -30,7 +30,7 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
 	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardAdminPermission)
+	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission)
 	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth)
 }
 
@@ -216,16 +216,26 @@ func (boardHandler *BoardHandler) GetUsersForInvite(ctx echo.Context) error {
 }
 
 func (boardHandler *BoardHandler) InviteMemberByLink(ctx echo.Context) error {
-	ctx.Param("link")
-	return nil
-}
-
-func (boardHandler *BoardHandler) UpdateInviteLink(ctx echo.Context) error {
-	bid := ctx.Get("bid").(uint)
-	link, err := boardHandler.useCase.UpdateInviteLink(bid)
+	uid := ctx.Get("uid").(uint)
+	link := ctx.Param("link")
+	brd, err := boardHandler.useCase.InviteMemberByLink(uid, link)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	return ctx.String(http.StatusOK, link)
+	resp, err := brd.MarshalJSON()
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
+}
+
+func (boardHandler *BoardHandler) UpdateInviteLink(ctx echo.Context) error {
+	bid := ctx.Get("bid").(uint)
+	err := boardHandler.useCase.UpdateInviteLink(bid)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	return ctx.NoContent(http.StatusOK)
 }

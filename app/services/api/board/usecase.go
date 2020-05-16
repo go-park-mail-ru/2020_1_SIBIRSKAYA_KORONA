@@ -16,6 +16,6 @@ type UseCase interface {
 	InviteMember(bid uint, uid uint) error
 	DeleteMember(bid uint, uid uint) error
 	GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error)
-	InviteMemberByLink(bid uint, uid uint) error
-	UpdateInviteLink(bid uint) (string, error)
+	InviteMemberByLink(uid uint, link string) (*models.Board, error)
+	UpdateInviteLink(bid uint) error
 }

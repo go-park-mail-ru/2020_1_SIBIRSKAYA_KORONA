@@ -104,7 +104,7 @@ func (taskHandler *TaskHandler) Delete(ctx echo.Context) error {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	// for notifications middlware
-	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

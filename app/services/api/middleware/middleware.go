@@ -510,6 +510,7 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			if ev.Uid == ev.MakeUid {
 				continue
 			}
+			ev.ID = 0
 			if err = mw.notfUseCase.Create(ev); err != nil {
 				logger.Error(err)
 			}
