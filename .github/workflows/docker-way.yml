@@ -17,10 +17,10 @@ jobs:
 
       - name: Create Builder, application images
         run: |
-          docker build -f ../docker/builder.Dockerfile,
-          docker build -t drello/session:${GITHUB_SHA::8} -f ../docker/session.Dockerfile,
-          docker build -t drello/user:${GITHUB_SHA::8} -f ../docker/user.Dockerfile,
-          docker build -t drello/api:${GITHUB_SHA::8} -f ../docker/api.Dockerfile,
+          docker build -t drello/builder::${GITHUB_SHA::8} -f ../docker/builder.Dockerfile .,
+          docker build -t drello/session:${GITHUB_SHA::8} -f ../docker/session.Dockerfile .,
+          docker build -t drello/user:${GITHUB_SHA::8} -f ../docker/user.Dockerfile .,
+          docker build -t drello/api:${GITHUB_SHA::8} -f ../docker/api.Dockerfile .,
       
       - name: Push application images
         run: |
