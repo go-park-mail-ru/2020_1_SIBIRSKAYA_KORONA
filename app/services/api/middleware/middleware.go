@@ -516,6 +516,7 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 				continue
 			}
 			ev.ID = 0
+			ev.MetaData.ID = 0
 			if err = mw.notfUseCase.Create(ev); err != nil {
 				logger.Error(err)
 			}
