@@ -445,7 +445,6 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 		// TODO: вынести в отдельные функции
 		var members models.Users
 		if ev.EventType == "InviteToBoard" {
-			logger.Info("#######################################################")
 			if ctx.Get("forUid") != nil {
 				ev.MetaData.Uid = ctx.Get("forUid").(uint)
 				ev.MetaData.Usr, err = mw.uUseCase.GetByID(ev.MetaData.Uid)
