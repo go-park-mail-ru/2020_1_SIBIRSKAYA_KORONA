@@ -480,7 +480,7 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			ev.MetaData.EntityData = tmp.Name
 		} else if ev.EventType == "TaskColumnChanged" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
-			ev.MetaData.Cid = ctx.Get("newCid").(uint)
+			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
 			tmpTask, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {

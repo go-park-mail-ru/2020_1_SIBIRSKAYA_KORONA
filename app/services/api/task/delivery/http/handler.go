@@ -94,7 +94,7 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 	if tsk.Cid != 0 {
 		// for signal middlware
 		ctx.Set("eventType2", "TaskColumnChanged")
-		ctx.Set("newCid", tsk.Cid)
+		ctx.Set("cid", tsk.Cid)
 	}
 	// for signal middlware
 	ctx.Set("eventType", "UpdateTask")
