@@ -64,6 +64,11 @@ func (taskStore *TaskStore) Update(newTask models.Task) error {
 		oldTask.Pos = newTask.Pos
 	}
 	if newTask.Cid != 0 {
+		err := taskStore.DB.Model(models.EventMetaData{}).
+			Where("tid = ? ", newTask.ID).UpdateColumn("cid", newTask.Cid).Error
+		if err != nil {
+			logger.Error(err)
+		}
 		oldTask.Cid = newTask.Cid
 	}
 	if err := taskStore.DB.Save(oldTask).Error; err != nil {

@@ -55,7 +55,7 @@ func (labelHandler *LabelHandler) Create(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	// for signal middlware
-	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -94,7 +94,7 @@ func (labelHandler *LabelHandler) Update(ctx echo.Context) error {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	// for signal middlware
-	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -106,7 +106,7 @@ func (labelHandler *LabelHandler) Delete(ctx echo.Context) error {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	// for signal middlware
-	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

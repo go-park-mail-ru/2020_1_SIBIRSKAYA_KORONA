@@ -19,7 +19,7 @@ type BoardStore struct {
 }
 
 func CreateRepository(db *gorm.DB) board.Repository {
-	return &BoardStore{DB: db, linkLen: 16}
+	return &BoardStore{DB: db, linkLen: 32}
 }
 
 func (boardStore *BoardStore) generateInviteLink(size uint) string {
@@ -32,7 +32,7 @@ func (boardStore *BoardStore) generateInviteLink(size uint) string {
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
-	board.InvateLink = boardStore.generateInviteLink(boardStore.linkLen)
+	board.InviteLink = boardStore.generateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Create(board).Error
 	if err != nil {
 		logger.Error(err)
@@ -235,17 +235,46 @@ func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, l
 	return users, nil
 }
 
-func (boardStore *BoardStore) InviteMemberByLink(bid uint, uid uint) error {
-	return nil
-}
-
-func (boardStore *BoardStore) UpdateInviteLink(bid uint) (string, error) {
-	invateLink := boardStore.generateInviteLink(boardStore.linkLen)
-	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
-		UpdateColumn("invate_link", invateLink).Error
+func (boardStore *BoardStore) InviteMemberByLink(usr models.User, link string) (*models.Board, error) {
+	brd := new(models.Board)
+	err := boardStore.DB.Where("invite_link = ?", link).First(brd).Error
 	if err != nil {
 		logger.Error(err)
-		return "", errors.ErrDbBadOperation
+		return nil, errors.ErrBoardNotFound
 	}
-	return invateLink, nil
+	err = boardStore.DB.Model(brd).Select("id").Related(&brd.Admins, "Admins").Error
+	if err != nil {
+		logger.Error(err)
+	}
+	for _, member := range brd.Admins {
+		if member.ID == usr.ID {
+			return brd, errors.ErrConflict
+		}
+	}
+	err = boardStore.DB.Model(brd).Select("id").Related(&brd.Members, "Members").Error
+	if err != nil {
+		logger.Error(err)
+	}
+	for _, member := range brd.Members {
+		if member.ID == usr.ID {
+			return brd, errors.ErrConflict
+		}
+	}
+	err = boardStore.DB.Model(&brd).Association("Members").Append(usr).Error
+	if err != nil {
+		logger.Error(err)
+		return brd, errors.ErrConflict
+	}
+	return brd, nil
+}
+
+func (boardStore *BoardStore) UpdateInviteLink(bid uint) error {
+	inviteLink := boardStore.generateInviteLink(boardStore.linkLen)
+	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
+		UpdateColumn("invite_link", inviteLink).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	return nil
 }
