@@ -488,18 +488,13 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 				return nil
 			}
 			ev.MetaData.EntityData = tmpTask.Name
+			members = tmpTask.Members
 			tmpCol, err := mw.cUseCase.Get(ev.MetaData.Bid, ev.MetaData.Cid)
 			if err != nil {
 				logger.Error(err)
 				return nil
 			}
 			ev.MetaData.Text = tmpCol.Name
-			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
-			if err != nil {
-				logger.Error(err)
-				return nil
-			}
-			members = append(tmp.Members, tmp.Admins...)
 		} else if ev.EventType == "AddComment" {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)

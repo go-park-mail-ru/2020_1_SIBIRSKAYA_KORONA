@@ -21,9 +21,8 @@ type CommentHandler struct {
 
 func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Middleware) {
 	handler := &CommentHandler{useCase: useCase}
-
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendNotification)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Get, mw.CheckAuth,
 		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/comments/:comid", handler.Delete, mw.CheckAuth,
@@ -51,7 +50,8 @@ func (commentHandler *CommentHandler) Create(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
 	// for notifications middlware
-	ctx.Set("eventType", "AddComment")
+	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType2", "AddComment")
 	ctx.Set("commentText", cmt.Text)
 	return ctx.String(http.StatusOK, string(resp))
 }

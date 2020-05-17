@@ -30,7 +30,7 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
 	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendSignal)
 	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth, mw.SendNotification)
 }
 
@@ -222,6 +222,8 @@ func (boardHandler *BoardHandler) UpdateInviteLink(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

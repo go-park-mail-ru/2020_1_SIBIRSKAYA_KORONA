@@ -29,7 +29,7 @@ func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middl
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckUserForAssignInBoard, mw.SendNotification)
+		mw.CheckUserForAssignInBoard, mw.SendSignal, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
 		mw.CheckUserForAssignInBoard, mw.SendSignal)
@@ -122,7 +122,8 @@ func (taskHandler *TaskHandler) Assign(ctx echo.Context) error {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	// for notifications middlware
-	ctx.Set("eventType", "AssignOnTask")
+	ctx.Set("eventType", "UpdateTask")
+	ctx.Set("eventType2", "AssignOnTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
