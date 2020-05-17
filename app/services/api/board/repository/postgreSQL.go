@@ -248,13 +248,13 @@ func (boardStore *BoardStore) InviteMemberByLink(usr models.User, link string) (
 	}
 	for _, member := range brd.Admins {
 		if member.ID == usr.ID {
-			return brd, nil
+			return brd, errors.ErrConflict
 		}
 	}
 	err = boardStore.DB.Model(&brd).Association("Members").Append(usr).Error
 	if err != nil {
 		logger.Error(err)
-		// return nil, errors.ErrDbBadOperation
+		return brd, errors.ErrConflict
 	}
 	return brd, nil
 }

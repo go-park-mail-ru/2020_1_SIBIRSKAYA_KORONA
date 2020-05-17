@@ -93,12 +93,11 @@ func (taskHandler *TaskHandler) Update(ctx echo.Context) error {
 	}
 	if tsk.Cid != 0 {
 		// for signal middlware
-		ctx.Set("eventType", "TaskColumnChanged")
+		ctx.Set("eventType2", "TaskColumnChanged")
 		ctx.Set("newCid", tsk.Cid)
-	} else {
-		// for signal middlware
-		ctx.Set("eventType", "UpdateBoard")
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -136,6 +135,6 @@ func (taskHandler *TaskHandler) Unassign(ctx echo.Context) error {
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 	// for signal middlware
-	ctx.Set("eventType", "UpdateBoard")
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }

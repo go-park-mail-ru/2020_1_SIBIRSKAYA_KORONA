@@ -30,8 +30,8 @@ func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Midd
 	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
 	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
 	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
-	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth)
+	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission)
+	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth, mw.SendNotification)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {
@@ -215,21 +215,6 @@ func (boardHandler *BoardHandler) GetUsersForInvite(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, string(resp))
 }
 
-func (boardHandler *BoardHandler) InviteMemberByLink(ctx echo.Context) error {
-	uid := ctx.Get("uid").(uint)
-	link := ctx.Param("link")
-	brd, err := boardHandler.useCase.InviteMemberByLink(uid, link)
-	if err != nil {
-		logger.Error(err)
-		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
-	}
-	resp, err := brd.MarshalJSON()
-	if err != nil {
-		return ctx.NoContent(http.StatusInternalServerError)
-	}
-	return ctx.String(http.StatusOK, string(resp))
-}
-
 func (boardHandler *BoardHandler) UpdateInviteLink(ctx echo.Context) error {
 	bid := ctx.Get("bid").(uint)
 	err := boardHandler.useCase.UpdateInviteLink(bid)
@@ -237,7 +222,27 @@ func (boardHandler *BoardHandler) UpdateInviteLink(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
-	// for notifications middlware
-	ctx.Set("eventType", "InviteToBoard")
 	return ctx.NoContent(http.StatusOK)
+}
+
+func (boardHandler *BoardHandler) InviteMemberByLink(ctx echo.Context) error {
+	uid := ctx.Get("uid").(uint)
+	link := ctx.Param("link")
+	brd, err := boardHandler.useCase.InviteMemberByLink(uid, link)
+	if err != nil && err != errors.ErrConflict {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	// for notifications middlware
+	if err == nil {
+		ctx.Set("eventType", "InviteToBoard")
+		ctx.Set("bid", brd.ID)
+	} else {
+		ctx.Set("eventType", "NoSend")
+	}
+	resp, err := brd.MarshalJSON()
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.String(http.StatusOK, string(resp))
 }

@@ -146,7 +146,7 @@ func (boardUseCase *BoardUseCase) InviteMemberByLink(uid uint, link string) (*mo
 	brd, err := boardUseCase.boardRepo.InviteMemberByLink(*usr, link)
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return brd, err
 	}
 	return brd, nil
 }
