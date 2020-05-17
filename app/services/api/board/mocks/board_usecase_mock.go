@@ -180,26 +180,26 @@ func (mr *MockUseCaseMockRecorder) GetUsersForInvite(bid, nicknamePart, limit in
 }
 
 // InviteMemberByLink mocks base method
-func (m *MockUseCase) InviteMemberByLink(bid, uid uint) error {
+func (m *MockUseCase) InviteMemberByLink(uid uint, link string) (*models.Board, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InviteMemberByLink", bid, uid)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "InviteMemberByLink", uid, link)
+	ret0, _ := ret[0].(*models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // InviteMemberByLink indicates an expected call of InviteMemberByLink
-func (mr *MockUseCaseMockRecorder) InviteMemberByLink(bid, uid interface{}) *gomock.Call {
+func (mr *MockUseCaseMockRecorder) InviteMemberByLink(uid, link interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMemberByLink", reflect.TypeOf((*MockUseCase)(nil).InviteMemberByLink), bid, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMemberByLink", reflect.TypeOf((*MockUseCase)(nil).InviteMemberByLink), uid, link)
 }
 
 // UpdateInviteLink mocks base method
-func (m *MockUseCase) UpdateInviteLink(bid uint) (string, error) {
+func (m *MockUseCase) UpdateInviteLink(bid uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateInviteLink", bid)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateInviteLink indicates an expected call of UpdateInviteLink

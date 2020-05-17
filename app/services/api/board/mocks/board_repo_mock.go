@@ -180,26 +180,26 @@ func (mr *MockRepositoryMockRecorder) GetUsersForInvite(bid, nicknamePart, limit
 }
 
 // InviteMemberByLink mocks base method
-func (m *MockRepository) InviteMemberByLink(bid, uid uint) error {
+func (m *MockRepository) InviteMemberByLink(usr models.User, link string) (*models.Board, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InviteMemberByLink", bid, uid)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "InviteMemberByLink", usr, link)
+	ret0, _ := ret[0].(*models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // InviteMemberByLink indicates an expected call of InviteMemberByLink
-func (mr *MockRepositoryMockRecorder) InviteMemberByLink(bid, uid interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) InviteMemberByLink(usr, link interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMemberByLink", reflect.TypeOf((*MockRepository)(nil).InviteMemberByLink), bid, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMemberByLink", reflect.TypeOf((*MockRepository)(nil).InviteMemberByLink), usr, link)
 }
 
 // UpdateInviteLink mocks base method
-func (m *MockRepository) UpdateInviteLink(bid uint) (string, error) {
+func (m *MockRepository) UpdateInviteLink(bid uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateInviteLink", bid)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateInviteLink indicates an expected call of UpdateInviteLink
