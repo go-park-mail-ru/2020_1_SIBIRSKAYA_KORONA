@@ -137,15 +137,25 @@ func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart strin
 	return users, nil
 }
 
-func (boardUseCase *BoardUseCase) InviteMemberByLink(bid uint, uid uint) error {
-	return nil
-}
-
-func (boardUseCase *BoardUseCase) UpdateInviteLink(bid uint) (string, error) {
-	link, err := boardUseCase.boardRepo.UpdateInviteLink(bid)
+func (boardUseCase *BoardUseCase) InviteMemberByLink(uid uint, link string) (*models.Board, error) {
+	usr, err := boardUseCase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
-		return "", err
+		return nil, err
 	}
-	return link, nil
+	brd, err := boardUseCase.boardRepo.InviteMemberByLink(*usr, link)
+	if err != nil {
+		logger.Error(err)
+		return brd, err
+	}
+	return brd, nil
+}
+
+func (boardUseCase *BoardUseCase) UpdateInviteLink(bid uint) error {
+	err := boardUseCase.boardRepo.UpdateInviteLink(bid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }

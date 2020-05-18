@@ -18,7 +18,7 @@ type User struct {
 	Admin    []Board   `json:"-" gorm:"many2many:board_admins;" faker:"-"`
 	Member   []Board   `json:"-" gorm:"many2many:board_members;" faker:"-"`
 	Comment  []Comment `json:"-" gorm:"foreignkey:uid;" faker:"-"`
-	Events   []Event   `json:"-" gorm:"foreignkey:uid;"`
+	Events   []Event   `json:"-" gorm:"foreignkey:uid;" faker:"-"`
 }
 
 //easyjson:json

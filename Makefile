@@ -12,6 +12,10 @@ TEST_FLAGS = \
 	-covermode=atomic ./... \
 	-coverprofile ${TEST_COVER_TARGET} \
 
+# линтер
+run-linter:
+	golangci-lint -c .golangci.yml run ./...
+
 # тесты
 generate-mocks:
 	go generate ./...
@@ -22,10 +26,8 @@ test-coverpkg:
 check-report:
 	go tool cover -html=${TEST_COVER_TARGET}
 check-summary:
-	grep -v mock ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-1
-	grep -v models ${TEST_COVER_TARGET}-1 > ${TEST_COVER_TARGET}-2
-	grep -v middleware ${TEST_COVER_TARGET}-2 > ${TEST_COVER_TARGET}-3
-	go tool cover -func=${TEST_COVER_TARGET}-3
+	grep -v -E -- 'mock|easyjson|middleware|proto' ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-cleaned
+	go tool cover -func=${TEST_COVER_TARGET}-cleaned
 
 # docker
 build-api-service:
@@ -52,13 +54,22 @@ docker-image-clean:
 
 start:
 	service postgresql stop && service memcached stop
-	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d 
+	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d
+
+start-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml up -d	 
 
 stop:
 	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml stop
 
+stop-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml stop
+
 down:
 	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml down
+
+down-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml down
 
 # документация
 doc-prepare:
