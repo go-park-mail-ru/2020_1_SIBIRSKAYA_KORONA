@@ -151,7 +151,7 @@ func (server *Server) Run() {
 		comUseCase, chUseCase, itmUseCase, lUseCase, atchUseCase, ntftUseCase)
 
 	router.Use(mw.RequestLogger)
-	//router.Use(mw.CORS)
+	router.Use(mw.CORS)
 	router.Use(mw.ProcessPanic)
 	router.Use(mw.Metrics)
 
