@@ -2,7 +2,7 @@ version: "2.3"
 
 services:
   api:
-    image: "${DOCKERHUB_REPO}:user-${LAST_DEPLOY_COMMIT}"
+    image: "${DOCKERHUB_REPO}:api-${LAST_DEPLOY_COMMIT}"
     container_name: drello-backend-api
     environment: 
       - DRELLO_PUBLIC_DIR=/app/public

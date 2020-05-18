@@ -3,7 +3,7 @@ name: Docker-way build
 on:
   push:
     branches: [deploy]
-  pull_request:
+  pull_request: #TODO: убрать build при пуше
     branches: [deploy]
 
 jobs:
