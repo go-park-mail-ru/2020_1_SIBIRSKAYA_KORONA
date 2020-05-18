@@ -66,6 +66,7 @@ jobs:
             sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:session-${GITHUB_SHA::8}
             sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:user-${GITHUB_SHA::8}
             sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:api-${GITHUB_SHA::8}
+            export LAST_DEPLOY_COMMIT=${GITHUB_SHA::8}
 
       #- name: deploy docker image
        # uses: appleboy/ssh-action@master

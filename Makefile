@@ -54,13 +54,22 @@ docker-image-clean:
 
 start:
 	service postgresql stop && service memcached stop
-	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d 
+	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml up -d
+
+start-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml up -d	 
 
 stop:
 	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml stop
 
+stop-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml stop
+
 down:
 	docker-compose -f ${DOCKER_DIR}/docker-compose.yaml down
+
+down-after-ci:
+	docker-compose -f ${DOCKER_DIR}/docker-compose-ci.yaml down
 
 # документация
 doc-prepare:
