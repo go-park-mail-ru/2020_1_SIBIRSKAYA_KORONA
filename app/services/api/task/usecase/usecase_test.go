@@ -87,6 +87,15 @@ func TestGet(t *testing.T) {
 
 	_, err = tUsecase.Get(testColumn.ID, testTask.ID)
 	assert.EqualError(t, err, errors.TaskNotFound)
+
+	taskRepoMock.EXPECT().
+		Get(testTask.ID).
+		Return(&testTask, nil)
+
+	testTask.Cid = testColumn.ID
+	task, err = tUsecase.Get(testColumn.ID, testTask.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, task, &testTask)
 }
 
 func TestUpdate(t *testing.T) {
@@ -185,6 +194,17 @@ func TestAssign(t *testing.T) {
 
 	err = tUsecase.Assign(testTask.ID, testUser.ID)
 	assert.EqualError(t, err, errors.UserNotFound)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(&testUser, nil)
+
+	taskRepoMock.EXPECT().
+		Assign(testTask.ID, &testUser).
+		Return(errors.ErrDbBadOperation)
+
+	err = tUsecase.Assign(testTask.ID, testUser.ID)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 }
 
 func TestUnassign(t *testing.T) {
@@ -223,5 +243,16 @@ func TestUnassign(t *testing.T) {
 
 	err = tUsecase.Unassign(testTask.ID, testUser.ID)
 	assert.EqualError(t, err, errors.UserNotFound)
+
+	userRepoMock.EXPECT().
+		GetByID(testUser.ID).
+		Return(&testUser, nil)
+
+	taskRepoMock.EXPECT().
+		Unassign(testTask.ID, &testUser).
+		Return(errors.ErrDbBadOperation)
+
+	err = tUsecase.Unassign(testTask.ID, testUser.ID)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 
 }
