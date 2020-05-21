@@ -6,6 +6,7 @@ import (
 
 	"net/http"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"go.uber.org/zap/zapcore"
 
@@ -50,22 +51,92 @@ func TestCreate(t *testing.T) {
 	body, err := testChecklist.MarshalJSON()
 	assert.NoError(t, err)
 
-	router := echo.New()
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("body", body)
+		context.Set("tid", testTask.ID)
 
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-	context.Set("body", body)
-	context.Set("tid", testTask.ID)
+		checklistUsecaseMock.EXPECT().
+			Create(gomock.Any()).
+			Return(nil)
 
-	checklistUsecaseMock.EXPECT().
-		Create(gomock.Any()).
-		Return(nil)
+		err = handler.Create(context)
 
-	err = handler.Create(context)
+		assert.NoError(t, err)
+		assert.Equal(t, context.Response().Status, http.StatusOK)
+	}
 
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("body", body)
+		context.Set("tid", testTask.ID)
+
+		checklistUsecaseMock.EXPECT().
+			Create(gomock.Any()).
+			Return(errors.ErrDbBadOperation)
+
+		err = handler.Create(context)
+		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+	}
+
+}
+
+func TestGet(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
+	handler := checklistHandler.ChecklistHandler{UseCase: checklistUsecaseMock}
+
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+
+	var testTask models.Task
+	err = faker.FakeData(&testTask)
+	assert.NoError(t, err)
+
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("tid", testTask.ID)
+
+		checklistUsecaseMock.EXPECT().
+			Get(testTask.ID).
+			Return(nil, errors.ErrDbBadOperation)
+
+		err = handler.Get(context)
+		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+	}
+
+	var checklists models.Checklists
+	checklists = append(checklists, testChecklist)
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("tid", testTask.ID)
+
+		checklistUsecaseMock.EXPECT().
+			Get(testTask.ID).
+			Return(checklists, nil)
+
+		err = handler.Get(context)
+		assert.Equal(t, context.Response().Status, http.StatusOK)
+	}
+
 }
 
 func TestUpdate(t *testing.T) {
@@ -117,19 +188,35 @@ func TestDelete(t *testing.T) {
 	err := faker.FakeData(&testChecklist)
 	assert.NoError(t, err)
 
-	router := echo.New()
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("clid", testChecklist.ID)
 
-	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-	context.Set("clid", testChecklist.ID)
+		checklistUsecaseMock.EXPECT().
+			Delete(gomock.Any()).
+			Return(nil)
 
-	checklistUsecaseMock.EXPECT().
-		Delete(gomock.Any()).
-		Return(nil)
+		err = handler.Delete(context)
 
-	err = handler.Delete(context)
+		assert.NoError(t, err)
+		assert.Equal(t, context.Response().Status, http.StatusOK)
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("clid", testChecklist.ID)
+
+		checklistUsecaseMock.EXPECT().
+			Delete(gomock.Any()).
+			Return(errors.ErrDbBadOperation)
+
+		err = handler.Delete(context)
+		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+	}
 }

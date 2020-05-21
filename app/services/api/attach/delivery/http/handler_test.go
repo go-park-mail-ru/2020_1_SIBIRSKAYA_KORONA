@@ -9,6 +9,7 @@ import (
 
 	"net/http"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	"go.uber.org/zap/zapcore"
 
@@ -31,7 +32,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreate(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -50,25 +51,50 @@ func TestCreate(t *testing.T) {
 
 	router := echo.New()
 
-	filebody := &bytes.Buffer{}
-	writer := multipart.NewWriter(filebody)
-	writer.CreateFormFile("file", "")
-	writer.WriteField("test", "test")
-	err = writer.Close()
+	{
+		filebody := &bytes.Buffer{}
+		writer := multipart.NewWriter(filebody)
+		writer.CreateFormFile("file", "usecase.go")
+		writer.WriteField("test", "test")
+		err = writer.Close()
 
-	request := test.NewRequest(echo.POST, "/", filebody)
-	response := test.NewRecorder()
-	context := router.NewContext(request, response)
-	context.Set("tid", testTask.ID)
+		request := test.NewRequest(echo.POST, "/", filebody)
+		request.Header.Add("Content-Type", writer.FormDataContentType())
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("tid", testTask.ID)
 
-	attachUsecaseMock.EXPECT().
-		Create(gomock.Any(), gomock.Any()).
-		Return(nil)
+		attachUsecaseMock.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Return(nil)
 
-	err = handler.Create(context)
+		err = handler.Create(context)
+		assert.NoError(t, err)
+		assert.Equal(t, context.Response().Status, http.StatusOK)
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, context.Response().Status, http.StatusOK)
+	{
+		filebody := &bytes.Buffer{}
+		writer := multipart.NewWriter(filebody)
+		writer.CreateFormFile("file", "usecase.go")
+		writer.WriteField("test", "test")
+		err = writer.Close()
+
+		request := test.NewRequest(echo.POST, "/", filebody)
+		request.Header.Add("Content-Type", writer.FormDataContentType())
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("tid", testTask.ID)
+
+		attachUsecaseMock.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Return(errors.ErrDbBadOperation)
+
+		err = handler.Create(context)
+		//assert.NoError(t, err)
+		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+	}
+
 }
 
 func TestDelete(t *testing.T) {
@@ -100,4 +126,61 @@ func TestDelete(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, context.Response().Status, http.StatusOK)
+
+	request = test.NewRequest(echo.POST, "/", strings.NewReader(""))
+	response = test.NewRecorder()
+	context = router.NewContext(request, response)
+	context.Set("fid", testAttach.ID)
+
+	attachUsecaseMock.EXPECT().
+		Delete(gomock.Any()).
+		Return(errors.ErrDbBadOperation)
+
+	err = handler.Delete(context)
+	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+}
+
+func TestGetFiles(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	attachUsecaseMock := attachMocks.NewMockUseCase(ctrl)
+	handler := attachHandler.AttachHandler{UseCase: attachUsecaseMock}
+
+	var attchs models.AttachedFiles
+	var testAttach models.AttachedFile
+	err := faker.FakeData(&testAttach)
+	assert.NoError(t, err)
+	attchs = append(attchs, testAttach)
+
+	router := echo.New()
+
+	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+	response := test.NewRecorder()
+	context := router.NewContext(request, response)
+	context.Set("tid", testAttach.ID)
+
+	attachUsecaseMock.EXPECT().
+		Get(testAttach.ID).
+		Return(nil, errors.ErrDbBadOperation)
+
+	err = handler.GetFiles(context)
+	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+
+	request = test.NewRequest(echo.POST, "/", strings.NewReader(""))
+	response = test.NewRecorder()
+	context = router.NewContext(request, response)
+	context.Set("tid", testAttach.ID)
+
+	attachUsecaseMock.EXPECT().
+		Get(testAttach.ID).
+		Return(attchs, nil)
+
+	err = handler.GetFiles(context)
+	//assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
+	assert.Equal(t, context.Response().Status, http.StatusOK)
+
 }
