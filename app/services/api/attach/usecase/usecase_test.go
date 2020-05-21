@@ -1,10 +1,3 @@
-// type UseCase interface {
-// 	Create(attachModel *models.AttachedFile, attachFile *multipart.FileHeader) error
-// 	Get(tid uint) (models.AttachedFiles, error)
-// 	GetByID(tid uint, fid uint) (*models.AttachedFile, error)
-// 	Delete(fid uint) error
-// }
-
 package usecase_test
 
 import (
@@ -111,6 +104,39 @@ func TestDelete(t *testing.T) {
 
 	err = atchUsecase.Delete(testAttach.ID)
 	assert.NoError(t, err)
+
+	attachRepoMock.EXPECT().
+		GetByID(testAttach.ID).
+		Return(nil, errors.ErrDbBadOperation)
+
+	err = atchUsecase.Delete(testAttach.ID)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
+
+	attachRepoMock.EXPECT().
+		GetByID(testAttach.ID).
+		Return(&testAttach, nil)
+
+	attachFileRepoMock.EXPECT().
+		DeleteFile(testAttach.Name).
+		Return(errors.ErrDbBadOperation)
+
+	err = atchUsecase.Delete(testAttach.ID)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
+
+	attachRepoMock.EXPECT().
+		GetByID(testAttach.ID).
+		Return(&testAttach, nil)
+
+	attachFileRepoMock.EXPECT().
+		DeleteFile(testAttach.Name).
+		Return(nil)
+
+	attachRepoMock.EXPECT().
+		Delete(testAttach.ID).
+		Return(errors.ErrDbBadOperation)
+
+	err = atchUsecase.Delete(testAttach.ID)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 }
 
 func TestGet(t *testing.T) {
@@ -141,6 +167,14 @@ func TestGet(t *testing.T) {
 	getAttachs, err := atchUsecase.Get(testTask.ID)
 	assert.NotNil(t, getAttachs)
 	assert.NoError(t, err)
+
+	attachRepoMock.EXPECT().
+		Get(testTask.ID).
+		Return(nil, errors.ErrDbBadOperation)
+
+	getAttachs, err = atchUsecase.Get(testTask.ID)
+	assert.Nil(t, getAttachs)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 }
 
 func TestGetByID(t *testing.T) {
@@ -179,4 +213,12 @@ func TestGetByID(t *testing.T) {
 	attach, err = atchUsecase.GetByID(testTask.ID, testAttach.ID)
 	assert.NotNil(t, attach)
 	assert.NoError(t, err)
+
+	attachRepoMock.EXPECT().
+		GetByID(testAttach.ID).
+		Return(nil, errors.ErrDbBadOperation)
+
+	attach, err = atchUsecase.GetByID(testTask.ID, testAttach.ID)
+	assert.Nil(t, attach)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 }
