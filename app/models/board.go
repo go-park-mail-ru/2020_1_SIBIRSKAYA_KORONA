@@ -2,12 +2,13 @@ package models
 
 //go:generate easyjson -all
 type Board struct {
-	ID      uint     `json:"id" gorm:"primary_key"`
-	Name    string   `json:"title" gorm:"not null" faker:"word"`
-	Columns []Column `json:"columns,omitempty" gorm:"foreignkey:bid" faker:"-"`
-	Labels  []Label  `json:"labels,omitempty" gorm:"foreignkey:bid" faker:"-"`
-	Admins  []User   `json:"admins,omitempty" gorm:"many2many:board_admins;" faker:"-"`
-	Members []User   `json:"members,omitempty" gorm:"many2many:board_members;" faker:"-"`
+	ID         uint     `json:"id" gorm:"primary_key"`
+	Name       string   `json:"title" gorm:"not null" faker:"word"`
+	InviteLink string   `json:"inviteLink" gorm:"not null;unique_index"`
+	Columns    []Column `json:"columns,omitempty" gorm:"foreignkey:bid" faker:"-"`
+	Labels     []Label  `json:"labels,omitempty" gorm:"foreignkey:bid" faker:"-"`
+	Admins     []User   `json:"admins,omitempty" gorm:"many2many:board_admins;" faker:"-"`
+	Members    []User   `json:"members,omitempty" gorm:"many2many:board_members;" faker:"-"`
 }
 
 //easyjson:json

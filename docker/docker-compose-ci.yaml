@@ -1,0 +1,108 @@
+version: "2.3"
+
+services:
+  api:
+    image: "${DOCKERHUB_REPO}:api-${LAST_DEPLOY_COMMIT}"
+    container_name: drello-backend-api
+    environment: 
+      - DRELLO_PUBLIC_DIR=/app/public
+      - TLS_CREDENTIALS_DIR=/app/credentials
+      - TLS_CRT_FILE=${TLS_CRT_FILE}
+      - TLS_KEY_FILE=${TLS_KEY_FILE}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_REGION=${S3_BUCKET_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+    ports:
+      - "8080:8080"
+      - "7070:7070"
+
+    volumes:
+      # Отображение для сохранения картинки из под докера в папку фронтенда
+      - ${DRELLO_PUBLIC_DIR}:/app/public
+      - ${TLS_CREDENTIALS_DIR}:/app/credentials
+
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      session:
+        condition: service_started
+      user:
+        condition: service_started
+
+
+  session:
+    image: "${DOCKERHUB_REPO}:session-${LAST_DEPLOY_COMMIT}"
+    container_name: drello-backend-session
+    ports:
+      - "8081:8081"
+      - "7071:7071"
+
+    depends_on:
+      memcached:
+        condition: service_started
+
+  user:
+    image: "${DOCKERHUB_REPO}:user-${LAST_DEPLOY_COMMIT}"
+    container_name: drello-backend-user
+    environment: 
+      - DRELLO_PUBLIC_DIR=/app/public
+    ports:
+      - "8082:8082"
+      - "7072:7072"
+
+    volumes:
+      # Отображение для сохранения картинки из под докера в папку фронтенда
+      - ${DRELLO_PUBLIC_DIR}:/app/public
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  memcached:
+    container_name: memcached_container
+    image: 'bitnami/memcached:latest'
+    ports:
+      - "11211:11211"
+  
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_DB: drello_db
+      POSTGRES_USER: drello_user
+      POSTGRES_PASSWORD: drello1234
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "--dbname", "drello_db", "--host", "postgres", "--port", "5432", "--username", "drello_user"]
+      timeout: 2s
+      retries: 2
+      start_period: 3s
+
+  prometheus:
+    container_name: prometheus_container
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:Z
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=20d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - '9090:9090'
+
+  node_exporter:
+    container_name: node_exporter_container
+    image: prom/node-exporter
+    ports:
+      - '9100:9100'
+
+  grafana:
+    container_name: grafana_container
+    image: grafana/grafana
+    ports:
+      - '3000:3000'

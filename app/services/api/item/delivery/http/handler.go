@@ -19,12 +19,15 @@ func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.Middl
 	handler := &ItemHandler{
 		UseCase: useCase,
 	}
-	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items", handler.Create,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
-	router.PUT("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Update,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.CheckItemInChecklist)
-	router.DELETE("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Delete,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.CheckItemInChecklist)
+	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items", handler.Create,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard,
+		mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.SendSignal)
+	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Update,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckChecklistInTask, mw.CheckItemInChecklist, mw.SendSignal)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Delete,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckChecklistInTask, mw.CheckItemInChecklist)
 }
 
 func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
@@ -46,6 +49,8 @@ func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -70,6 +75,8 @@ func (itemHandler *ItemHandler) Update(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.String(http.StatusOK, string(resp))
 }
 

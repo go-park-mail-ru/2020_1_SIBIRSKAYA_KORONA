@@ -10,16 +10,13 @@ logger: {
 }
 
 grpc_clients: {
-  #user: 127.0.0.1:8082,
   user: user:8082,
-  #session: 127.0.0.1:8081,
   session: session:8081,
 }
 
 database: {
   dbms: postgres,
   host: postgres,
-  #host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,
@@ -33,8 +30,8 @@ metrics: {
 
 frontend: {
   protocol: https,
-  ip: 0.0.0.0,
-  port: 5555,
+  ip: drello.works,
+  port: 443,
   #public_dir задается в переменной окружения
 
   #относительно public_dir
@@ -44,6 +41,7 @@ frontend: {
 
 cors: {
   allowed_origins: [
+    https://192.168.0.103:5555,
     http://89.208.197.150,
     https://89.208.197.150,
     https://0.0.0.0:5555,
@@ -55,6 +53,7 @@ cors: {
     https://localhost:5757,
     http://drello.works,
     https://drello.works,
+    https://drello.works:443,
   ]
 
   #добавить 5757 порт для запросов с доки

@@ -2,8 +2,6 @@ package http_test
 
 import (
 	"bytes"
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
-	"github.com/labstack/echo/v4"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -12,9 +10,14 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/labstack/echo/v4"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bxcodec/faker"
@@ -36,6 +39,18 @@ func GetContexFromJSON(method, path string) echo.Context {
 	request := test.NewRequest(method, path, body)
 	return echo.New().NewContext(request, test.NewRecorder())
 }*/
+
+func TestCreateHandler(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+
+	router := echo.New()
+	mw := drelloMiddleware.CreateMiddleware(nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil)
+	userHandler.CreateHandler(router, userUseCaseMock, mw)
+}
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
@@ -189,12 +204,30 @@ func TestGetUpdate(t *testing.T) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	writer.WriteField("newName", testUser.Name)
-	writer.WriteField("newSurname", testUser.Surname)
-	writer.WriteField("newNickname", testUser.Nickname)
-	writer.WriteField("newEmail", testUser.Email)
-	writer.WriteField("newPassword", newPass)
-	writer.WriteField("oldPassword", oldPass)
+	err = writer.WriteField("newName", testUser.Name)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newSurname", testUser.Surname)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newNickname", testUser.Nickname)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newEmail", testUser.Email)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newPassword", newPass)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("oldPassword", oldPass)
+	if err != nil {
+		t.Error(err)
+	}
 	err = writer.Close()
 	assert.NoError(t, err)
 	{

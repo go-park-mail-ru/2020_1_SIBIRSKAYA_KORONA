@@ -3,6 +3,8 @@ package pass
 import (
 	"bytes"
 	"crypto/rand"
+
+	"github.com/labstack/gommon/log"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -17,7 +19,10 @@ func HashPassword(salt, password []byte) []byte {
 
 func HashPasswordGenSalt(password []byte) []byte {
 	salt := make([]byte, lenSalt)
-	rand.Read(salt)
+	_, err := rand.Read(salt)
+	if err != nil {
+		log.Error(err)
+	}
 	return HashPassword(salt, password)
 }
 

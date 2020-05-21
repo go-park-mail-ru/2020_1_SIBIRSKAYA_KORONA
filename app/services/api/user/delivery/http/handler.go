@@ -24,11 +24,11 @@ func CreateHandler(router *echo.Echo, useCase user.UseCase, mw *middleware.Middl
 	handler := &UserHandler{
 		UseCase: useCase,
 	}
-	router.POST("/settings", handler.Create, mw.Sanitize)
-	router.GET("/profile/:id_or_nickname", handler.Get)
-	router.GET("/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
-	router.PUT("/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
-	router.DELETE("/settings", handler.Delete, mw.CheckAuth)
+	router.POST("/api/settings", handler.Create, mw.Sanitize)
+	router.GET("/api/profile/:id_or_nickname", handler.Get)
+	router.GET("/api/settings", handler.GetAll, mw.CheckAuth) // получ все настройки
+	router.PUT("/api/settings", handler.Update, mw.CheckAuth, mw.CSRFmiddle)
+	router.DELETE("/api/settings", handler.Delete, mw.CheckAuth)
 	//router.GET("/search/profile", handler.GetUsersByNicknamePart, mw.CheckAuth)
 }
 
@@ -64,7 +64,7 @@ func (userHandler *UserHandler) Create(ctx echo.Context) error {
 
 func (userHandler *UserHandler) Get(ctx echo.Context) error {
 	usrKey := ctx.Param("id_or_nickname")
-	usr := new(models.User)
+	var usr *models.User
 	var err error
 	if uid, er := strconv.Atoi(usrKey); er == nil {
 		usr, err = userHandler.UseCase.GetByID(uint(uid))

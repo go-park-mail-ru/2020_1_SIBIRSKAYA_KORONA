@@ -1,0 +1,82 @@
+name: Docker-way build
+
+on:
+  push:
+    branches: [deploy]
+  pull_request: #TODO: убрать build при пуше
+    branches: [deploy]
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.26
+          args: -c .golangci.yml
+    
+  test:
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v1
+     - name: Run unit-tests
+       run: make test-coverpkg
+
+     - name: Check coverage
+       run: make check-summary
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: DockerHub login
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Create Builder, application images
+        run: |
+          docker build -t drello-builder -f docker/builder.Dockerfile .
+          docker build -t ${{ secrets.DOCKERHUB_REPO }}:session-${GITHUB_SHA::8} -f docker/session.Dockerfile .
+          docker build -t ${{ secrets.DOCKERHUB_REPO }}:user-${GITHUB_SHA::8} -f docker/user.Dockerfile .
+          docker build -t ${{ secrets.DOCKERHUB_REPO }}:api-${GITHUB_SHA::8} -f docker/api.Dockerfile .
+      
+      - name: Push application images
+        run: |
+          docker push ${{ secrets.DOCKERHUB_REPO }}:session-${GITHUB_SHA::8}
+          docker push ${{ secrets.DOCKERHUB_REPO }}:user-${GITHUB_SHA::8}
+          docker push ${{ secrets.DOCKERHUB_REPO }}:api-${GITHUB_SHA::8}
+          
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: pulling application images
+        uses: appleboy/ssh-action@master
+        with:
+          envs: GITHUB_SHA
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:session-${GITHUB_SHA::8}
+            sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:user-${GITHUB_SHA::8}
+            sudo docker pull ${{ secrets.DOCKERHUB_REPO }}:api-${GITHUB_SHA::8}
+
+      #- name: deploy docker image
+       # uses: appleboy/ssh-action@master
+        #with:
+         # envs: GITHUB_SHA
+          #host: ${{ secrets.HOST }}
+          #username: ${{ secrets.USERNAME }}
+          #key: ${{ secrets.PRIVATE_KEY }}
+          #script: |
+           # sudo docker rm -f $(sudo docker ps -aq)
+            #sudo docker run -d -p 8080:8080 dmitrydorofeev/godeploy:${GITHUB_SHA::8}
+
+
+
+

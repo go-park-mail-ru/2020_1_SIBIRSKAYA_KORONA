@@ -174,3 +174,26 @@ func TestDelete(t *testing.T) {
 	err = chUsecase.Delete(testChecklist.ID)
 	assert.EqualError(t, err, errors.ChecklistNotFound)
 }
+
+func TestUpdate(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	checklistRepoMock, itemRepoMock := createRepoMocks(ctrl)
+	chUsecase := checklistUseCase.CreateUseCase(checklistRepoMock, itemRepoMock)
+
+	var testChecklist models.Checklist
+	err := faker.FakeData(&testChecklist)
+	assert.NoError(t, err)
+	//t.Logf("%+v", testBoard)
+
+	//checklistRepoMock.EXPECT().
+	//Update(&testChecklist).
+	//Return(nil)
+
+	err = chUsecase.Update(&testChecklist)
+	assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
+}

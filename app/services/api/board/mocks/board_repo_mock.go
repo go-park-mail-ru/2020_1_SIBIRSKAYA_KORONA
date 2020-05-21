@@ -178,3 +178,32 @@ func (mr *MockRepositoryMockRecorder) GetUsersForInvite(bid, nicknamePart, limit
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersForInvite", reflect.TypeOf((*MockRepository)(nil).GetUsersForInvite), bid, nicknamePart, limit)
 }
+
+// InviteMemberByLink mocks base method
+func (m *MockRepository) InviteMemberByLink(usr models.User, link string) (*models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InviteMemberByLink", usr, link)
+	ret0, _ := ret[0].(*models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InviteMemberByLink indicates an expected call of InviteMemberByLink
+func (mr *MockRepositoryMockRecorder) InviteMemberByLink(usr, link interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteMemberByLink", reflect.TypeOf((*MockRepository)(nil).InviteMemberByLink), usr, link)
+}
+
+// UpdateInviteLink mocks base method
+func (m *MockRepository) UpdateInviteLink(bid uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateInviteLink", bid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateInviteLink indicates an expected call of UpdateInviteLink
+func (mr *MockRepositoryMockRecorder) UpdateInviteLink(bid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInviteLink", reflect.TypeOf((*MockRepository)(nil).UpdateInviteLink), bid)
+}
