@@ -16,11 +16,11 @@ import (
 )
 
 type CommentHandler struct {
-	useCase comment.UseCase
+	UseCase comment.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Middleware) {
-	handler := &CommentHandler{useCase: useCase}
+	handler := &CommentHandler{UseCase: useCase}
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Create, mw.Sanitize, mw.CheckAuth,
 		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Get, mw.CheckAuth,
@@ -40,7 +40,7 @@ func (commentHandler *CommentHandler) Create(ctx echo.Context) error {
 	cmt.Uid = ctx.Get("uid").(uint)
 	cmt.Tid = ctx.Get("tid").(uint)
 	cmt.CreatedAt = time.Now().Unix()
-	err = commentHandler.useCase.CreateComment(&cmt)
+	err = commentHandler.UseCase.CreateComment(&cmt)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -59,7 +59,7 @@ func (commentHandler *CommentHandler) Create(ctx echo.Context) error {
 func (commentHandler *CommentHandler) Get(ctx echo.Context) error {
 	uid := ctx.Get("uid").(uint)
 	tid := ctx.Get("tid").(uint)
-	cmts, err := commentHandler.useCase.GetComments(tid, uid)
+	cmts, err := commentHandler.UseCase.GetComments(tid, uid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -73,7 +73,7 @@ func (commentHandler *CommentHandler) Get(ctx echo.Context) error {
 
 func (commentHandler *CommentHandler) Delete(ctx echo.Context) error {
 	fid := ctx.Get("comid").(uint)
-	err := commentHandler.useCase.Delete(fid)
+	err := commentHandler.UseCase.Delete(fid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
