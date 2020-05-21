@@ -18,12 +18,10 @@ import (
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
 
-	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bxcodec/faker"
 	"github.com/golang/mock/gomock"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,8 +47,8 @@ func TestCreateHandler(t *testing.T) {
 	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
 
 	router := echo.New()
-	mw := drelloMiddleware.CreateMiddleware(nil, nil,nil,nil,nil,
-		nil,nil,nil,nil, nil,nil)
+	mw := drelloMiddleware.CreateMiddleware(nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil)
 	userHandler.CreateHandler(router, userUseCaseMock, mw)
 }
 
