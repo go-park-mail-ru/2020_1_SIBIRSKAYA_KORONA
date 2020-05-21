@@ -14,12 +14,16 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/mocks"
+
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 
 	"github.com/bxcodec/faker"
 	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,6 +41,18 @@ func GetContexFromJSON(method, path string) echo.Context {
 	request := test.NewRequest(method, path, body)
 	return echo.New().NewContext(request, test.NewRecorder())
 }*/
+
+func TestCreateHandler(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	userUseCaseMock := userMocks.NewMockUseCase(ctrl)
+
+	router := echo.New()
+	mw := drelloMiddleware.CreateMiddleware(nil, nil,nil,nil,nil,
+		nil,nil,nil,nil, nil,nil)
+	userHandler.CreateHandler(router, userUseCaseMock, mw)
+}
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
