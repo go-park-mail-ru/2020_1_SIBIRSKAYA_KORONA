@@ -72,8 +72,8 @@ func (commentHandler *CommentHandler) Get(ctx echo.Context) error {
 }
 
 func (commentHandler *CommentHandler) Delete(ctx echo.Context) error {
-	fid := ctx.Get("comid").(uint)
-	err := commentHandler.useCase.Delete(fid)
+	comid := ctx.Get("comid").(uint)
+	err := commentHandler.useCase.Delete(comid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
