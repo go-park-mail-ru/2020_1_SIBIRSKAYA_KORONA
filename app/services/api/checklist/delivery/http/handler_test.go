@@ -94,6 +94,9 @@ func TestCreate(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Create(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 
@@ -129,6 +132,9 @@ func TestGet(t *testing.T) {
 			Return(nil, errors.ErrDbBadOperation)
 
 		err = handler.Get(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 
@@ -146,6 +152,9 @@ func TestGet(t *testing.T) {
 			Return(checklists, nil)
 
 		err = handler.Get(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusOK)
 	}
 
@@ -212,6 +221,9 @@ func TestDelete(t *testing.T) {
 			Return(nil)
 
 		err = handler.Delete(context)
+		if err != nil {
+			t.Error(err)
+		}
 
 		assert.NoError(t, err)
 		assert.Equal(t, context.Response().Status, http.StatusOK)
@@ -229,6 +241,9 @@ func TestDelete(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Delete(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 }

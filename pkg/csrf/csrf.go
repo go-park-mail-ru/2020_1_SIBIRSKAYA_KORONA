@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"io"
+
+	"github.com/labstack/gommon/log"
 )
 
 const (
@@ -14,7 +16,10 @@ const (
 
 func MakeToken(sid string) string {
 	hasher := sha256.New()
-	io.WriteString(hasher, csrfSalt+sid)
+	_, err := io.WriteString(hasher, csrfSalt+sid)
+	if err != nil {
+		log.Error(err)
+	}
 	token := base64.RawStdEncoding.EncodeToString(hasher.Sum(nil))
 	return token
 }

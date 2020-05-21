@@ -89,6 +89,9 @@ func TestCreate(t *testing.T) {
 			Create(gomock.Any()).
 			Return(errors.ErrDbBadOperation)
 		err = handler.Create(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 }
@@ -142,6 +145,9 @@ func TestUpdate(t *testing.T) {
 			Update(gomock.Any()).
 			Return(errors.ErrDbBadOperation)
 		err = handler.Update(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 
@@ -174,6 +180,9 @@ func TestDelete(t *testing.T) {
 		context.Set("itid", testItem.ID)
 
 		err = handler.Delete(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 }

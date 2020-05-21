@@ -34,7 +34,16 @@ func (server *Server) Run() {
 	// repo
 	memCacheClient := memcache.New(server.Config.GetMemcachedConnect())
 	err := memCacheClient.Ping()
-	defer memCacheClient.DeleteAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		errDelete := memCacheClient.DeleteAll()
+		if errDelete != nil {
+			log.Fatal(errDelete)
+		}
+	}()
+
 	sesRepo := repo.CreateRepository(memCacheClient)
 	// usecase
 	sesUseCase := useCase.CreateUseCase(sesRepo)

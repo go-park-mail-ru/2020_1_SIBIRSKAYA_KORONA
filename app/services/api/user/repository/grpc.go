@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	pass "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/password"
+	"github.com/labstack/gommon/log"
 )
 
 type UserStore struct {
@@ -85,9 +86,9 @@ func (userStore *UserStore) Update(oldPass []byte, newUser models.User, avatarFi
 		return err
 	}
 	if avatarFileDescriptor != nil {
-		urlToSave, err := userStore.UploadAvatarToStaticStorage(avatarFileDescriptor, newUser.ID)
-		if err != nil {
-			logger.Error(err)
+		urlToSave, errN := userStore.UploadAvatarToStaticStorage(avatarFileDescriptor, newUser.ID)
+		if errN != nil {
+			logger.Error(errN)
 			return errors.ErrBadAvatarUpload
 		}
 		newUser.Avatar = urlToSave
@@ -134,7 +135,10 @@ func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *mu
 		return "", err
 	}
 	defer avatarDst.Close()
-	avatarFile.Seek(0, io.SeekStart)
+	_, errSeek := avatarFile.Seek(0, io.SeekStart)
+	if err != nil {
+		log.Error(errSeek)
+	}
 	_, err = io.Copy(avatarDst, avatarFile)
 	if err != nil {
 		logger.Error(err)

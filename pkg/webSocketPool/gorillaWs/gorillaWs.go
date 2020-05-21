@@ -2,6 +2,7 @@ package gorillaWs
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"sync"
 
@@ -21,7 +22,7 @@ type GorillaWebSocketPool struct {
 
 func CreateWebSocketPool(router *echo.Echo, mw *middleware.Middleware) webSocketPool.WebSocketPool {
 	wsPool := &GorillaWebSocketPool{
-		socketPool: make(map[uint][]*websocket.Conn, 0),
+		socketPool: make(map[uint][]*websocket.Conn),
 		mux:        &sync.Mutex{},
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -49,7 +50,14 @@ func (wsPool *GorillaWebSocketPool) run(ctx echo.Context) error {
 		return err
 	}
 	logger.Info("add web socket to pool for user:", uid)
-	defer wsPool.Delete(uid, ws)
+
+	defer func() {
+		errDelete := wsPool.Delete(uid, ws)
+		if errDelete != nil {
+			log.Fatal(errDelete)
+		}
+	}()
+
 	var readErr error = nil
 	for readErr == nil {
 		_, _, readErr = ws.ReadMessage()

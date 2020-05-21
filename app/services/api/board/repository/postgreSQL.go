@@ -152,15 +152,15 @@ func (boardStore *BoardStore) Delete(bid uint) error {
 
 	for columnID := range columns {
 		var tasks []models.Task
-		err := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
-		if err != nil {
-			logger.Error(err)
+		errQuery := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
+		if errQuery != nil {
+			logger.Error(errQuery)
 			return errors.ErrDbBadOperation
 		}
 		for taskID := range tasks {
-			err := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
+			errQuery := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errQuery)
 				return errors.ErrDbBadOperation
 			}
 		}

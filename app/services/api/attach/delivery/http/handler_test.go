@@ -67,9 +67,19 @@ func TestCreate(t *testing.T) {
 	{
 		filebody := &bytes.Buffer{}
 		writer := multipart.NewWriter(filebody)
-		writer.CreateFormFile("file", "usecase.go")
-		writer.WriteField("test", "test")
+		_, err := writer.CreateFormFile("file", "usecase.go")
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = writer.WriteField("test", "test")
+		if err != nil {
+			t.Error(err)
+		}
 		err = writer.Close()
+		if err != nil {
+			t.Error(err)
+		}
 
 		request := test.NewRequest(echo.POST, "/", filebody)
 		request.Header.Add("Content-Type", writer.FormDataContentType())
@@ -89,9 +99,18 @@ func TestCreate(t *testing.T) {
 	{
 		filebody := &bytes.Buffer{}
 		writer := multipart.NewWriter(filebody)
-		writer.CreateFormFile("file", "usecase.go")
-		writer.WriteField("test", "test")
+		_, err := writer.CreateFormFile("file", "usecase.go")
+		if err != nil {
+			t.Error(err)
+		}
+		err = writer.WriteField("test", "test")
+		if err != nil {
+			t.Error(err)
+		}
 		err = writer.Close()
+		if err != nil {
+			t.Error(err)
+		}
 
 		request := test.NewRequest(echo.POST, "/", filebody)
 		request.Header.Add("Content-Type", writer.FormDataContentType())
@@ -104,6 +123,9 @@ func TestCreate(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Create(context)
+		if err != nil {
+			t.Error(err)
+		}
 		//assert.NoError(t, err)
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
@@ -150,6 +172,9 @@ func TestDelete(t *testing.T) {
 		Return(errors.ErrDbBadOperation)
 
 	err = handler.Delete(context)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 }
 
@@ -181,6 +206,9 @@ func TestGetFiles(t *testing.T) {
 		Return(nil, errors.ErrDbBadOperation)
 
 	err = handler.GetFiles(context)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 
 	request = test.NewRequest(echo.POST, "/", strings.NewReader(""))
@@ -193,6 +221,9 @@ func TestGetFiles(t *testing.T) {
 		Return(attchs, nil)
 
 	err = handler.GetFiles(context)
+	if err != nil {
+		t.Error(err)
+	}
 	//assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 	assert.Equal(t, context.Response().Status, http.StatusOK)
 

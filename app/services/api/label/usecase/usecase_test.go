@@ -92,7 +92,10 @@ func TestGet(t *testing.T) {
 		Return(&testLabel, nil)
 
 	label, err = lUsecase.Get(testBoard.ID, testLabel.ID)
-
+	if err != nil {
+		t.Error(err)
+	}
+	assert.NotNil(t, label)
 	assert.NoError(t, err)
 
 	labelRepoMock.EXPECT().
