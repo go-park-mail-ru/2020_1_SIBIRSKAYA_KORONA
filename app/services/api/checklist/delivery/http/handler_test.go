@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	checklistHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/delivery/http"
 	checklistMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/checklist/mocks"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -28,6 +29,17 @@ import (
 func TestMain(m *testing.M) {
 	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
+}
+
+func TestCreateHandler(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
+	router := echo.New()
+	mw := middleware.CreateMiddleware(nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil)
+	checklistHandler.CreateHandler(router, checklistUsecaseMock, mw)
 }
 
 func TestCreate(t *testing.T) {
@@ -82,6 +94,9 @@ func TestCreate(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Create(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 
@@ -117,6 +132,9 @@ func TestGet(t *testing.T) {
 			Return(nil, errors.ErrDbBadOperation)
 
 		err = handler.Get(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 
@@ -134,6 +152,9 @@ func TestGet(t *testing.T) {
 			Return(checklists, nil)
 
 		err = handler.Get(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusOK)
 	}
 
@@ -200,6 +221,9 @@ func TestDelete(t *testing.T) {
 			Return(nil)
 
 		err = handler.Delete(context)
+		if err != nil {
+			t.Error(err)
+		}
 
 		assert.NoError(t, err)
 		assert.Equal(t, context.Response().Status, http.StatusOK)
@@ -217,6 +241,9 @@ func TestDelete(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Delete(context)
+		if err != nil {
+			t.Error(err)
+		}
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
 }

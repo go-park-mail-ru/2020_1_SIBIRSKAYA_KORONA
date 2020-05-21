@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	attachHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/delivery/http"
 	attachMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/mocks"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -29,6 +30,18 @@ import (
 func TestMain(m *testing.M) {
 	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
+}
+
+func TestCreateHandler(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	attachUsecaseMock := attachMocks.NewMockUseCase(ctrl)
+
+	router := echo.New()
+	mw := middleware.CreateMiddleware(nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil)
+	attachHandler.CreateHandler(router, attachUsecaseMock, mw)
 }
 
 func TestCreate(t *testing.T) {
@@ -54,9 +67,19 @@ func TestCreate(t *testing.T) {
 	{
 		filebody := &bytes.Buffer{}
 		writer := multipart.NewWriter(filebody)
-		writer.CreateFormFile("file", "usecase.go")
-		writer.WriteField("test", "test")
+		_, err := writer.CreateFormFile("file", "usecase.go")
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = writer.WriteField("test", "test")
+		if err != nil {
+			t.Error(err)
+		}
 		err = writer.Close()
+		if err != nil {
+			t.Error(err)
+		}
 
 		request := test.NewRequest(echo.POST, "/", filebody)
 		request.Header.Add("Content-Type", writer.FormDataContentType())
@@ -76,9 +99,18 @@ func TestCreate(t *testing.T) {
 	{
 		filebody := &bytes.Buffer{}
 		writer := multipart.NewWriter(filebody)
-		writer.CreateFormFile("file", "usecase.go")
-		writer.WriteField("test", "test")
+		_, err := writer.CreateFormFile("file", "usecase.go")
+		if err != nil {
+			t.Error(err)
+		}
+		err = writer.WriteField("test", "test")
+		if err != nil {
+			t.Error(err)
+		}
 		err = writer.Close()
+		if err != nil {
+			t.Error(err)
+		}
 
 		request := test.NewRequest(echo.POST, "/", filebody)
 		request.Header.Add("Content-Type", writer.FormDataContentType())
@@ -91,6 +123,9 @@ func TestCreate(t *testing.T) {
 			Return(errors.ErrDbBadOperation)
 
 		err = handler.Create(context)
+		if err != nil {
+			t.Error(err)
+		}
 		//assert.NoError(t, err)
 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 	}
@@ -137,6 +172,9 @@ func TestDelete(t *testing.T) {
 		Return(errors.ErrDbBadOperation)
 
 	err = handler.Delete(context)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 }
 
@@ -168,6 +206,9 @@ func TestGetFiles(t *testing.T) {
 		Return(nil, errors.ErrDbBadOperation)
 
 	err = handler.GetFiles(context)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
 
 	request = test.NewRequest(echo.POST, "/", strings.NewReader(""))
@@ -180,6 +221,9 @@ func TestGetFiles(t *testing.T) {
 		Return(attchs, nil)
 
 	err = handler.GetFiles(context)
+	if err != nil {
+		t.Error(err)
+	}
 	//assert.EqualError(t, err, errors.ErrDbBadOperation.Error())
 	assert.Equal(t, context.Response().Status, http.StatusOK)
 

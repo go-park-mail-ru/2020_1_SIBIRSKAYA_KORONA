@@ -10,6 +10,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
+	"github.com/labstack/echo/v4"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
@@ -203,12 +206,30 @@ func TestGetUpdate(t *testing.T) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	writer.WriteField("newName", testUser.Name)
-	writer.WriteField("newSurname", testUser.Surname)
-	writer.WriteField("newNickname", testUser.Nickname)
-	writer.WriteField("newEmail", testUser.Email)
-	writer.WriteField("newPassword", newPass)
-	writer.WriteField("oldPassword", oldPass)
+	err = writer.WriteField("newName", testUser.Name)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newSurname", testUser.Surname)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newNickname", testUser.Nickname)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newEmail", testUser.Email)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("newPassword", newPass)
+	if err != nil {
+		t.Error(err)
+	}
+	err = writer.WriteField("oldPassword", oldPass)
+	if err != nil {
+		t.Error(err)
+	}
 	err = writer.Close()
 	assert.NoError(t, err)
 	{

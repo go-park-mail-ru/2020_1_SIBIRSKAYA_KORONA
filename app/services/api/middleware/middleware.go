@@ -29,6 +29,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/webSocketPool"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
@@ -122,7 +123,10 @@ func (mw *Middleware) ProcessPanic(next echo.HandlerFunc) echo.HandlerFunc {
 			if err := recover(); err != nil {
 				fmt.Println("ProcessPanic up on ", ctx.Request().Method, ctx.Request().URL.Path)
 				fmt.Println("Panic statement: ", err)
-				ctx.NoContent(http.StatusInternalServerError)
+				err := ctx.NoContent(http.StatusInternalServerError)
+				if err != nil {
+					log.Error(err)
+				}
 			}
 		}()
 		return next(ctx)
@@ -454,9 +458,9 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 			}
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
-			tmp, err := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
+			tmp, errGet := mw.bUseCase.Get(ev.MakeUid, ev.MetaData.Bid, false)
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errGet)
 				return nil
 			}
 			members = append(tmp.Members, tmp.Admins...)
@@ -471,9 +475,9 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
-			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			tmp, errGet := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errGet)
 				return nil
 			}
 			members = tmp.Members
@@ -482,16 +486,16 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
-			tmpTask, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			tmpTask, errGet := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errGet)
 				return nil
 			}
 			ev.MetaData.EntityData = tmpTask.Name
 			members = tmpTask.Members
-			tmpCol, err := mw.cUseCase.Get(ev.MetaData.Bid, ev.MetaData.Cid)
+			tmpCol, errGet := mw.cUseCase.Get(ev.MetaData.Bid, ev.MetaData.Cid)
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errGet)
 				return nil
 			}
 			ev.MetaData.Text = tmpCol.Name
@@ -499,9 +503,9 @@ func (mw *Middleware) SendNotification(next echo.HandlerFunc) echo.HandlerFunc {
 			ev.MetaData.Bid = ctx.Get("bid").(uint)
 			ev.MetaData.Cid = ctx.Get("cid").(uint)
 			ev.MetaData.Tid = ctx.Get("tid").(uint)
-			tmp, err := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
+			tmp, errGet := mw.tUseCase.Get(ev.MetaData.Cid, ev.MetaData.Tid)
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errGet)
 				return nil
 			}
 			members = tmp.Members
