@@ -1,15 +1,22 @@
 package http_test
 
 import (
+	"net/http"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/bxcodec/faker"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	columnHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column/delivery/http"
 	columnMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/column/mocks"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
+
+	test "net/http/httptest"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -31,65 +38,65 @@ func TestCreateHandler(t *testing.T) {
 	columnHandler.CreateHandler(router, columnUsecaseMock, mw)
 }
 
-// func TestCreate(t *testing.T) {
-// 	// t.Skip()
-// 	t.Parallel()
+func TestCreate(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	checklistUsecaseMock := checklistMocks.NewMockUseCase(ctrl)
-// 	handler := checklistHandler.ChecklistHandler{UseCase: checklistUsecaseMock}
+	columnUsecaseMock := columnMocks.NewMockUseCase(ctrl)
+	handler := columnHandler.ColumnHandler{UseCase: columnUsecaseMock}
 
-// 	var testColumn models.Column
-// 	err := faker.FakeData(&testColumn)
-// 	assert.NoError(t, err)
+	var testColumn models.Column
+	err := faker.FakeData(&testColumn)
+	assert.NoError(t, err)
 
-// 	var testBoard models.Board
-// 	err = faker.FakeData(&testBoard)
-// 	assert.NoError(t, err)
+	var testBoard models.Board
+	err = faker.FakeData(&testBoard)
+	assert.NoError(t, err)
 
-// 	body, err := testColumn.MarshalJSON()
-// 	assert.NoError(t, err)
+	body, err := testColumn.MarshalJSON()
+	assert.NoError(t, err)
 
-// 	{
-// 		router := echo.New()
-// 		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
-// 		response := test.NewRecorder()
-// 		context := router.NewContext(request, response)
-// 		context.Set("body", body)
-// 		context.Set("bid", testColumn.ID)
+	{
+		router := echo.New()
+		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+		response := test.NewRecorder()
+		context := router.NewContext(request, response)
+		context.Set("body", body)
+		context.Set("bid", testBoard.ID)
 
-// 		checklistUsecaseMock.EXPECT().
-// 			Create(gomock.Any()).
-// 			Return(nil)
+		columnUsecaseMock.EXPECT().
+			Create(gomock.Any()).
+			Return(nil)
 
-// 		err = handler.Create(context)
+		err = handler.Create(context)
 
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, context.Response().Status, http.StatusOK)
-// 	}
+		assert.NoError(t, err)
+		assert.Equal(t, context.Response().Status, http.StatusOK)
+	}
 
-// 	{
-// 		router := echo.New()
-// 		request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
-// 		response := test.NewRecorder()
-// 		context := router.NewContext(request, response)
-// 		context.Set("body", body)
-// 		context.Set("tid", testTask.ID)
+	// {
+	// 	router := echo.New()
+	// 	request := test.NewRequest(echo.POST, "/", strings.NewReader(""))
+	// 	response := test.NewRecorder()
+	// 	context := router.NewContext(request, response)
+	// 	context.Set("body", body)
+	// 	context.Set("tid", testTask.ID)
 
-// 		checklistUsecaseMock.EXPECT().
-// 			Create(gomock.Any()).
-// 			Return(errors.ErrDbBadOperation)
+	// 	checklistUsecaseMock.EXPECT().
+	// 		Create(gomock.Any()).
+	// 		Return(errors.ErrDbBadOperation)
 
-// 		err = handler.Create(context)
-// 		if err != nil {
-// 			t.Error(err)
-// 		}
-// 		assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
-// 	}
+	// 	err = handler.Create(context)
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 	}
+	// 	assert.Equal(t, context.Response().Status, http.StatusInternalServerError)
+	// }
 
-// }
+}
 
 // func TestGet(t *testing.T) {
 // 	// t.Skip()

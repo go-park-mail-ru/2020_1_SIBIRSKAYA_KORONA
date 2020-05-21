@@ -14,11 +14,11 @@ import (
 )
 
 type ColumnHandler struct {
-	useCase column.UseCase
+	UseCase column.UseCase
 }
 
 func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.Middleware) {
-	handler := &ColumnHandler{useCase: useCase}
+	handler := &ColumnHandler{UseCase: useCase}
 	// TODO: обсудить кто может создавать колонки
 	router.POST("/api/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth,
 		mw.CheckBoardMemberPermission, mw.SendSignal)
@@ -40,7 +40,7 @@ func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	col.Bid = ctx.Get("bid").(uint)
-	err = columnHandler.useCase.Create(&col)
+	err = columnHandler.UseCase.Create(&col)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -61,7 +61,7 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
-	col, err := columnHandler.useCase.Get(bid, cid)
+	col, err := columnHandler.UseCase.Get(bid, cid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -75,7 +75,7 @@ func (columnHandler *ColumnHandler) Get(ctx echo.Context) error {
 
 func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
 	cid := ctx.Get("cid").(uint)
-	tsks, err := columnHandler.useCase.GetTasksByID(cid)
+	tsks, err := columnHandler.UseCase.GetTasksByID(cid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
@@ -94,7 +94,7 @@ func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
 // TODO: проверить удаление колонки, если в ней есть таски
 func (columnHandler *ColumnHandler) Delete(ctx echo.Context) error {
 	cid := ctx.Get("cid").(uint)
-	err := columnHandler.useCase.Delete(cid)
+	err := columnHandler.UseCase.Delete(cid)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
