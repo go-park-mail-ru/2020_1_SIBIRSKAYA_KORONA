@@ -17,6 +17,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	attachHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/delivery/http"
 	attachMocks "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/mocks"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -29,6 +30,18 @@ import (
 func TestMain(m *testing.M) {
 	logger.InitLoggerByConfig(logger.LoggerConfig{Logfile: "stdout", Loglevel: zapcore.DebugLevel})
 	os.Exit(m.Run())
+}
+
+func TestCreateHandler(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	attachUsecaseMock := attachMocks.NewMockUseCase(ctrl)
+
+	router := echo.New()
+	mw := middleware.CreateMiddleware(nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil)
+	attachHandler.CreateHandler(router, attachUsecaseMock, mw)
 }
 
 func TestCreate(t *testing.T) {
