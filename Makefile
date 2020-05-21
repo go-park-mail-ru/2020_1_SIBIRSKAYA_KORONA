@@ -26,7 +26,7 @@ test-coverpkg:
 check-report:
 	go tool cover -html=${TEST_COVER_TARGET}
 check-summary:
-	grep -v -E -- 'mock|easyjson|middleware|proto' ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-cleaned
+	grep -v -E -- 'mock|easyjson|proto|middleware|cmd' ${TEST_COVER_TARGET} > ${TEST_COVER_TARGET}-cleaned
 	go tool cover -func=${TEST_COVER_TARGET}-cleaned
 
 # docker
