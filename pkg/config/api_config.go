@@ -22,6 +22,7 @@ type ApiConfigController struct {
 	tlsKeyPath        string
 	metricURL         string
 	service           string
+	//tmplPath          string
 }
 
 func CreateApiConfigController() *ApiConfigController {
@@ -56,6 +57,11 @@ func CreateApiConfigController() *ApiConfigController {
 		logger.Fatal("TLS_CRT_FILE environment variable not exist")
 	}
 
+	// tmplPath_, exists := os.LookupEnv("BOARD_TEMPLATES_PATH")
+	// if !exists {
+	// 	logger.Fatal("BOARD_TEMPLATES_PATH environment variable not exist")
+	// }
+
 	return &ApiConfigController{
 		origins:           viper.GetStringSlice("cors.allowed_origins"),
 		serverIp:          viper.GetString("server.ip"),
@@ -70,6 +76,7 @@ func CreateApiConfigController() *ApiConfigController {
 		tlsKeyPath:        fmt.Sprintf("%s/%s", credentialsDir, keyFile),
 		metricURL:         viper.GetString("metrics.url"),
 		service:           viper.GetString("metrics.service"),
+		//tmplPath:          tmplPath_,
 	}
 }
 

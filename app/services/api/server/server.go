@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/metric"
 
-	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
-
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
 	userUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/usecase"
@@ -44,8 +42,12 @@ import (
 	attachRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/repository"
 	attachUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach/usecase"
 
+	labelHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/delivery/http"
 	labelRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/repository"
 	labelUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/label/usecase"
+
+	templateHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/template/delivery/http"
+	templateUseCase "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/template/usecase"
 
 	drelloMiddleware "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/middleware"
 
@@ -139,6 +141,8 @@ func (server *Server) Run() {
 	itmUseCase := itemUseCase.CreateUseCase(itmRepo)
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
 
+	tmplUseCase := templateUseCase.CreateUseCase(lblRepo, colRepo, tskRepo, comRepo, chlistRepo, brdRepo, usrRepo)
+
 	// middlware
 	router := echo.New()
 	metr, err := metric.CreateMetrics(server.ApiConfig.GetMetricsURL(), server.ApiConfig.GetServiceName())
@@ -161,6 +165,7 @@ func (server *Server) Run() {
 	checklistHandler.CreateHandler(router, chUseCase, mw)
 	itemHandler.CreateHandler(router, itmUseCase, mw)
 	attachHandler.CreateHandler(router, atchUseCase, mw)
+	templateHandler.CreateHandler(router, tmplUseCase, mw)
 
 	// start
 	if err := router.StartTLS(server.GetAddr(), server.ApiConfig.GetTLSCrtPath(), server.ApiConfig.GetTLSKeyPath()); err != nil {
