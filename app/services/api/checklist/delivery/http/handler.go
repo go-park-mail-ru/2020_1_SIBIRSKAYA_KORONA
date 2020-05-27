@@ -20,14 +20,16 @@ func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.
 	handler := &ChecklistHandler{
 		UseCase: useCase,
 	}
-	router.GET("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Get,
+	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Create,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Get,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.POST("/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Create,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.PUT("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Update,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
-	router.DELETE("/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Delete,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckChecklistInTask)
+	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Update,
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckChecklistInTask)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Delete,
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
+		mw.CheckChecklistInTask, mw.SendSignal)
 }
 
 func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
@@ -48,6 +50,8 @@ func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {
 	if err != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -74,5 +78,7 @@ func (checklistHandler *ChecklistHandler) Delete(ctx echo.Context) error {
 	if checklistHandler.UseCase.Delete(clid) != nil {
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }

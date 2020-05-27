@@ -21,16 +21,18 @@ func CreateHandler(router *echo.Echo, useCase label.UseCase, mw *middleware.Midd
 	handler := &LabelHandler{
 		useCase: useCase,
 	}
-	router.POST("/boards/:bid/labels", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.GET("/boards/:bid/labels/:lid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.PUT("/boards/:bid/labels/:lid", handler.Update, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard)
-	router.DELETE("/boards/:bid/labels/:lid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard)
-	router.POST("/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.AddLabelOnTask, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol)
-	router.DELETE("/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.RemoveLabelFromTask, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol)
+	router.POST("/api/boards/:bid/labels", handler.Create, mw.Sanitize, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.SendSignal)
+	router.GET("/api/boards/:bid/labels/:lid", handler.Get, mw.CheckAuth,
+		mw.CheckBoardMemberPermission)
+	router.PUT("/api/boards/:bid/labels/:lid", handler.Update, mw.Sanitize, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal)
+	router.DELETE("/api/boards/:bid/labels/:lid", handler.Delete, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal)
+	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.AddLabelOnTask, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.RemoveLabelFromTask, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
 }
 
 func (labelHandler *LabelHandler) Create(ctx echo.Context) error {
@@ -52,6 +54,8 @@ func (labelHandler *LabelHandler) Create(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.String(http.StatusOK, string(resp))
 }
 
@@ -89,6 +93,8 @@ func (labelHandler *LabelHandler) Update(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -99,6 +105,8 @@ func (labelHandler *LabelHandler) Delete(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -110,6 +118,8 @@ func (labelHandler *LabelHandler) AddLabelOnTask(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -121,5 +131,7 @@ func (labelHandler *LabelHandler) RemoveLabelFromTask(ctx echo.Context) error {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateTask")
 	return ctx.NoContent(http.StatusOK)
 }

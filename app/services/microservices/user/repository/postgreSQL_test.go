@@ -350,8 +350,8 @@ func TestGetUsersByNicknamePart(t *testing.T) {
 		t.Errorf("wrong answer")
 		return
 	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+	if errExp := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", errExp)
 		return
 	}
 

@@ -12,7 +12,6 @@ logger: {
 database: {
   dbms: postgres,
   host: postgres,
-  #host: localhost,
   user: drello_user,
   password: drello1234,
   name: drello_db,

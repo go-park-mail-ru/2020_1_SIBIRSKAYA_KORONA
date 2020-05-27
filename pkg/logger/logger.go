@@ -31,7 +31,7 @@ var loggerLevelMap = map[string]zapcore.Level{
 
 func getLoggerLevel() zapcore.Level {
 	level, exist := loggerLevelMap[viper.GetString("logger.level")]
-	if exist != true {
+	if !exist {
 		return zapcore.DebugLevel
 	}
 

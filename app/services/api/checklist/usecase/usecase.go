@@ -50,7 +50,7 @@ func (checklistUseCase *ChecklistUseCase) GetByID(tid uint, clid uint) (*models.
 	return checklist, nil
 }
 
-func (checklistUseCase *ChecklistUseCase) Update(chlis *models.Checklist) error {
+func (checklistUseCase *ChecklistUseCase) Update(chlist *models.Checklist) error {
 	return errors.ErrDbBadOperation
 }
 

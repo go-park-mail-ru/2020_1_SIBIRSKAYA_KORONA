@@ -22,9 +22,9 @@ func CreateHandler(router *echo.Echo, useCase session.UseCase, mw *middleware.Mi
 	handler := &SessionHandler{
 		UseCase: useCase,
 	}
-	router.POST("/session", handler.LogIn, mw.Sanitize)
-	router.GET("/token", handler.Token, mw.CheckAuth)
-	router.DELETE("/session", handler.LogOut, mw.CheckAuth)
+	router.POST("/api/session", handler.LogIn, mw.Sanitize)
+	router.GET("/api/token", handler.Token, mw.CheckAuth)
+	router.DELETE("/api/session", handler.LogOut, mw.CheckAuth)
 }
 
 func (sessionHandler *SessionHandler) LogIn(ctx echo.Context) error {

@@ -1,0 +1,20 @@
+server: {
+  ip: 0.0.0.0,
+  port: 8081,
+  mode : release,
+}
+
+logger: {
+  logfile: stdout,
+  level: debug,
+}
+
+metrics: {
+  url: "0.0.0.0:7071",
+  service: "session"
+}
+
+memcached: {
+  host: localhost,
+  port: 11211,
+}

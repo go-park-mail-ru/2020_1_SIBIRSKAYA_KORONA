@@ -16,4 +16,6 @@ type Repository interface {
 	InviteMember(bid uint, member *models.User) error
 	DeleteMember(bid uint, member *models.User) error
 	GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error)
+	InviteMemberByLink(usr models.User, link string) (*models.Board, error)
+	UpdateInviteLink(bid uint) error
 }

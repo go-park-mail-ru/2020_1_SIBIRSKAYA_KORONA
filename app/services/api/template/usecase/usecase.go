@@ -48,6 +48,7 @@ func CreateUseCase(labelRepo_ label.Repository, columnRepo_ column.Repository, t
 func (tmplUsecase *TemplateUsecase) Create(uid uint, tmpl *models.Template) error {
 	_ = ReadTemplateByVariant(tmpl)
 	board := ParseBoard()
+	board.InviteLink = ""
 
 	_, err := tmplUsecase.userRepo.GetByID(uid)
 	if err != nil {

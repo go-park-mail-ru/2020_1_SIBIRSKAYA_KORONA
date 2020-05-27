@@ -21,7 +21,7 @@ func CreateHandler(router *echo.Echo, usecase_ template.Usecase, mw *middleware.
 		usecase: usecase_,
 	}
 
-	router.POST("/boards/templates/:name", handler.Create, mw.Sanitize, mw.CheckAuth)
+	router.POST("api/boards/templates/:name", handler.Create, mw.Sanitize, mw.CheckAuth)
 }
 
 func (templateHandler *TemplateHandler) Create(ctx echo.Context) error {

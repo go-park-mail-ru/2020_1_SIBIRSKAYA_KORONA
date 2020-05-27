@@ -1,23 +1,38 @@
 package repository
 
 import (
+	"math/rand"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 type BoardStore struct {
-	DB *gorm.DB
+	DB      *gorm.DB
+	linkLen uint
 }
 
 func CreateRepository(db *gorm.DB) board.Repository {
-	return &BoardStore{DB: db}
+	return &BoardStore{DB: db, linkLen: 32}
+}
+
+func (boardStore *BoardStore) generateInviteLink(size uint) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	s := make([]rune, size)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
+	board.InviteLink = boardStore.generateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Create(board).Error
 	if err != nil {
 		logger.Error(err)
@@ -137,15 +152,15 @@ func (boardStore *BoardStore) Delete(bid uint) error {
 
 	for columnID := range columns {
 		var tasks []models.Task
-		err := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
-		if err != nil {
-			logger.Error(err)
+		errQuery := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
+		if errQuery != nil {
+			logger.Error(errQuery)
 			return errors.ErrDbBadOperation
 		}
 		for taskID := range tasks {
-			err := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
+			errQuery := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
 			if err != nil {
-				logger.Error(err)
+				logger.Error(errQuery)
 				return errors.ErrDbBadOperation
 			}
 		}
@@ -218,4 +233,48 @@ func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, l
 		return nil, errors.ErrUserNotFound
 	}
 	return users, nil
+}
+
+func (boardStore *BoardStore) InviteMemberByLink(usr models.User, link string) (*models.Board, error) {
+	brd := new(models.Board)
+	err := boardStore.DB.Where("invite_link = ?", link).First(brd).Error
+	if err != nil {
+		logger.Error(err)
+		return nil, errors.ErrBoardNotFound
+	}
+	err = boardStore.DB.Model(brd).Select("id").Related(&brd.Admins, "Admins").Error
+	if err != nil {
+		logger.Error(err)
+	}
+	for _, member := range brd.Admins {
+		if member.ID == usr.ID {
+			return brd, errors.ErrConflict
+		}
+	}
+	err = boardStore.DB.Model(brd).Select("id").Related(&brd.Members, "Members").Error
+	if err != nil {
+		logger.Error(err)
+	}
+	for _, member := range brd.Members {
+		if member.ID == usr.ID {
+			return brd, errors.ErrConflict
+		}
+	}
+	err = boardStore.DB.Model(&brd).Association("Members").Append(usr).Error
+	if err != nil {
+		logger.Error(err)
+		return brd, errors.ErrConflict
+	}
+	return brd, nil
+}
+
+func (boardStore *BoardStore) UpdateInviteLink(bid uint) error {
+	inviteLink := boardStore.generateInviteLink(boardStore.linkLen)
+	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
+		UpdateColumn("invite_link", inviteLink).Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	return nil
 }

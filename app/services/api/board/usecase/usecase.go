@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user"
+
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 )
@@ -133,4 +135,27 @@ func (boardUseCase *BoardUseCase) GetUsersForInvite(bid uint, nicknamePart strin
 		return nil, err
 	}
 	return users, nil
+}
+
+func (boardUseCase *BoardUseCase) InviteMemberByLink(uid uint, link string) (*models.Board, error) {
+	usr, err := boardUseCase.userRepo.GetByID(uid)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	brd, err := boardUseCase.boardRepo.InviteMemberByLink(*usr, link)
+	if err != nil {
+		logger.Error(err)
+		return brd, err
+	}
+	return brd, nil
+}
+
+func (boardUseCase *BoardUseCase) UpdateInviteLink(bid uint) error {
+	err := boardUseCase.boardRepo.UpdateInviteLink(bid)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
 }
