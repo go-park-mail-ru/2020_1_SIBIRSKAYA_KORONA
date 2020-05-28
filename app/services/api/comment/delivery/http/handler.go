@@ -22,11 +22,11 @@ type CommentHandler struct {
 func CreateHandler(router *echo.Echo, useCase comment.UseCase, mw *middleware.Middleware) {
 	handler := &CommentHandler{UseCase: useCase}
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/comments", handler.Get, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/comments/:comid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckCommentInTask, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (commentHandler *CommentHandler) Create(ctx echo.Context) error {

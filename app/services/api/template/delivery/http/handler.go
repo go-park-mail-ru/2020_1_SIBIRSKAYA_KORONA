@@ -20,7 +20,7 @@ func CreateHandler(router *echo.Echo, usecase_ template.Usecase, mw *middleware.
 	handler := &TemplateHandler{
 		usecase: usecase_,
 	}
-	router.POST("api/boards/templates", handler.Create, mw.Sanitize, mw.CheckAuth)
+	router.POST("api/boards/templates", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CSRFmiddle)
 }
 
 func (templateHandler *TemplateHandler) Create(ctx echo.Context) error {

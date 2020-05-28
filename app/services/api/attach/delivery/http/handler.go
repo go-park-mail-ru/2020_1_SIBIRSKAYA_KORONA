@@ -21,12 +21,12 @@ func CreateHandler(router *echo.Echo, useCase attach.UseCase, mw *middleware.Mid
 	}
 
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/files", handler.Create, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/files", handler.GetFiles, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CSRFmiddle)
 	// mw.Sanitaze == death ?
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/files/:fid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckAttachInTask, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CheckAttachInTask, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (attachHandler *AttachHandler) Create(ctx echo.Context) error {

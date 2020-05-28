@@ -21,14 +21,14 @@ func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.Mid
 	handler := &ColumnHandler{UseCase: useCase}
 	// TODO: обсудить кто может создавать колонки
 	router.POST("/api/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.SendSignal)
-	router.GET("/api/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
+		mw.CheckBoardMemberPermission, mw.SendSignal, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks", handler.GetTasks,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CSRFmiddle)
 	router.PUT("/api/boards/:bid/columns/:cid", handler.Update, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
