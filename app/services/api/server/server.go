@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models/proto"
+	"github.com/spf13/viper"
 
 	userHandler "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/user/repository"
@@ -147,7 +148,8 @@ func (server *Server) Run() {
 	atchUseCase := attachUseCase.CreateUseCase(attachModelRepo, attachFileRepo)
 	ntftUseCase := notificationUseCase.CreateUseCase(usrRepo, ntftRepo)
 
-	tmplUseCase := templateUseCase.CreateUseCase(lblRepo, colRepo, tskRepo, comRepo, chlistRepo, brdRepo, usrRepo)
+	templateReadersMap := ReadTemplates(server.ApiConfig.GetTemplatesPath())
+	tmplUseCase := templateUseCase.CreateUseCase(lblRepo, colRepo, tskRepo, comRepo, chlistRepo, brdRepo, usrRepo, templateReadersMap)
 
 	// middlware
 	router := echo.New()
@@ -190,4 +192,30 @@ func (server *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// TODO: Вынести в более подходящее место
+func ReadTemplates(tmplPath string) map[string]*viper.Viper {
+	// Временный костыль - один независимый экземляр viper на каждый шаблон
+	templateReadersMap := make(map[string]*viper.Viper, 0)
+
+	weekTemplateReader := viper.New()
+	weekTemplateReader.AddConfigPath(tmplPath)
+	weekTemplateReader.SetConfigName("week_plan")
+	err := weekTemplateReader.MergeInConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
+	templateReadersMap["week_plan"] = weekTemplateReader
+
+	projectTemplateReader := viper.New()
+	projectTemplateReader.AddConfigPath(tmplPath)
+	projectTemplateReader.SetConfigName("product_managment")
+	err = projectTemplateReader.MergeInConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
+	templateReadersMap["product_managment"] = projectTemplateReader
+
+	return templateReadersMap
 }

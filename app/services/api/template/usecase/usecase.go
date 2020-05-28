@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"os"
 	"strings"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
@@ -28,87 +27,67 @@ type TemplateUsecase struct {
 	labelRepo   label.Repository
 	chlistRepo  checklist.Repository
 	userRepo    user.Repository
+
+	templateCache map[string]*viper.Viper
 }
 
 func CreateUseCase(labelRepo_ label.Repository, columnRepo_ column.Repository, taskRepo_ task.Repository, commentRepo_ comment.Repository,
-	chlistRepo_ checklist.Repository, boardRepo_ board.Repository, userRepo_ user.Repository) template.Usecase {
+	chlistRepo_ checklist.Repository, boardRepo_ board.Repository, userRepo_ user.Repository, templateCache_ map[string]*viper.Viper) template.Usecase {
 	return &TemplateUsecase{
-		labelRepo:   labelRepo_,
-		columnRepo:  columnRepo_,
-		taskRepo:    taskRepo_,
-		commentRepo: commentRepo_,
-		chlistRepo:  chlistRepo_,
-		boardRepo:   boardRepo_,
-		userRepo:    userRepo_,
+		labelRepo:     labelRepo_,
+		columnRepo:    columnRepo_,
+		taskRepo:      taskRepo_,
+		commentRepo:   commentRepo_,
+		chlistRepo:    chlistRepo_,
+		boardRepo:     boardRepo_,
+		userRepo:      userRepo_,
+		templateCache: templateCache_,
 	}
 }
 
 // Здесь все плохо и это нужно будет переделать
+func (tmplUsecase *TemplateUsecase) Create(uid uint, tmpl *models.Template) (*models.Board, error) {
+	reader, exist := tmplUsecase.templateCache[tmpl.Variant]
+	if !exist {
+		return nil, errors.ErrDbBadOperation
+	}
 
-func (tmplUsecase *TemplateUsecase) Create(uid uint, tmpl *models.Template) error {
-	_ = ReadTemplateByVariant(tmpl)
-	board := ParseBoard()
-	board.InviteLink = ""
+	board := ParseBoard(reader)
+	board.InviteLink = tmplUsecase.boardRepo.GenerateInviteLink(32)
 
 	_, err := tmplUsecase.userRepo.GetByID(uid)
 	if err != nil {
 		logger.Error(err)
-		return err
+		return nil, err
 	}
 	err = tmplUsecase.boardRepo.Create(uid, board)
 	if err != nil {
 		logger.Error(err)
-		return err
+		return nil, err
 	}
 
 	//board.Admins = append(board.Admins, *usr)
 
-	labelsMap, err := tmplUsecase.CreateLabels(board.ID)
+	labelsMap, err := tmplUsecase.CreateLabels(reader, board.ID)
 	if err != nil {
 		logger.Error(err)
-		return err
+		return nil, err
 	}
-	err = tmplUsecase.CreateColumnsAndTask(board.ID, labelsMap)
+	err = tmplUsecase.CreateColumnsAndTask(reader, board.ID, labelsMap)
 	if err != nil {
 		logger.Error(err)
-		return err
+		return nil, err
 	}
-	return nil
+	return board, nil
 }
 
-// читаем файл
-func ReadTemplateByVariant(tmpl *models.Template) error {
-	tmplPath, exists := os.LookupEnv("BOARD_TEMPLATES_PATH")
-	if !exists {
-		logger.Fatal("BOARD_TEMPLATES_PATH environment variable not exist")
-	}
-
-	switch tmpl.Variant {
-	case "week_plan":
-		{
-			viper.SetConfigName("week_plan")
-			viper.AddConfigPath(tmplPath)
-			err := viper.MergeInConfig()
-			if err != nil {
-				logger.Error(err)
-			}
-		}
-	default:
-		{
-			return errors.ErrDbBadOperation
-		}
-	}
-
-	return nil
-}
-
-func ParseBoard() *models.Board {
-	boardName := viper.GetString("board.name")
+func ParseBoard(reader *viper.Viper) *models.Board {
+	boardName := reader.GetString("board.name")
 	return &models.Board{Name: boardName}
 }
 
-func (tmplUsecase *TemplateUsecase) CreateLabels(bid uint) (map[string]uint, error) {
-	labelsMap := viper.GetStringMapString("labels")
+func (tmplUsecase *TemplateUsecase) CreateLabels(reader *viper.Viper, bid uint) (map[string]uint, error) {
+	labelsMap := reader.GetStringMapString("labels")
 	labelNameToID := make(map[string]uint, 0)
 
 	for labelName, labelColor := range labelsMap {
@@ -125,8 +104,8 @@ func (tmplUsecase *TemplateUsecase) CreateLabels(bid uint) (map[string]uint, err
 }
 
 // Один большой костыль
-func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(bid uint, labelsMap map[string]uint) error {
-	columns := viper.GetStringMap("columns")
+func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bid uint, labelsMap map[string]uint) error {
+	columns := reader.GetStringMap("columns")
 
 	for columnName, tasksNode := range columns {
 		var column models.Column

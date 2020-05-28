@@ -1,0 +1,40 @@
+board: {
+  name: Планирование проекта
+}
+
+labels: {
+  BigTask: orange,
+  SmallTask: green,
+}
+
+columns: {
+  Разработка: {
+      position: [0.0],
+      Сходить в магазин: {
+        position: [0.0],
+        labels: [BigTask, SmallTask],
+      },
+      #Убраться дома: [Важно]
+  },
+  Ревью: {
+    position: [1.0],
+    Сходить в магазин: {
+        position: [0.0],
+        labels: [BigTask, SmallTask],
+      },
+  },
+  Тестирование: {
+    position: [2.0],
+    Сходить в магазин: {
+        position: [0.0],
+        labels: [BigTask, SmallTask],
+      },
+  },
+  Деплой: {
+    position: [3.0],
+    Сходить в магазин: {
+        position: [0.0],
+        labels: [BigTask, SmallTask],
+      },
+  }
+}

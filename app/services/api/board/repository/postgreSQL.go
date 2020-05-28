@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
@@ -22,7 +23,8 @@ func CreateRepository(db *gorm.DB) board.Repository {
 	return &BoardStore{DB: db, linkLen: 32}
 }
 
-func (boardStore *BoardStore) generateInviteLink(size uint) string {
+func (boardStore *BoardStore) GenerateInviteLink(size uint) string {
+	rand.Seed(time.Now().UnixNano())
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	s := make([]rune, size)
 	for i := range s {
@@ -32,7 +34,7 @@ func (boardStore *BoardStore) generateInviteLink(size uint) string {
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
-	board.InviteLink = boardStore.generateInviteLink(boardStore.linkLen)
+	board.InviteLink = boardStore.GenerateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Create(board).Error
 	if err != nil {
 		logger.Error(err)
@@ -269,7 +271,7 @@ func (boardStore *BoardStore) InviteMemberByLink(usr models.User, link string) (
 }
 
 func (boardStore *BoardStore) UpdateInviteLink(bid uint) error {
-	inviteLink := boardStore.generateInviteLink(boardStore.linkLen)
+	inviteLink := boardStore.GenerateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
 		UpdateColumn("invite_link", inviteLink).Error
 	if err != nil {

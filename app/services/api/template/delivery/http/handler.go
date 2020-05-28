@@ -20,8 +20,7 @@ func CreateHandler(router *echo.Echo, usecase_ template.Usecase, mw *middleware.
 	handler := &TemplateHandler{
 		usecase: usecase_,
 	}
-
-	router.POST("api/boards/templates/:name", handler.Create, mw.Sanitize, mw.CheckAuth)
+	router.POST("api/boards/templates", handler.Create, mw.Sanitize, mw.CheckAuth)
 }
 
 func (templateHandler *TemplateHandler) Create(ctx echo.Context) error {
@@ -34,14 +33,13 @@ func (templateHandler *TemplateHandler) Create(ctx echo.Context) error {
 	}
 
 	uid := ctx.Get("uid").(uint)
-	err = templateHandler.usecase.Create(uid, &tmpl)
+	board, err := templateHandler.usecase.Create(uid, &tmpl)
 	if err != nil {
 		logger.Error(err)
 		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
 	}
 
-	// Что возвращать будем ?
-	resp, err := tmpl.MarshalJSON()
+	resp, err := board.MarshalJSON()
 	if err != nil {
 		logger.Error(err)
 		return ctx.NoContent(http.StatusInternalServerError)

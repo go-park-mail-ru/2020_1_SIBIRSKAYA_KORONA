@@ -5,5 +5,5 @@ import (
 )
 
 type Usecase interface {
-	Create(uid uint, tmpl *models.Template) error
+	Create(uid uint, tmpl *models.Template) (*models.Board, error)
 }
