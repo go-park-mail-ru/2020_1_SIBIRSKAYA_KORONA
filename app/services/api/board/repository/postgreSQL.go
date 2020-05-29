@@ -161,7 +161,7 @@ func (boardStore *BoardStore) Delete(bid uint) error {
 		}
 		for taskID := range tasks {
 			errQuery := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
-			if err != nil {
+			if errQuery != nil {
 				logger.Error(errQuery)
 				return errors.ErrDbBadOperation
 			}
@@ -208,7 +208,29 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
-	return nil
+
+	// чистим таски текущей доски от текущего пользователя
+	var columns []models.Column
+	err = boardStore.DB.Model(&models.Board{ID: bid}).Related(&columns, "bid").Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	for columnID := range columns {
+		var tasks []models.Task
+		errQuery := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
+		if errQuery != nil {
+			logger.Error(errQuery)
+			return errors.ErrDbBadOperation
+		}
+		for taskID := range tasks {
+			errQuery := boardStore.DB.Model(&models.Task{ID: tasks[taskID].ID}).Association("Members").Delete(&models.User{ID: member.ID})
+			if errQuery != nil {
+				logger.Error(errQuery)
+				return errors.ErrDbBadOperation
+			}
+		}
+	}
 }
 
 func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
