@@ -224,7 +224,7 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 			return errors.ErrDbBadOperation
 		}
 		for taskID := range tasks {
-			errQuery := boardStore.DB.Model(&models.Task{ID: tasks[taskID].ID}).Association("Members").Delete(&models.User{ID: member.ID})
+			errQuery := boardStore.DB.Model(&models.Task{ID: tasks[taskID].ID}).Association("Members").Delete(member).Error
 			if errQuery != nil {
 				logger.Error(errQuery)
 				return errors.ErrDbBadOperation
