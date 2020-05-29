@@ -42,7 +42,7 @@ func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader, attach *mod
 		Bucket:             aws.String(s3Store.bucket),
 		Key:                aws.String(filename),
 		Body:               file,
-		ContentDisposition: aws.String(attachFile.Filename),
+		ContentDisposition: aws.String(fmt.Sprintf("attachment; filename=\"%s\"", attachFile.Filename)),
 	})
 
 	if err != nil {
