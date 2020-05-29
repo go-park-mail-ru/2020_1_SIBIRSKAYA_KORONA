@@ -40,6 +40,15 @@ func (columnUseCase *ColumnUseCase) GetTasksByID(cid uint) (models.Tasks, error)
 	return tsks, nil
 }
 
+func (columnUseCase *ColumnUseCase) Update(newCol models.Column) error {
+	err := columnUseCase.columnRepo.Update(newCol)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	return nil
+}
+
 func (columnUseCase *ColumnUseCase) Delete(cid uint) error {
 	err := columnUseCase.columnRepo.Delete(cid)
 	if err != nil {

@@ -61,7 +61,9 @@ func (wsPool *GorillaWebSocketPool) run(ctx echo.Context) error {
 	var readErr error = nil
 	for readErr == nil {
 		_, _, readErr = ws.ReadMessage()
-		logger.Error(readErr)
+		if readErr != nil {
+			logger.Error(readErr)
+		}
 	}
 	logger.Info("close web socket with error:", readErr)
 	return ctx.NoContent(http.StatusOK)
