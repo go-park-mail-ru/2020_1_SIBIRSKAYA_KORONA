@@ -18,6 +18,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
 	pass "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/password"
 	"github.com/labstack/gommon/log"
+	"github.com/labstack/gommon/random"
 )
 
 type UserStore struct {
@@ -127,7 +128,7 @@ func (userStore *UserStore) UploadAvatarToStaticStorage(avatarFileDescriptor *mu
 		logger.Error(err)
 		return "", err
 	}
-	avatarFileName := fmt.Sprintf("%d.%s", id, format)
+	avatarFileName := fmt.Sprintf("%d_%s.%s", id, random.String(8, random.Alphabetic, random.Numeric), format)
 	avatarPath := fmt.Sprintf("%s/%s", userStore.Config.GetFrontendAvatarDir(), avatarFileName)
 	avatarDst, err := os.Create(avatarPath)
 	if err != nil {
