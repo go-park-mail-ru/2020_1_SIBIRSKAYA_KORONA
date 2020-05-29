@@ -103,7 +103,7 @@ func (tmplUsecase *TemplateUsecase) CreateLabels(reader *viper.Viper, bid uint) 
 	return labelNameToID, nil
 }
 
-// Один большой костыль
+// Один большой костыль, переделать формат файла и подобрать отдельный парсер для yaml
 func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bid uint, labelsMap map[string]uint) error {
 	columns := reader.GetStringMap("columns")
 
@@ -116,7 +116,6 @@ func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bi
 
 		pos := tasks["position"].([]interface{})
 		column.Pos = pos[0].(float64)
-		delete(tasks, "position")
 
 		err := tmplUsecase.columnRepo.Create(&column)
 		if err != nil {
@@ -125,6 +124,11 @@ func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bi
 		}
 
 		for taskName, taskInter := range tasks {
+			// Костыль
+			if taskName == "position" {
+				continue
+			}
+
 			var task models.Task
 			task.Name = taskName
 			task.Cid = column.ID

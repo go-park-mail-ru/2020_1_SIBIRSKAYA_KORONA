@@ -210,12 +210,12 @@ func ReadTemplates(tmplPath string) map[string]*viper.Viper {
 
 	projectTemplateReader := viper.New()
 	projectTemplateReader.AddConfigPath(tmplPath)
-	projectTemplateReader.SetConfigName("product_managment")
+	projectTemplateReader.SetConfigName("product_management")
 	err = projectTemplateReader.MergeInConfig()
 	if err != nil {
 		logger.Fatal(err)
 	}
-	templateReadersMap["product_managment"] = projectTemplateReader
+	templateReadersMap["product_management"] = projectTemplateReader
 
 	return templateReadersMap
 }
