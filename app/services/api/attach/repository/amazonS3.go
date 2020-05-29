@@ -39,9 +39,10 @@ func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader, attach *mod
 	filename := attach.FileKey
 	uploader := s3manager.NewUploader(s3Store.sessionS3)
 	manager, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s3Store.bucket),
-		Key:    aws.String(filename),
-		Body:   file,
+		Bucket:             aws.String(s3Store.bucket),
+		Key:                aws.String(filename),
+		Body:               file,
+		ContentDisposition: aws.String(attachFile.Filename),
 	})
 
 	if err != nil {
