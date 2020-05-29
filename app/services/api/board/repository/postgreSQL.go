@@ -231,6 +231,8 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 			}
 		}
 	}
+
+	return nil
 }
 
 func (boardStore *BoardStore) GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error) {
