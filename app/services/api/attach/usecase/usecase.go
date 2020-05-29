@@ -26,6 +26,8 @@ func CreateUseCase(attachModelRepo_ attach.Repository, attachFileRepo_ attach.Fi
 // сейчас просто рандомная строчка
 
 func (attachUseCase *AttachUseCase) Create(attachModel *models.AttachedFile, attachFile *multipart.FileHeader) error {
+	attachModel.FileKey = random.String(32, random.Alphabetic, random.Numeric)
+	attachModel.Name = attachFile.Filename
 	publicURL, err := attachUseCase.attachFileRepo.UploadFile(attachFile, attachModel)
 	if err != nil {
 		logger.Error(err)
@@ -33,8 +35,6 @@ func (attachUseCase *AttachUseCase) Create(attachModel *models.AttachedFile, att
 	}
 
 	attachModel.URL = publicURL
-	attachModel.Name = attachFile.Filename
-	attachModel.FileKey = random.String(32, random.Alphabetic, random.Numeric)
 	err = attachUseCase.attachModelRepo.Create(attachModel)
 	if err != nil {
 		logger.Error(err)
