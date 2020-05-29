@@ -26,7 +26,7 @@ func CreateUseCase(attachModelRepo_ attach.Repository, attachFileRepo_ attach.Fi
 // сейчас просто рандомная строчка
 
 func (attachUseCase *AttachUseCase) Create(attachModel *models.AttachedFile, attachFile *multipart.FileHeader) error {
-	publicURL, err := attachUseCase.attachFileRepo.UploadFile(attachFile)
+	publicURL, err := attachUseCase.attachFileRepo.UploadFile(attachFile, attachModel)
 	if err != nil {
 		logger.Error(err)
 		return err
