@@ -89,7 +89,7 @@ func ParseBoard(reader *viper.Viper) *models.Board {
 
 func (tmplUsecase *TemplateUsecase) CreateLabels(reader *viper.Viper, bid uint) (map[string]uint, error) {
 	labelsMap := reader.GetStringMapString("labels")
-	labelNameToID := make(map[string]uint, 0)
+	labelNameToID := make(map[string]uint)
 
 	for labelName, labelColor := range labelsMap {
 		label := models.Label{Name: labelName, Color: labelColor, Bid: bid}

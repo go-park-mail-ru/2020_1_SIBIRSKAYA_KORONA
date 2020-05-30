@@ -197,7 +197,7 @@ func (server *Server) Run() {
 // TODO: Вынести в более подходящее место
 func ReadTemplates(tmplPath string) map[string]*viper.Viper {
 	// Временный костыль - один независимый экземляр viper на каждый шаблон
-	templateReadersMap := make(map[string]*viper.Viper, 0)
+	templateReadersMap := make(map[string]*viper.Viper)
 
 	weekTemplateReader := viper.New()
 	weekTemplateReader.AddConfigPath(tmplPath)

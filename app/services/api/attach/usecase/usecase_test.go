@@ -47,7 +47,7 @@ func TestCreate(t *testing.T) {
 	fakeAttach := multipart.FileHeader{Filename: "fake"}
 
 	attachFileRepoMock.EXPECT().
-		UploadFile(&fakeAttach).
+		UploadFile(&fakeAttach, &testAttach).
 		Return(testAttach.URL, nil)
 
 	attachRepoMock.EXPECT().
@@ -58,14 +58,14 @@ func TestCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	attachFileRepoMock.EXPECT().
-		UploadFile(&fakeAttach).
+		UploadFile(&fakeAttach, &testAttach).
 		Return("", errors.ErrBadFileUploadS3)
 
 	err = atchUsecase.Create(&testAttach, &fakeAttach)
 	assert.EqualError(t, err, errors.BadFileUploadS3)
 
 	attachFileRepoMock.EXPECT().
-		UploadFile(&fakeAttach).
+		UploadFile(&fakeAttach, &testAttach).
 		Return(testAttach.URL, nil)
 
 	attachRepoMock.EXPECT().
@@ -77,7 +77,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	// t.Skip()
+	t.Skip()
 	t.Parallel()
 
 	ctrl := gomock.NewController(t)
