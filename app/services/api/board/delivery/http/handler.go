@@ -20,18 +20,18 @@ type BoardHandler struct {
 func CreateHandler(router *echo.Echo, useCase board.UseCase, mw *middleware.Middleware) {
 	handler := &BoardHandler{useCase: useCase}
 	// TODO: админы
-	router.POST("/api/boards", handler.Create, mw.Sanitize, mw.CheckAuth)
-	router.GET("/api/boards", handler.GetBoardsByUser, mw.CheckAuth)
-	router.GET("/api/boards/:bid", handler.Get, mw.CheckAuth)
-	router.GET("/api/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.GET("/api/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.PUT("/api/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal)
-	router.DELETE("/api/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal)
-	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification)
-	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification)
-	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission)
-	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendSignal)
-	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth, mw.SendNotification)
+	router.POST("/api/boards", handler.Create, mw.Sanitize, mw.CheckAuth, mw.CSRFmiddle)
+	router.GET("/api/boards", handler.GetBoardsByUser, mw.CheckAuth, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid", handler.Get, mw.CheckAuth, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid/labels", handler.GetLabels, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid/columns", handler.GetColumns, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CSRFmiddle)
+	router.PUT("/api/boards/:bid", handler.Update, mw.Sanitize, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal, mw.CSRFmiddle)
+	router.DELETE("/api/boards/:bid", handler.Delete, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendSignal, mw.CSRFmiddle)
+	router.POST("/api/boards/:bid/members/:uid", handler.InviteMember, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendNotification, mw.CSRFmiddle)
+	router.DELETE("/api/boards/:bid/members/:uid", handler.DeleteMember, mw.CheckAuth, mw.CheckBoardAdminPermission, mw.SendNotification, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid/search_for_invite", handler.GetUsersForInvite, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CSRFmiddle)
+	router.POST("/api/boards/:bid/invite_link", handler.UpdateInviteLink, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.SendSignal, mw.CSRFmiddle)
+	router.PUT("/api/invite_to_board/:link", handler.InviteMemberByLink, mw.CheckAuth, mw.SendNotification, mw.CSRFmiddle)
 }
 
 func (boardHandler *BoardHandler) Create(ctx echo.Context) error {

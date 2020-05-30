@@ -21,15 +21,15 @@ func CreateHandler(router *echo.Echo, useCase checklist.UseCase, mw *middleware.
 		UseCase: useCase,
 	}
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Create,
-		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid/checklists", handler.Get,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.CSRFmiddle)
 	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Update,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckChecklistInTask)
+		mw.CheckChecklistInTask, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid", handler.Delete,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckChecklistInTask, mw.SendSignal)
+		mw.CheckChecklistInTask, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (checklistHandler *ChecklistHandler) Create(ctx echo.Context) error {

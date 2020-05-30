@@ -21,14 +21,14 @@ func CreateHandler(router *echo.Echo, useCase column.UseCase, mw *middleware.Mid
 	handler := &ColumnHandler{UseCase: useCase}
 	// TODO: обсудить кто может создавать колонки
 	router.POST("/api/boards/:bid/columns", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.SendSignal)
-	router.GET("/api/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission)
+		mw.CheckBoardMemberPermission, mw.SendSignal, mw.CSRFmiddle)
+	router.GET("/api/boards/:bid/columns/:cid", handler.Get, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks", handler.GetTasks,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
-	router.PUT("/api/boards/:bid/columns/:cid", handler.Update, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CSRFmiddle)
+	router.PUT("/api/boards/:bid/columns/:cid", handler.Update, mw.Sanitize, mw.CheckAuth,
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (columnHandler *ColumnHandler) Create(ctx echo.Context) error {
@@ -88,6 +88,21 @@ func (columnHandler *ColumnHandler) GetTasks(ctx echo.Context) error {
 }
 
 func (columnHandler *ColumnHandler) Update(ctx echo.Context) error {
+	var col models.Column
+	body := ctx.Get("body").([]byte)
+	err := col.UnmarshalJSON(body)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	col.ID = ctx.Get("cid").(uint)
+	err = columnHandler.UseCase.Update(col)
+	if err != nil {
+		logger.Error(err)
+		return ctx.String(errors.ResolveErrorToCode(err), err.Error())
+	}
+	// for signal middlware
+	ctx.Set("eventType", "UpdateBoard")
 	return ctx.NoContent(http.StatusOK)
 }
 

@@ -77,6 +77,20 @@ func (mr *MockUseCaseMockRecorder) GetTasksByID(cid interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTasksByID", reflect.TypeOf((*MockUseCase)(nil).GetTasksByID), cid)
 }
 
+// Update mocks base method
+func (m *MockUseCase) Update(newCol models.Column) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", newCol)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockUseCaseMockRecorder) Update(newCol interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUseCase)(nil).Update), newCol)
+}
+
 // Delete mocks base method
 func (m *MockUseCase) Delete(cid uint) error {
 	m.ctrl.T.Helper()

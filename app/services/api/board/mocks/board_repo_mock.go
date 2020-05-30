@@ -207,3 +207,17 @@ func (mr *MockRepositoryMockRecorder) UpdateInviteLink(bid interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInviteLink", reflect.TypeOf((*MockRepository)(nil).UpdateInviteLink), bid)
 }
+
+// GenerateInviteLink mocks base method
+func (m *MockRepository) GenerateInviteLink(size uint) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateInviteLink", size)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GenerateInviteLink indicates an expected call of GenerateInviteLink
+func (mr *MockRepositoryMockRecorder) GenerateInviteLink(size interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateInviteLink", reflect.TypeOf((*MockRepository)(nil).GenerateInviteLink), size)
+}

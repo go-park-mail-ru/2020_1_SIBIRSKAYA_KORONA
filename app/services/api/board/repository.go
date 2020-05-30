@@ -18,4 +18,5 @@ type Repository interface {
 	GetUsersForInvite(bid uint, nicknamePart string, limit uint) (models.Users, error)
 	InviteMemberByLink(usr models.User, link string) (*models.Board, error)
 	UpdateInviteLink(bid uint) error
+	GenerateInviteLink(size uint) string
 }

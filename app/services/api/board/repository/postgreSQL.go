@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/board"
@@ -22,7 +23,8 @@ func CreateRepository(db *gorm.DB) board.Repository {
 	return &BoardStore{DB: db, linkLen: 32}
 }
 
-func (boardStore *BoardStore) generateInviteLink(size uint) string {
+func (boardStore *BoardStore) GenerateInviteLink(size uint) string {
+	rand.Seed(time.Now().UnixNano())
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	s := make([]rune, size)
 	for i := range s {
@@ -32,7 +34,7 @@ func (boardStore *BoardStore) generateInviteLink(size uint) string {
 }
 
 func (boardStore *BoardStore) Create(uid uint, board *models.Board) error {
-	board.InviteLink = boardStore.generateInviteLink(boardStore.linkLen)
+	board.InviteLink = boardStore.GenerateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Create(board).Error
 	if err != nil {
 		logger.Error(err)
@@ -159,7 +161,7 @@ func (boardStore *BoardStore) Delete(bid uint) error {
 		}
 		for taskID := range tasks {
 			errQuery := boardStore.DB.Delete(&models.Task{ID: tasks[taskID].ID}).Error
-			if err != nil {
+			if errQuery != nil {
 				logger.Error(errQuery)
 				return errors.ErrDbBadOperation
 			}
@@ -206,6 +208,30 @@ func (boardStore *BoardStore) DeleteMember(bid uint, member *models.User) error 
 		logger.Error(err)
 		return errors.ErrDbBadOperation
 	}
+
+	// чистим таски текущей доски от текущего пользователя
+	var columns []models.Column
+	err = boardStore.DB.Model(&models.Board{ID: bid}).Related(&columns, "bid").Error
+	if err != nil {
+		logger.Error(err)
+		return errors.ErrDbBadOperation
+	}
+	for columnID := range columns {
+		var tasks []models.Task
+		errQuery := boardStore.DB.Model(&models.Column{ID: columns[columnID].ID}).Related(&tasks, "cid").Error
+		if errQuery != nil {
+			logger.Error(errQuery)
+			return errors.ErrDbBadOperation
+		}
+		for taskID := range tasks {
+			errQuery := boardStore.DB.Model(&models.Task{ID: tasks[taskID].ID}).Association("Members").Delete(member).Error
+			if errQuery != nil {
+				logger.Error(errQuery)
+				return errors.ErrDbBadOperation
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -269,7 +295,7 @@ func (boardStore *BoardStore) InviteMemberByLink(usr models.User, link string) (
 }
 
 func (boardStore *BoardStore) UpdateInviteLink(bid uint) error {
-	inviteLink := boardStore.generateInviteLink(boardStore.linkLen)
+	inviteLink := boardStore.GenerateInviteLink(boardStore.linkLen)
 	err := boardStore.DB.Model(models.Board{}).Where("id = ? ", bid).
 		UpdateColumn("invite_link", inviteLink).Error
 	if err != nil {

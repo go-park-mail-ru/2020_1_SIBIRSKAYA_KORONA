@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
@@ -26,7 +27,7 @@ func CreateS3Repository(sessS3 *session.Session, bucket_ string) attach.FileRepo
 	return &S3Store{sessionS3: sessS3, bucket: bucket_}
 }
 
-func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader) (string, error) {
+func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader, attach *models.AttachedFile) (string, error) {
 	file, err := attachFile.Open()
 	if err != nil {
 		logger.Error(err)
@@ -35,12 +36,13 @@ func (s3Store *S3Store) UploadFile(attachFile *multipart.FileHeader) (string, er
 
 	defer file.Close()
 
-	filename := attachFile.Filename
+	filename := attach.FileKey
 	uploader := s3manager.NewUploader(s3Store.sessionS3)
 	manager, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s3Store.bucket),
-		Key:    aws.String(filename),
-		Body:   file,
+		Bucket:             aws.String(s3Store.bucket),
+		Key:                aws.String(filename),
+		Body:               file,
+		ContentDisposition: aws.String(fmt.Sprintf("attachment; filename=\"%s\"", attachFile.Filename)),
 	})
 
 	if err != nil {
