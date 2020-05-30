@@ -36,6 +36,22 @@ func (columnStore *ColumnStore) Get(cid uint) (*models.Column, error) {
 	return col, nil
 }
 
+func (columnStore *ColumnStore) Update(newCol models.Column) error {
+	oldCol, err := columnStore.Get(newCol.ID)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	if newCol.Name != "" {
+		oldCol.Name = newCol.Name
+	}
+	if err := columnStore.DB.Save(oldCol).Error; err != nil {
+		logger.Error(err)
+		return errors.ErrConflict
+	}
+	return nil
+}
+
 func (columnStore *ColumnStore) GetTasksByID(cid uint) (models.Tasks, error) {
 	var tsks []models.Task
 	err := columnStore.DB.Model(&models.Column{ID: cid}).Related(&tsks, "cid").Error

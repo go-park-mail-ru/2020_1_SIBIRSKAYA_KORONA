@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	models "github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	gomock "github.com/golang/mock/gomock"
 	multipart "mime/multipart"
 	reflect "reflect"
@@ -34,18 +35,18 @@ func (m *MockFileRepository) EXPECT() *MockFileRepositoryMockRecorder {
 }
 
 // UploadFile mocks base method
-func (m *MockFileRepository) UploadFile(attachFile *multipart.FileHeader) (string, error) {
+func (m *MockFileRepository) UploadFile(attachFile *multipart.FileHeader, attachModel *models.AttachedFile) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UploadFile", attachFile)
+	ret := m.ctrl.Call(m, "UploadFile", attachFile, attachModel)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UploadFile indicates an expected call of UploadFile
-func (mr *MockFileRepositoryMockRecorder) UploadFile(attachFile interface{}) *gomock.Call {
+func (mr *MockFileRepositoryMockRecorder) UploadFile(attachFile, attachModel interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFile", reflect.TypeOf((*MockFileRepository)(nil).UploadFile), attachFile)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFile", reflect.TypeOf((*MockFileRepository)(nil).UploadFile), attachFile, attachModel)
 }
 
 // DeleteFile mocks base method

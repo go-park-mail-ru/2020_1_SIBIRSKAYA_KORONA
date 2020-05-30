@@ -22,17 +22,17 @@ func CreateHandler(router *echo.Echo, useCase label.UseCase, mw *middleware.Midd
 		useCase: useCase,
 	}
 	router.POST("/api/boards/:bid/labels", handler.Create, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.SendSignal, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/labels/:lid", handler.Get, mw.CheckAuth,
-		mw.CheckBoardMemberPermission)
+		mw.CheckBoardMemberPermission, mw.CSRFmiddle)
 	router.PUT("/api/boards/:bid/labels/:lid", handler.Update, mw.Sanitize, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/labels/:lid", handler.Delete, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.SendSignal, mw.CSRFmiddle)
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.AddLabelOnTask, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/labels/:lid", handler.RemoveLabelFromTask, mw.CheckAuth,
-		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.CheckBoardMemberPermission, mw.CheckLabelInBoard, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (labelHandler *LabelHandler) Create(ctx echo.Context) error {

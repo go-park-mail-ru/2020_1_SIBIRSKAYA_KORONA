@@ -13,6 +13,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - S3_BUCKET_REGION=${S3_BUCKET_REGION}
       - S3_BUCKET=${S3_BUCKET}
+      - BOARD_TEMPLATES_PATH=/app/templates
     ports:
       - "8080:8080"
       - "7070:7070"

@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/services/api/attach"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/logger"
+	"github.com/labstack/gommon/random"
 
 	"mime/multipart"
 )
@@ -21,15 +22,19 @@ func CreateUseCase(attachModelRepo_ attach.Repository, attachFileRepo_ attach.Fi
 	}
 }
 
+// TODO: переделать под хэш-сумма файла, что позволит не хранить одинаковые файлы на облачном сервисе
+// сейчас просто рандомная строчка
+
 func (attachUseCase *AttachUseCase) Create(attachModel *models.AttachedFile, attachFile *multipart.FileHeader) error {
-	publicURL, err := attachUseCase.attachFileRepo.UploadFile(attachFile)
+	attachModel.FileKey = random.String(32, random.Alphabetic, random.Numeric)
+	attachModel.Name = attachFile.Filename
+	publicURL, err := attachUseCase.attachFileRepo.UploadFile(attachFile, attachModel)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
 	attachModel.URL = publicURL
-	attachModel.Name = attachFile.Filename
 	err = attachUseCase.attachModelRepo.Create(attachModel)
 	if err != nil {
 		logger.Error(err)
@@ -66,7 +71,7 @@ func (attachUseCase *AttachUseCase) Delete(fid uint) error {
 		return err
 	}
 
-	err = attachUseCase.attachFileRepo.DeleteFile(attachFile.Name)
+	err = attachUseCase.attachFileRepo.DeleteFile(attachFile.FileKey)
 	if err != nil {
 		logger.Error(err)
 		return err

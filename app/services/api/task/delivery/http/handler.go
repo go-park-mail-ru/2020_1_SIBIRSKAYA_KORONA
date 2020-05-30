@@ -20,19 +20,19 @@ type TaskHandler struct {
 func CreateHandler(router *echo.Echo, useCase task.UseCase, mw *middleware.Middleware) {
 	handler := &TaskHandler{UseCase: useCase}
 	router.POST("/api/boards/:bid/columns/:cid/tasks", handler.Create, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.SendSignal, mw.CSRFmiddle)
 	router.GET("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Get,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CSRFmiddle)
 	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Update, mw.Sanitize,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.SendNotification, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid", handler.Delete,
-		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal)
+		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol, mw.SendSignal, mw.CSRFmiddle)
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Assign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckUserForAssignInBoard, mw.SendSignal, mw.SendNotification)
+		mw.CheckUserForAssignInBoard, mw.SendSignal, mw.SendNotification, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/members/:uid", handler.Unassign,
 		mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckUserForAssignInBoard, mw.SendSignal)
+		mw.CheckUserForAssignInBoard, mw.SendSignal, mw.CSRFmiddle)
 }
 
 func (taskHandler *TaskHandler) Create(ctx echo.Context) error {

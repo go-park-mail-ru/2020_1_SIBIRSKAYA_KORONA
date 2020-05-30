@@ -9,5 +9,6 @@ type UseCase interface {
 	Create(column *models.Column) error
 	Get(bid uint, cid uint) (*models.Column, error)
 	GetTasksByID(cid uint) (models.Tasks, error)
+	Update(newCol models.Column) error
 	Delete(cid uint) error
 }

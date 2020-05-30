@@ -52,7 +52,7 @@ func TestCreate(t *testing.T) {
 	// good
 	mock.ExpectBegin()
 	mock.ExpectQuery(`INSERT INTO (.*) "attached_files"`).WithArgs(
-		attach.ID, attach.URL, attach.Name, attach.Tid).WillReturnRows(
+		attach.ID, attach.URL, attach.Name, attach.FileKey, attach.Tid).WillReturnRows(
 		sqlmock.NewRows([]string{"id"}).AddRow(attach.ID))
 	mock.ExpectCommit()
 
@@ -66,7 +66,7 @@ func TestCreate(t *testing.T) {
 	// error
 	mock.ExpectBegin()
 	mock.ExpectQuery(`INSERT INTO (.*) "attached_files"`).WithArgs(
-		attach.ID, attach.URL, attach.Name, attach.Tid).WillReturnError(errors.ErrConflict)
+		attach.ID, attach.URL, attach.Name, attach.FileKey, attach.Tid).WillReturnError(errors.ErrConflict)
 
 	if err := repo.Create(&attach); err == nil {
 		t.Errorf("expected error, got nil")
@@ -137,8 +137,8 @@ func TestGetByID(t *testing.T) {
 
 	mock.ExpectQuery(query).WithArgs(
 		attach.ID).WillReturnRows(sqlmock.NewRows(
-		[]string{"id", "url", "name", "tid"}).AddRow(
-		attach.ID, attach.URL, attach.Name, attach.Tid))
+		[]string{"id", "url", "name", "filekey", "tid"}).AddRow(
+		attach.ID, attach.URL, attach.Name, attach.FileKey, attach.Tid))
 
 	if _, err := repo.GetByID(attach.ID); err != nil {
 		t.Errorf("unexpected error")

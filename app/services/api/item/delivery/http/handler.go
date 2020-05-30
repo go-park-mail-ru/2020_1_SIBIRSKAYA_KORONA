@@ -21,13 +21,13 @@ func CreateHandler(router *echo.Echo, useCase item.UseCase, mw *middleware.Middl
 	}
 	router.POST("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items", handler.Create,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard,
-		mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.SendSignal)
+		mw.CheckTaskInCol, mw.CheckChecklistInTask, mw.SendSignal, mw.CSRFmiddle)
 	router.PUT("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Update,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckChecklistInTask, mw.CheckItemInChecklist, mw.SendSignal)
+		mw.CheckChecklistInTask, mw.CheckItemInChecklist, mw.SendSignal, mw.CSRFmiddle)
 	router.DELETE("/api/boards/:bid/columns/:cid/tasks/:tid/checklists/:clid/items/:itid", handler.Delete,
 		mw.Sanitize, mw.CheckAuth, mw.CheckBoardMemberPermission, mw.CheckColInBoard, mw.CheckTaskInCol,
-		mw.CheckChecklistInTask, mw.CheckItemInChecklist)
+		mw.CheckChecklistInTask, mw.CheckItemInChecklist, mw.CSRFmiddle)
 }
 
 func (itemHandler *ItemHandler) Create(ctx echo.Context) error {
