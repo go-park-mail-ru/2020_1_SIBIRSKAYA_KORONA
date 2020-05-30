@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"strings"
+	"unicode"
 
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/app/models"
 	"github.com/go-park-mail-ru/2020_1_SIBIRSKAYA_KORONA/pkg/errors"
@@ -110,7 +111,11 @@ func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bi
 	for columnName, tasksNode := range columns {
 		var column models.Column
 		column.Bid = bid
-		column.Name = columnName
+		columnNameTitle := []rune(columnName)
+		if len(columnNameTitle) != 0 {
+			columnNameTitle[0] = unicode.ToUpper(columnNameTitle[0])
+		}
+		column.Name = string(columnNameTitle)
 
 		tasks := tasksNode.(map[string]interface{})
 
@@ -130,7 +135,11 @@ func (tmplUsecase *TemplateUsecase) CreateColumnsAndTask(reader *viper.Viper, bi
 			}
 
 			var task models.Task
-			task.Name = taskName
+			taskNameTitle := []rune(taskName)
+			if len(taskNameTitle) != 0 {
+				taskNameTitle[0] = unicode.ToUpper(taskNameTitle[0])
+			}
+			task.Name = string(taskNameTitle)
 			task.Cid = column.ID
 			taskNode := taskInter.(map[string]interface{})
 			taskPosition := taskNode["position"].([]interface{})

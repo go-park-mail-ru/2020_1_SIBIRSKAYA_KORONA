@@ -3,38 +3,52 @@ board: {
 }
 
 labels: {
-  BigTask: orange,
-  SmallTask: green,
+  Планирование: orange,
+  Инфраструктура: green,
 }
 
 columns: {
-  Разработка: {
+  Список задач: {
+    position: [0.0],
+    Завести git-репозиторий: {
       position: [0.0],
-      Сходить в магазин: {
-        position: [0.0],
-        labels: [BigTask, SmallTask],
-      },
-      #Убраться дома: [Важно]
+      labels: [Инфраструктура],
+    },
+
+    Обсудить дизайн: {
+      position: [1.0],
+      labels: [Планирование],
+    },
+
+    Определиться со стэком: {
+      position: [2.0],
+      labels: [Планирование, Инфраструктура],
+    },
+
+    Продумать API: {
+      position: [3.0],
+      labels: [Планирование, Инфраструктура],
+    },
+
+    Назначить задачи на ближайший спринт: {
+      position: [4.0],
+      labels: [Планирование],
+    },
+
+  },
+  В разработке: {
+    position: [1.0],
   },
   Ревью: {
-    position: [1.0],
-    Сходить в магазин: {
-        position: [0.0],
-        labels: [BigTask, SmallTask],
-      },
+    position: [2.0],
   },
   Тестирование: {
-    position: [2.0],
-    Сходить в магазин: {
-        position: [0.0],
-        labels: [BigTask, SmallTask],
-      },
+    position: [3.0],
   },
   Деплой: {
-    position: [3.0],
-    Сходить в магазин: {
-        position: [0.0],
-        labels: [BigTask, SmallTask],
-      },
-  }
+    position: [4.0],
+  },
+  Готово: {
+    position: [5.0],
+  },
 }
